@@ -1,0 +1,287 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Search, Calendar, ArrowRight, Clock, Tag } from 'lucide-react';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
+
+interface ImageDisplayOptions {
+  size: 'small' | 'medium' | 'large' | 'full';
+  alignment: 'left' | 'center' | 'right';
+  caption?: string;
+  cropMode: 'cover' | 'contain' | 'none';
+}
+
+interface NewsImage {
+  id?: string;
+  url: string;
+  publicId?: string;
+  displayOptions: ImageDisplayOptions;
+}
+
+interface Section {
+  images: NewsImage[];
+  text: string;
+  imageUrl?: string; // Mantenemos para compatibilidad con el formato antiguo
+}
+
+interface NewsItem {
+  _id: string;
+  title: string;
+  sections: Section[];
+  date: string;
+  category: string;
+}
+
+const NewsSection: React.FC = () => {
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('Todas');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const fetchNews = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get('http://localhost:5000/api/news');
+
+      // Ordenar noticias por fecha (de más reciente a más antigua)
+      const sortedNews = [...res.data].sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+
+      setNewsItems(sortedNews);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to get image URL (compatible with both old and new formats)
+  const getImageUrl = (section: Section): string | undefined => {
+    // First try new format
+    if (section.images && section.images.length > 0) {
+      return section.images[0].url;
+    }
+    // Fall back to old format
+    else if (section.imageUrl) {
+      return section.imageUrl;
+    }
+    return undefined;
+  };
+
+  // Extract unique categories
+  const categories = ['Todas', ...Array.from(new Set(newsItems.map(item => item.category)))];
+
+  // Filter news by search term and category
+  const filteredNews = newsItems.filter(n => {
+    const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === 'Todas' || n.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Format date function with more elegant styling
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+    return new Date(dateString).toLocaleDateString('es-ES', options);
+  };
+
+  // Get first paragraph of news content
+  const getExcerpt = (sections: Section[]) => {
+    const contentSection = sections.find(s => s.text);
+    if (contentSection) {
+      const text = contentSection.text;
+      return text.length > 150 ? text.substring(0, 150) + '...' : text;
+    }
+    return '';
+  };
+
+  // Featured news (first item)
+  const featuredNews = filteredNews.length > 0 ? filteredNews[0] : null;
+  // Regular news (remaining items)
+  const regularNews = filteredNews.length > 1 ? filteredNews.slice(1) : [];
+
+  return (
+    <section className="pt-28 pb-24 bg-white">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-16">
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl font-serif font-normal text-gray-900 mb-8 md:mb-0 relative"
+          >
+            <span className="inline-block border-b border-gray-400 pb-1">
+              Últimas Noticias
+            </span>
+          </motion.h2>
+
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar noticias..."
+              className="w-full pl-10 p-2 border-b border-gray-200 focus:outline-none focus:border-gray-900 bg-transparent text-gray-800 font-serif"
+            />
+          </div>
+        </div>
+
+        {/* Category filters - más elegantes y minimalistas */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-wrap gap-3 mb-16 justify-center"
+        >
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 text-sm font-serif transition-all ${
+                activeCategory === category
+                  ? 'text-white bg-gray-900'
+                  : 'text-gray-700 bg-white border border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </motion.div>
+
+        {isLoading ? (
+          /* Skeleton loader with refined styling */
+          <div className="space-y-16">
+            <div className="w-full h-96 bg-gray-100 animate-pulse"></div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-gray-100 h-64 animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        ) : filteredNews.length === 0 ? (
+          <div className="text-center py-20">
+            <h3 className="text-2xl font-serif text-gray-700 mb-3">No se encontraron noticias</h3>
+            <p className="text-gray-500 font-serif italic">Intenta con otra búsqueda o categoría</p>
+          </div>
+        ) : (
+          <>
+            {/* Featured news - diseño destacado */}
+            {featuredNews && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="mb-24"
+              >
+                <Link to={`/noticias/${featuredNews._id}`} className="block group">
+                  <div className="grid md:grid-cols-12 gap-8 items-center">
+                    <div className="md:col-span-7 lg:col-span-8 order-2 md:order-1">
+                      <span className="inline-block text-xs font-medium uppercase tracking-wider border border-gray-900 px-2 py-1 mb-5 text-gray-900">
+                        {featuredNews.category}
+                      </span>
+                      <h3 className="text-3xl md:text-4xl font-serif font-normal text-gray-900 mb-6 leading-tight group-hover:text-gray-700 transition-colors">
+                        {featuredNews.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 font-serif leading-relaxed">
+                        {getExcerpt(featuredNews.sections)}
+                      </p>
+                      <div className="flex items-center text-gray-500">
+                        <time className="text-sm font-serif italic">{formatDate(featuredNews.date)}</time>
+                        <span className="mx-3 text-xs">•</span>
+                        <span className="text-sm font-serif inline-flex items-center">
+                          Leer artículo
+                          <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                        </span>
+                      </div>
+                    </div>
+                    <div className="md:col-span-5 lg:col-span-4 order-1 md:order-2">
+                      <div className="aspect-w-4 aspect-h-5 overflow-hidden">
+                        <img
+                          src={featuredNews.sections[0] ? getImageUrl(featuredNews.sections[0]) : '/placeholder-news.jpg'}
+                          alt={featuredNews.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            )}
+
+            {/* Divider after featured news */}
+            <div className="border-t border-gray-100 mb-16"></div>
+
+            {/* Regular news grid - estilo minimalista y elegante */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+              {regularNews.map((news, i) => (
+                <motion.article
+                  key={news._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="group"
+                >
+                  <Link to={`/noticias/${news._id}`} className="block">
+                    <div className="aspect-w-16 aspect-h-9 mb-5 overflow-hidden">
+                      <img
+                        src={news.sections[0] ? getImageUrl(news.sections[0]) : '/placeholder-news.jpg'}
+                        alt={news.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase tracking-wider text-gray-500 mb-2 block">
+                        {news.category}
+                      </span>
+                      <h3 className="text-xl font-serif mb-3 group-hover:text-gray-600 transition-colors line-clamp-2">
+                        {news.title}
+                      </h3>
+                      <p className="text-gray-600 mb-3 font-serif line-clamp-2 text-sm">
+                        {getExcerpt(news.sections)}
+                      </p>
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <time className="font-serif italic">
+                          {formatDate(news.date)}
+                        </time>
+                        <span className="mx-2">•</span>
+                        <span className="text-gray-900 font-serif inline-flex items-center">
+                          Leer
+                          <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.article>
+              ))}
+            </div>
+
+            {/* View all news button - estilo refinado */}
+            {newsItems.length > filteredNews.length && (
+              <div className="text-center mt-20">
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setActiveCategory('Todas');
+                  }}
+                  className="border border-gray-900 text-gray-900 px-8 py-3 font-serif hover:bg-gray-900 hover:text-white transition-colors inline-flex items-center"
+                >
+                  Ver todas las noticias <ArrowRight size={16} className="ml-2" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default NewsSection;

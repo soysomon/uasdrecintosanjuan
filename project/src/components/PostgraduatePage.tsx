@@ -1,0 +1,515 @@
+import React, { useState } from 'react';
+import { Search, Clock, GraduationCap, Building2, ArrowRight, BookOpen, X } from 'lucide-react';
+
+interface Program {
+  id: string;
+  title: string;
+  faculty: string;
+  duration: string;
+  credits: number;
+  description: string;
+  imageUrl: string;
+  status?: 'active' | 'coming-soon';
+}
+
+const programs: Program[] = [
+  // Facultad de Educación
+  {
+    id: 'gestion-centros-educativos',
+    title: 'Maestría en Gestión de Centros Educativos',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Formación especializada en gestión y administración educativa',
+    imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655'
+  },
+  {
+    id: 'orientacion-educativa',
+    title: 'Maestría en Orientación Educativa e Intervención Psicopedagógica',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en orientación y apoyo psicopedagógico',
+    imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7'
+  },
+  {
+    id: 'geografia-maestros',
+    title: 'Maestría en Geografía para Maestros',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en enseñanza de la geografía',
+    imageUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b'
+  },
+  {
+    id: 'procesos-pedagogicos',
+    title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en educación infantil',
+    imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b'
+  },
+  {
+    id: 'gestion-educacion-fisica',
+    title: 'Maestría en Gestión de la Educación Física y Deporte',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en gestión deportiva y educación física',
+    imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e'
+  },
+  {
+    id: 'matematica-docentes',
+    title: 'Maestría en Matemática para Docentes',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en enseñanza de las matemáticas',
+    imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904'
+  },
+  {
+    id: 'quimica-docentes',
+    title: 'Maestría en Química para Docentes',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en enseñanza de la química',
+    imageUrl: 'https://images.unsplash.com/photo-1532634993-15f421e42ec0'
+  },
+  {
+    id: 'educacion-afectivo-sexual',
+    title: 'Maestría en Educación Afectivo Sexual, basada en habilidades para la vida',
+    faculty: 'Ciencias de la Educación',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en educación sexual y afectiva',
+    imageUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846'
+  },
+  {
+    id: 'lengua-espanola',
+    title: 'Especialidad en Lengua Española y Literatura del Nivel Secundario',
+    faculty: 'Ciencias de la Educación',
+    duration: '1 año',
+    credits: 30,
+    description: 'Especialización en enseñanza de lengua y literatura',
+    imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667'
+  },
+
+  // Facultad de Humanidades
+  {
+    id: 'linguistica-ingles',
+    title: 'Maestría en Lingüística Aplicada a la Enseñanza del idioma Inglés',
+    faculty: 'Humanidades',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en enseñanza del inglés',
+    imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b'
+  },
+  {
+    id: 'literatura',
+    title: 'Maestría en Literatura',
+    faculty: 'Humanidades',
+    duration: '2 años',
+    credits: 60,
+    description: 'Estudios avanzados en literatura',
+    imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667'
+  },
+  {
+    id: 'historia-dominicana',
+    title: 'Maestría en Historia Dominicana',
+    faculty: 'Humanidades',
+    duration: '2 años',
+    credits: 60,
+    description: 'Estudios avanzados en historia dominicana',
+    imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1'
+  },
+  {
+    id: 'comunicacion-estrategica',
+    title: 'Maestría en Comunicación Estratégica y Relaciones Públicas',
+    faculty: 'Humanidades',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en comunicación y RRPP',
+    imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0'
+  },
+
+  // Facultad de Ciencias
+  {
+    id: 'fisica',
+    title: 'Maestría en Física',
+    faculty: 'Ciencias',
+    duration: '2 años',
+    credits: 60,
+    description: 'Estudios avanzados en física teórica y aplicada',
+    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb'
+  },
+  {
+    id: 'biologia',
+    title: 'Maestría en Biología',
+    faculty: 'Ciencias',
+    duration: '2 años',
+    credits: 60,
+    description: 'Estudios avanzados en biología',
+    imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69',
+    status: 'coming-soon'
+  },
+  {
+    id: 'diseno-estadistico',
+    title: 'Maestría en Diseño y Análisis Estadístico de Investigaciones',
+    faculty: 'Ciencias',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en estadística aplicada',
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71'
+  },
+
+  // Facultad de Ciencias Agrícolas
+  {
+    id: 'extension-agropecuaria',
+    title: 'Maestría en Ciencias de Extensión Agropecuaria y Forestal',
+    faculty: 'Ciencias Agrícolas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en extensión agrícola y forestal',
+    imageUrl: 'https://images.unsplash.com/photo-1592991538534-00972b6f59ab'
+  },
+
+  // Facultad de Ciencias Económicas
+  {
+    id: 'gerencia-financiera',
+    title: 'Maestría en Gerencia Financiera',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en gestión financiera',
+    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40'
+  },
+  {
+    id: 'auditoria-interna',
+    title: 'Maestría en Auditoría Interna',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en auditoría',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'
+  },
+  {
+    id: 'cibermarketing',
+    title: 'Maestría en Estrategias de Cibermarketing',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en marketing digital',
+    imageUrl: 'https://images.unsplash.com/photo-1533750516457-a7f992034fec'
+  },
+  {
+    id: 'recursos-humanos',
+    title: 'Maestría en Gestión de Recursos Humanos',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en gestión del talento humano',
+    imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216'
+  },
+  {
+    id: 'marketing-estrategico',
+    title: 'Maestría en Marketing Estratégico',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en marketing',
+    imageUrl: 'https://images.unsplash.com/photo-1533750516457-a7f992034fec'
+  },
+  {
+    id: 'contabilidad-tributaria',
+    title: 'Maestría en Contabilidad Tributaria',
+    faculty: 'Ciencias Económicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en contabilidad y tributación',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'
+  },
+
+  // Facultad de Derecho
+  {
+    id: 'actos-estado-civil',
+    title: 'Maestría en Actos del Estado Civil y Actas de Nacimiento',
+    faculty: 'Ciencias Jurídicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en derecho civil',
+    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
+  },
+  {
+    id: 'derecho-inmobiliario',
+    title: 'Maestría en Derecho Inmobiliario',
+    faculty: 'Ciencias Jurídicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en derecho inmobiliario',
+    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa',
+    status: 'coming-soon'
+  },
+  {
+    id: 'derecho-procesal-administrativo',
+    title: 'Maestría en Derecho Procesal Administrativo',
+    faculty: 'Ciencias Jurídicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en derecho administrativo',
+    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
+  },
+  {
+    id: 'derecho-constitucional',
+    title: 'Maestría en Derecho Constitucional y Procesal Constitucional',
+    faculty: 'Ciencias Jurídicas',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en derecho constitucional',
+    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
+  },
+
+  // Facultad de Ciencias de la Salud
+  {
+    id: 'salud-publica',
+    title: 'Maestría en Salud Pública',
+    faculty: 'Ciencias de la Salud',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en salud pública',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d'
+  },
+  {
+    id: 'psicologia-escolar',
+    title: 'Maestría en Psicología Escolar',
+    faculty: 'Ciencias de la Salud',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en psicología educativa',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef'
+  },
+  {
+    id: 'psicologia-clinica',
+    title: 'Maestría en Psicología Clínica',
+    faculty: 'Ciencias de la Salud',
+    duration: '2 años',
+    credits: 60,
+    description: 'Especialización en psicología clínica',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d'
+  }
+];
+
+const faculties = [
+  'Todas las Facultades',
+  'Ciencias Económicas',
+  'Ciencias de la Educación',
+  'Humanidades',
+  'Ciencias',
+  'Ciencias Jurídicas',
+  'Ciencias de la Salud',
+  'Ciencias Agrícolas'
+];
+
+export function PostgraduatePage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
+  const [selectedFaculty, setSelectedFaculty] = useState('Todas las Facultades');
+
+  const filteredPrograms = programs.filter(program =>
+    (selectedFaculty === 'Todas las Facultades' || program.faculty.includes(selectedFaculty)) &&
+    program.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="relative bg-[#2f2382] py-24">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl mt-36">
+              Postgrados
+            </h1>
+            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-100">
+              Programas de especialización y maestría
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters - Adjusted position */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-xl shadow-xl p-6">
+          <div className="flex flex-col gap-6">
+            {/* Faculty Filters */}
+            <div className="flex flex-wrap gap-2">
+              {faculties.map((faculty, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedFaculty(faculty)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    selectedFaculty === faculty
+                      ? 'bg-[#2f2382] text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {faculty}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar programa de postgrado..."
+                className="w-full pl-12 pr-4 py-3 rounded-lg border-gray-200 focus:border-[#2f2382] focus:ring-[#2f2382]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Programs Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredPrograms.map((program) => (
+            <div
+              key={program.id}
+              className="group cursor-pointer"
+              onClick={() => setSelectedProgram(program)}
+            >
+              <div className="relative bg-white rounded-lg overflow-hidden shadow-lg">
+                <div className="relative aspect-w-16 aspect-h-9">
+                  <img
+                    src={program.imageUrl}
+                    alt={program.title}
+                    className="object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+
+                {program.status === 'coming-soon' && (
+                  <div className="absolute top-4 right-4 bg-white/90 text-gray-900 px-3 py-1 rounded-full text-sm font-medium z-10">
+                    Próximamente
+                  </div>
+                )}
+
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {program.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">{program.faculty}</p>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      <span>{program.duration}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <GraduationCap className="w-4 h-4 mr-1" />
+                      <span>{program.credits} cr.</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button className="flex items-center justify-center px-3 py-2 text-sm font-medium text-[#2f2382] rounded-lg border border-[#2f2382] hover:bg-[#2f2382]/5 transition-colors">
+                      <BookOpen className="w-4 h-4 mr-1" />
+                      Ver Plan
+                    </button>
+                    <button className="flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-[#2f2382] rounded-lg hover:bg-[#2f2382]/90 transition-colors">
+                      <ArrowRight className="w-4 h-4 mr-1" />
+                      Inscribirme
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Program Details Modal */}
+      {selectedProgram && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="relative">
+              <div className="relative h-64">
+                <img
+                  src={selectedProgram.imageUrl}
+                  alt={selectedProgram.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <button
+                  onClick={() => setSelectedProgram(null)}
+                  className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-full"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-8">
+                <div className="max-w-3xl mx-auto">
+                  <h2 className="text-3xl font-bold text-[#2f2382] mb-2">
+                    {selectedProgram.title}
+                  </h2>
+                  <p className="text-gray-600 mb-6">{selectedProgram.description}</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Clock className="w-6 h-6 text-[#2f2382]" />
+                        <div>
+                          <p className="text-sm text-gray-500">Duración</p>
+                          <p className="font-semibold">{selectedProgram.duration}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <GraduationCap className="w-6 h-6 text-[#2f2382]" />
+                        <div>
+                          <p className="text-sm text-gray-500">Créditos</p>
+                          <p className="font-semibold">{selectedProgram.credits}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Building2 className="w-6 h-6 text-[#2f2382]" />
+                        <div>
+                          <p className="text-sm text-gray-500">Facultad</p>
+                          <p className="font-semibold">{selectedProgram.faculty}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-lg border border-[#2f2382] text-[#2f2382] hover:bg-[#2f2382]/5 transition-colors">
+                      <BookOpen className="w-5 h-5 mr-2" />
+                      Ver Plan de Estudios
+                    </button>
+                    <button className="flex-1 inline-flex items-center justify-center px-6 py-3 text-white bg-[#2f2382] rounded-lg hover:bg-[#2f2382]/90 transition-colors">
+                      <ArrowRight className="w-5 h-5 mr-2" />
+                      Inscribirme Ahora
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
