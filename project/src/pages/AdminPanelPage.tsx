@@ -8,6 +8,8 @@ import Confetti from 'react-confetti';
 import logoUASD from '../img/logouasd.png';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/hooks/useAuth';
+import EstadosFinancierosManager from '../components/EstadosFinancierosManager';
+import SecurityManager from '../components/SecurityManager';
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -55,20 +57,19 @@ const AdminPanelPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'security'>('create');
   const [showConfetti, setShowConfetti] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedNewsId, setExpandedNewsId] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const formRef = useRef<HTMLDivElement>(null);
+  const { isSuperAdmin, token } = useAuth();
 
-  // Stats for the dashboard
   const [stats, setStats] = useState<Stats>({
     totalNews: 0,
     byCategory: {}
   });
 
-  // Componente para manejar las imágenes de una sección
   const ImageManager = ({
     section,
     onUpload,
@@ -76,13 +77,12 @@ const AdminPanelPage: React.FC = () => {
     onSettingsChange,
     uploadProgress
   }: {
-    section: Section,
-    onUpload: (file: File) => void,
-    onRemoveImage: (imageId: string) => void,
-    onSettingsChange: (imageId: string, setting: keyof ImageDisplayOptions, value: any) => void,
-    uploadProgress?: number
+    section: Section;
+    onUpload: (file: File) => void;
+    onRemoveImage: (imageId: string) => void;
+    onSettingsChange: (imageId: string, setting: keyof ImageDisplayOptions, value: any) => void;
+    uploadProgress?: number;
   }) => {
-
     const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
     return (
@@ -91,8 +91,6 @@ const AdminPanelPage: React.FC = () => {
           <ImageIcon size={16} className="mr-1 text-blue-600" />
           Imágenes de la Sección
         </label>
-
-        {/* Área de carga modernizada */}
         <div className="relative border border-dashed border-gray-300 bg-gray-50 p-6 rounded-lg flex flex-col items-center transition-all hover:border-blue-400 hover:bg-blue-50 group">
           {uploadProgress !== undefined ? (
             <div className="w-full">
@@ -123,44 +121,36 @@ const AdminPanelPage: React.FC = () => {
             </>
           )}
         </div>
-
-        {/* Vista previa de imágenes modernizada */}
         {section.images.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-4">
             {section.images.map((image) => (
               <div key={image.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="relative">
-                  {/* Estilo de imagen basado en opciones de visualización */}
                   <div
-                    className={`overflow-hidden relative ${
-                      image.displayOptions.alignment === 'left'
-                        ? 'mr-auto'
-                        : image.displayOptions.alignment === 'right'
-                          ? 'ml-auto'
-                          : 'mx-auto'
-                    } ${
-                      image.displayOptions.size === 'small'
-                        ? 'max-w-xs'
-                        : image.displayOptions.size === 'medium'
-                          ? 'max-w-md'
-                          : image.displayOptions.size === 'large'
-                            ? 'max-w-lg'
-                            : 'w-full'
+                    className={`overflow-hidden relative ${image.displayOptions.alignment === 'left'
+                      ? 'mr-auto'
+                      : image.displayOptions.alignment === 'right'
+                        ? 'ml-auto'
+                        : 'mx-auto'
+                    } ${image.displayOptions.size === 'small'
+                      ? 'max-w-xs'
+                      : image.displayOptions.size === 'medium'
+                        ? 'max-w-md'
+                        : image.displayOptions.size === 'large'
+                          ? 'max-w-lg'
+                          : 'w-full'
                     }`}
                   >
                     <img
                       src={image.url}
                       alt="Vista previa"
-                      className={`w-full border border-gray-100 ${
-                        image.displayOptions.cropMode === 'cover'
-                          ? 'object-cover h-48'
-                          : image.displayOptions.cropMode === 'contain'
-                            ? 'object-contain h-48'
-                            : 'object-none'
+                      className={`w-full border border-gray-100 ${image.displayOptions.cropMode === 'cover'
+                        ? 'object-cover h-48'
+                        : image.displayOptions.cropMode === 'contain'
+                          ? 'object-contain h-48'
+                          : 'object-none'
                       }`}
                     />
-
-                    {/* Control buttons with improved positioning */}
                     <div className="absolute top-2 right-2 flex space-x-2">
                       <button
                         type="button"
@@ -169,7 +159,6 @@ const AdminPanelPage: React.FC = () => {
                       >
                         <Settings size={14} />
                       </button>
-
                       <button
                         type="button"
                         onClick={() => onRemoveImage(image.id!)}
@@ -179,16 +168,12 @@ const AdminPanelPage: React.FC = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Panel de opciones de visualización mejorado */}
                   {selectedImageId === image.id && (
                     <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
                       <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
                         <Settings size={14} className="mr-1 text-blue-500" />
                         Opciones de visualización
                       </h4>
-
-                      {/* Tamaño */}
                       <div className="mb-4">
                         <label className="text-xs text-gray-600 block mb-1.5 font-medium">Tamaño</label>
                         <div className="flex space-x-2">
@@ -222,12 +207,10 @@ const AdminPanelPage: React.FC = () => {
                             className={`p-2 rounded ${image.displayOptions.size === 'full' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                             title="Completo"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="21" y1="3" x2="3" y2="21"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="21" y1="3" x2="3" y2="21" /><line x1="3" y1="3" x2="21" y2="21" /></svg>
                           </button>
                         </div>
                       </div>
-
-                      {/* Alineación */}
                       <div className="mb-4">
                         <label className="text-xs text-gray-600 block mb-1.5 font-medium">Alineación</label>
                         <div className="flex space-x-2">
@@ -257,8 +240,6 @@ const AdminPanelPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-
-                      {/* Modo de recorte */}
                       <div className="mb-4">
                         <label className="text-xs text-gray-600 block mb-1.5 font-medium">Modo de recorte</label>
                         <div className="flex space-x-2">
@@ -288,8 +269,6 @@ const AdminPanelPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-
-                      {/* Leyenda */}
                       <div className="mb-1">
                         <label className="text-xs text-gray-600 block mb-1.5 font-medium">Leyenda</label>
                         <input
@@ -302,8 +281,6 @@ const AdminPanelPage: React.FC = () => {
                       </div>
                     </div>
                   )}
-
-                  {/* Mostrar la leyenda si existe */}
                   {image.displayOptions.caption && (
                     <p className="text-sm text-gray-600 mt-1 text-center italic px-3 py-2">
                       {image.displayOptions.caption}
@@ -321,7 +298,7 @@ const AdminPanelPage: React.FC = () => {
   useEffect(() => {
     fetchNews();
   }, []);
-  const { isSuperAdmin } = useAuth();
+
   useEffect(() => {
     if (showConfetti) {
       const timer = setTimeout(() => {
@@ -340,18 +317,14 @@ const AdminPanelPage: React.FC = () => {
       setLoading(true);
       const res = await axios.get('http://localhost:5000/api/news');
       setNewsItems(res.data);
-
-      // Calculate stats
       const categoryCounts = res.data.reduce((acc: CategoryStats, item: NewsItem) => {
         acc[item.category] = (acc[item.category] || 0) + 1;
         return acc;
       }, {});
-
       setStats({
         totalNews: res.data.length,
         byCategory: categoryCounts
       });
-
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -363,19 +336,12 @@ const AdminPanelPage: React.FC = () => {
     }
   };
 
-  // Modified upload image function with better error handling and console.log for debugging
   const uploadImage = async (file: File, sectionId: string) => {
-    setUploadProgress(prev => ({...prev, [sectionId]: 0}));
-    console.log('Starting upload for section:', sectionId, 'File:', file.name);
-
+    setUploadProgress(prev => ({ ...prev, [sectionId]: 0 }));
     try {
       const formData = new FormData();
       formData.append('file', file);
-
-      // Add a timestamp to prevent caching issues
       formData.append('timestamp', Date.now().toString());
-
-      console.log('Sending upload request to server...');
       const res = await axios.post(
         'http://localhost:5000/api/upload-image',
         formData,
@@ -387,62 +353,47 @@ const AdminPanelPage: React.FC = () => {
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / (progressEvent.total || 100)
             );
-            console.log(`Upload progress: ${percentCompleted}%`);
-            setUploadProgress(prev => ({...prev, [sectionId]: percentCompleted}));
-          }
+            setUploadProgress(prev => ({ ...prev, [sectionId]: percentCompleted }));
+          },
         }
       );
-
-      console.log('Upload response:', res.data);
-
-      // Clear progress after completion
       setTimeout(() => {
         setUploadProgress(prev => {
-          const newProgress = {...prev};
+          const newProgress = { ...prev };
           delete newProgress[sectionId];
           return newProgress;
         });
       }, 800);
-
       if (res.data.success) {
         toast.success('Imagen subida correctamente', {
-          icon: <Check className="text-green-500" size={18} />
+          icon: <Check className="text-green-500" size={18} />,
         });
         return {
           url: res.data.imageUrl,
-          publicId: res.data.public_id
+          publicId: res.data.public_id,
         };
       } else {
-        console.error('Error en respuesta del servidor:', res.data);
         toast.error('Error al subir la imagen: ' + (res.data.error || 'Error desconocido'), {
-          icon: <AlertTriangle className="text-red-500" size={18} />
+          icon: <AlertTriangle className="text-red-500" size={18} />,
         });
         return null;
       }
     } catch (err) {
-      console.error('Error al subir imagen:', err);
       toast.error('Error al conectar con el servidor. Verifica que el backend esté funcionando.', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
+        icon: <AlertTriangle className="text-red-500" size={18} />,
       });
-
       setUploadProgress(prev => {
-        const newProgress = {...prev};
+        const newProgress = { ...prev };
         delete newProgress[sectionId];
         return newProgress;
       });
-
       return null;
     }
   };
 
-  // Modified handleImageUpload to handle the response correctly
   const handleImageUpload = async (id: string, file: File) => {
-    console.log('handleImageUpload called for section ID:', id);
     const result = await uploadImage(file, id);
-
     if (result && result.url) {
-      console.log('Upload successful, adding image to section');
-      // Generar un ID único para la imagen
       const imageId = generateId();
       const newImage: NewsImage = {
         id: imageId,
@@ -451,32 +402,22 @@ const AdminPanelPage: React.FC = () => {
         displayOptions: {
           size: 'medium',
           alignment: 'center',
-          cropMode: 'cover'
-        }
+          cropMode: 'cover',
+        },
       };
-
-      setSections(prevSections => {
-        return prevSections.map(section => {
-          if (section.id === id) {
-            // Create a new array with the new image added
-            return {
-              ...section,
-              images: [...section.images, newImage]
-            };
-          }
-          return section;
-        });
-      });
-    } else {
-      console.error('Image upload failed');
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.id === id
+            ? { ...section, images: [...section.images, newImage] }
+            : section
+        )
+      );
     }
   };
 
   const handleAddSection = () => {
     const newSection = { id: generateId(), images: [], text: '' };
     setSections([...sections, newSection]);
-
-    // Smooth scroll to new section after rendering
     setTimeout(() => {
       if (formRef.current) {
         const lastChild = formRef.current.lastElementChild;
@@ -504,11 +445,9 @@ const AdminPanelPage: React.FC = () => {
   const handleImageSettingsChange = (sectionId: string, imageId: string, setting: keyof ImageDisplayOptions, value: any) => {
     const sectionIndex = sections.findIndex(section => section.id === sectionId);
     if (sectionIndex === -1) return;
-
     const section = sections[sectionIndex];
     const imageIndex = section.images.findIndex(img => img.id === imageId);
     if (imageIndex === -1) return;
-
     const updatedImages = [...section.images];
     updatedImages[imageIndex] = {
       ...updatedImages[imageIndex],
@@ -517,25 +456,21 @@ const AdminPanelPage: React.FC = () => {
         [setting]: value
       }
     };
-
     handleSectionChange(sectionId, 'images', updatedImages);
   };
 
   const handleRemoveImage = (sectionId: string, imageId: string) => {
     const section = sections.find(s => s.id === sectionId);
     if (!section) return;
-
     const updatedImages = section.images.filter(img => img.id !== imageId);
     handleSectionChange(sectionId, 'images', updatedImages);
   };
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-
     const items = Array.from(sections);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-
     setSections(items);
   };
 
@@ -544,27 +479,24 @@ const AdminPanelPage: React.FC = () => {
     date &&
     sections.every(s => s.images.length > 0 && s.text.trim());
 
-    const resetForm = () => {
-      setTitle('');
-      setSections([{ id: generateId(), images: [], text: '' }]);
-      setDate('');
-      setCategory('General');
-      setError(null);
-    };
+  const resetForm = () => {
+    setTitle('');
+    setSections([{ id: generateId(), images: [], text: '' }]);
+    setDate('');
+    setCategory('General');
+    setError(null);
+  };
 
-    const handleAddNews = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!isFormValid()) {
-        toast.error('Completa todos los campos obligatorios.', {
-          icon: <AlertTriangle size={18} />
-        });
-        return;
+  const handleAddNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid()) {
+      toast.error('Completa todos los campos obligatorios.', {
+        icon: <AlertTriangle size={18} />
+      });
+      return;
     }
-
     setSubmitting(true);
-
     try {
-      // Preparar los datos para enviar al servidor
       const formattedSections = sections.map(({ id, images, text }) => ({
         images: images.map(img => ({
           url: img.url,
@@ -573,22 +505,18 @@ const AdminPanelPage: React.FC = () => {
         })),
         text
       }));
-
       await axios.post('http://localhost:5000/api/news', {
         title,
         sections: formattedSections,
         date,
         category
       });
-
       setSubmitting(false);
       setShowConfetti(true);
-
       toast.success('¡Noticia publicada con éxito!', {
         duration: 4000,
         icon: <Check className="text-green-500" size={18} />
       });
-
       resetForm();
       fetchNews();
     } catch (err) {
@@ -600,20 +528,16 @@ const AdminPanelPage: React.FC = () => {
   };
 
   const handleDeleteNews = async (id: string) => {
-    // Confirmation before delete
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta noticia?')) {
       return;
     }
-
     try {
       setLoading(true);
       await axios.delete(`http://localhost:5000/api/news/${id}`);
       setLoading(false);
-
       toast.success('Noticia eliminada correctamente', {
         icon: <Check className="text-green-500" size={18} />
       });
-
       fetchNews();
     } catch (err) {
       setLoading(false);
@@ -633,9 +557,8 @@ const AdminPanelPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 pt-32">
+    <div className="min-h-screen bg-white pt-32">
       {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
-
       <div className="container mx-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -644,14 +567,13 @@ const AdminPanelPage: React.FC = () => {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center">
-            <br></br>
-            <br></br>
-            <br></br>
+            <br />
+            <br />
+            <br />
             <h1 className="text-4xl font-bold text-gray-800 tracking-tight">
               Panel de Administración
             </h1>
           </div>
-
           <div className="bg-white p-4 rounded-xl shadow-md flex items-center gap-5">
             <div className="text-center">
               <p className="text-sm text-gray-500">Total Noticias</p>
@@ -670,27 +592,18 @@ const AdminPanelPage: React.FC = () => {
         <div className="flex mb-6 bg-white rounded-lg shadow p-1">
           <button
             onClick={() => setActiveTab('create')}
-            className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${
-              activeTab === 'create'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${activeTab === 'create' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             <FileText className="mr-2" size={18} />
             Crear Noticia
           </button>
           <button
             onClick={() => setActiveTab('manage')}
-            className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${
-              activeTab === 'manage'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${activeTab === 'manage' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             <Loader className="mr-2" size={18} />
             Administrar Noticias
           </button>
-
           <Link
             to="/slides-editor"
             className="flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all text-gray-600 hover:bg-gray-100"
@@ -698,7 +611,6 @@ const AdminPanelPage: React.FC = () => {
             <ImageIcon className="mr-2" size={18} />
             Editor de Slides
           </Link>
-
           <Link
             to="/memorias-editor"
             className="flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all text-gray-600 hover:bg-gray-100"
@@ -706,7 +618,13 @@ const AdminPanelPage: React.FC = () => {
             <FileText className="mr-2" size={18} />
             Editor de Memorias
           </Link>
-
+          <Link
+            to="/estados-financieros"
+            className="flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all text-gray-600 hover:bg-gray-100"
+          >
+            <FileText className="mr-2" size={18} />
+            Estados Financieros
+          </Link>
           <Link
             to="/docentes-editor"
             className="flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all text-gray-600 hover:bg-gray-100"
@@ -714,7 +632,15 @@ const AdminPanelPage: React.FC = () => {
             <Users className="mr-2" size={18} />
             Editor de Docentes
           </Link>
-          {/* Botón de Gestión de Usuarios (Solo visible para superadmin) */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${activeTab === 'security' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
+            >
+              <Users className="mr-2" size={18} />
+              Seguridad
+            </button>
+          )}
           {isSuperAdmin && (
             <Link
               to="/admin/users"
@@ -743,8 +669,6 @@ const AdminPanelPage: React.FC = () => {
                 <FileText className="mr-2 text-blue-600" size={22} />
                 Publicar Nueva Noticia
               </h2>
-
-              {/* FORMULARIO */}
               <form onSubmit={handleAddNews} className="space-y-6">
                 <div className="relative">
                   <label className="text-sm font-medium text-gray-600 mb-1 block">
@@ -758,7 +682,6 @@ const AdminPanelPage: React.FC = () => {
                     required
                   />
                 </div>
-
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-sm font-medium text-gray-600">
@@ -768,7 +691,6 @@ const AdminPanelPage: React.FC = () => {
                       {sections.length} {sections.length === 1 ? 'sección' : 'secciones'}
                     </span>
                   </div>
-
                   <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId="sections">
                       {(provided) => (
@@ -802,7 +724,6 @@ const AdminPanelPage: React.FC = () => {
                                         <circle cx="15" cy="19" r="1" />
                                       </svg>
                                     </div>
-
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveSection(section.id)}
@@ -810,7 +731,6 @@ const AdminPanelPage: React.FC = () => {
                                     >
                                       <X size={18} />
                                     </button>
-
                                     <ImageManager
                                       section={section}
                                       onUpload={(file) => handleImageUpload(section.id, file)}
@@ -818,7 +738,6 @@ const AdminPanelPage: React.FC = () => {
                                       onSettingsChange={(imageId, setting, value) => handleImageSettingsChange(section.id, imageId, setting, value)}
                                       uploadProgress={uploadProgress[section.id]}
                                     />
-
                                     <div>
                                       <label className="block text-gray-700 text-sm font-medium mb-2">
                                         Texto del Párrafo
@@ -841,7 +760,6 @@ const AdminPanelPage: React.FC = () => {
                       )}
                     </Droppable>
                   </DragDropContext>
-
                   <motion.button
                     type="button"
                     onClick={handleAddSection}
@@ -852,7 +770,6 @@ const AdminPanelPage: React.FC = () => {
                     <Plus size={18} className="mr-2" /> Agregar Sección
                   </motion.button>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -866,7 +783,6 @@ const AdminPanelPage: React.FC = () => {
                       required
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       Categoría
@@ -889,16 +805,14 @@ const AdminPanelPage: React.FC = () => {
                     </select>
                   </div>
                 </div>
-
                 <motion.button
                   type="submit"
                   disabled={!isFormValid() || submitting}
                   whileHover={isFormValid() && !submitting ? { scale: 1.02 } : {}}
                   whileTap={isFormValid() && !submitting ? { scale: 0.98 } : {}}
-                  className={`w-full p-4 text-white rounded-lg transition-all ${
-                    isFormValid() && !submitting
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                      : 'bg-gray-400 cursor-not-allowed'
+                  className={`w-full p-4 text-white rounded-lg transition-all ${isFormValid() && !submitting
+                    ? 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                    : 'bg-gray-400 cursor-not-allowed'
                   }`}
                 >
                   {submitting ? (
@@ -912,7 +826,7 @@ const AdminPanelPage: React.FC = () => {
                 </motion.button>
               </form>
             </motion.div>
-          ) : (
+          ) : activeTab === 'manage' ? (
             <motion.div
               key="manage-news"
               initial={{ opacity: 0, x: 20 }}
@@ -922,7 +836,6 @@ const AdminPanelPage: React.FC = () => {
               className="bg-white shadow-xl rounded-2xl p-8"
             >
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Administrar Noticias</h2>
-
               <div className="relative mb-6">
                 <input
                   type="text"
@@ -941,7 +854,6 @@ const AdminPanelPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-
               {loading ? (
                 <div className="flex justify-center items-center py-12">
                   <Loader className="animate-spin text-blue-600" size={32} />
@@ -984,7 +896,6 @@ const AdminPanelPage: React.FC = () => {
                             Publicado: {new Date(news.date).toLocaleDateString()}
                           </p>
                         </div>
-
                         <div className="flex items-center">
                           <button
                             onClick={(e) => {
@@ -995,12 +906,9 @@ const AdminPanelPage: React.FC = () => {
                           >
                             <Trash2 size={18} />
                           </button>
-
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className={`h-5 w-5 text-gray-400 transition-transform ${
-                              expandedNewsId === news._id ? 'transform rotate-180' : ''
-                            }`}
+                            className={`h-5 w-5 text-gray-400 transition-transform ${expandedNewsId === news._id ? 'transform rotate-180' : ''}`}
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -1009,67 +917,66 @@ const AdminPanelPage: React.FC = () => {
                           </svg>
                         </div>
                       </div>
-
                       {expandedNewsId === news._id && (
                         <div className="px-4 pb-4 border-t border-gray-100 pt-2">
                           <div className="space-y-3 mt-2">
-                          {news.sections.map((section, idx) => (
-                            <div key={idx} className="flex flex-col sm:flex-row gap-4 pb-3 border-b border-gray-100">
-                              {section.images && section.images.length > 0 && (
-                                <div className="sm:w-1/3 space-y-2">
-                                  {section.images.map((image, imageIdx) => (
-                                    <div key={imageIdx} className="relative">
-                                      <img
-                                        src={image.url}
-                                        alt={`Sección ${idx + 1}, Imagen ${imageIdx + 1}`}
-                                        className={`w-full object-${image.displayOptions?.cropMode || 'cover'} rounded-lg h-32`}
-                                        style={{
-                                          maxWidth: image.displayOptions?.size === 'small'
-                                            ? '150px'
-                                            : image.displayOptions?.size === 'medium'
-                                              ? '250px'
-                                              : image.displayOptions?.size === 'large'
-                                                ? '350px'
-                                                : '100%',
-                                          marginLeft: image.displayOptions?.alignment === 'center'
-                                            ? 'auto'
-                                            : image.displayOptions?.alignment === 'right'
+                            {news.sections.map((section, idx) => (
+                              <div key={idx} className="flex flex-col sm:flex-row gap-4 pb-3 border-b border-gray-100">
+                                {section.images && section.images.length > 0 && (
+                                  <div className="sm:w-1/3 space-y-2">
+                                    {section.images.map((image, imageIdx) => (
+                                      <div key={imageIdx} className="relative">
+                                        <img
+                                          src={image.url}
+                                          alt={`Sección ${idx + 1}, Imagen ${imageIdx + 1}`}
+                                          className={`w-full object-${image.displayOptions?.cropMode || 'cover'} rounded-lg h-32`}
+                                          style={{
+                                            maxWidth: image.displayOptions?.size === 'small'
+                                              ? '150px'
+                                              : image.displayOptions?.size === 'medium'
+                                                ? '250px'
+                                                : image.displayOptions?.size === 'large'
+                                                  ? '350px'
+                                                  : '100%',
+                                            marginLeft: image.displayOptions?.alignment === 'center'
                                               ? 'auto'
-                                              : '0',
-                                          marginRight: image.displayOptions?.alignment === 'center'
-                                            ? 'auto'
-                                            : image.displayOptions?.alignment === 'left'
+                                              : image.displayOptions?.alignment === 'right'
+                                                ? 'auto'
+                                                : '0',
+                                            marginRight: image.displayOptions?.alignment === 'center'
                                               ? 'auto'
-                                              : '0'
-                                        }}
-                                      />
-                                      {image.displayOptions?.caption && (
-                                        <p className="text-xs text-gray-500 italic mt-1 text-center">
-                                          {image.displayOptions.caption}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ))}
+                                              : image.displayOptions?.alignment === 'left'
+                                                ? 'auto'
+                                                : '0'
+                                          }}
+                                        />
+                                        {image.displayOptions?.caption && (
+                                          <p className="text-xs text-gray-500 italic mt-1 text-center">
+                                            {image.displayOptions.caption}
+                                          </p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className={section.images && section.images.length > 0 ? "sm:w-2/3" : "w-full"}>
+                                  <p className="text-gray-600 text-sm line-clamp-3">{section.text}</p>
                                 </div>
-                              )}
-                              <div className={section.images && section.images.length > 0 ? "sm:w-2/3" : "w-full"}>
-                                <p className="text-gray-600 text-sm line-clamp-3">{section.text}</p>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                           </div>
                         </div>
                       )}
                     </motion.div>
                   ))}
-
                 </div>
               )}
             </motion.div>
-          )}
+          ) : activeTab === 'security' && isSuperAdmin ? (
+            <SecurityManager token={token} />
+          ) : null}
         </AnimatePresence>
       </div>
-
       <Toaster />
     </div>
   );

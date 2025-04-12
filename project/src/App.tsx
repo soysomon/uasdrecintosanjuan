@@ -1,9 +1,8 @@
+// App.tsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navigation from './components/Navigation';
-import { QuickNav } from './components/QuickNav';
-import { Footer } from './components/Footer';
-import { HomePage } from './pages/HomePage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from './components/MainLayout'; // Import the new MainLayout
+import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import NewsDetailPage from './components/NewsDetailPage';
 import { HistoryPage } from './components/HistoryPage';
@@ -14,23 +13,29 @@ import { ReportsPage } from './components/ReportsPage';
 import { EliasPinaPage } from './components/EliasPinaPage';
 import { DirectivosPage } from './components/DirectivosPage';
 import { UnidadesPage } from './components/UnidadesPage';
-import { DegreesPage } from './components/DegreesPage';
+import DegreesPage from './components/DegreesPage';
 import { PostgraduatePage } from './components/PostgraduatePage';
 import { DirectorOfficePage } from './pages/DirectorOfficePage';
-import { GalleryPage } from './pages/GalleryPage';
+import CampusTour from './pages/CampusTour';
 import { NonResidentFacultyPage } from './pages/NonResidentFacultyPage';
 import AdminLoginPage from './pages/AdminLoginPage';
-import AdminPanelPage from './pages/AdminPanelPage'; 
+import AdminPanelPage from './pages/AdminPanelPage';
 import SlidesEditorPage from './pages/SlidesEditorPage';
 import { MemoriasPostgradoPage } from './pages/memorias/MemoriasPostgradoPage';
 import MemoriasEditorPage from './pages/memorias/MemoriasEditorPage';
-import MemoriaContentPage from './pages/MemoriaContentPage'
+import MemoriaContentPage from './pages/MemoriaContentPage';
+import EstadosFinancierosPage from './pages/EstadosFinancierosPage';
 import MemoriasPage from './pages/MemoriasPage';
+import EstadosFinancierosManager from './components/EstadosFinancierosManager';
 import ResidentFacultyPage from './pages/docentes/ResidentFacultyPage';
 import DocenteDetailPage from './pages/docentes/DocenteDetailPage';
 import DocentesEditorPage from './pages/DocentesEditorPage';
 import DocentesPage from './pages/docentes/DocentesPage';
-
+import ScrollToTop from './components/ScrollToTop';
+import NotFoundPage from './pages/NotFoundPage';
+import InnovacionesEducativas from './components/Innovations';
+import Frequentquestions from './components/frequentquestions';
+import { ContactosPage } from './components/Contact';
 // Importar componentes de autenticación
 import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
@@ -40,11 +45,11 @@ import UserManagementPage from './pages/admin/UserManagementPage';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <QuickNav />
-          <Routes>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Routes>
+          {/* Rutas con Navigation, QuickNav y Footer */}
+          <Route element={<MainLayout />}>
             {/* Rutas públicas */}
             <Route path="/" element={<HomePage />} />
             <Route path="/noticias" element={<NewsPage />} />
@@ -60,79 +65,89 @@ function App() {
             <Route path="/carreras/grado" element={<DegreesPage />} />
             <Route path="/carreras/postgrado" element={<PostgraduatePage />} />
             <Route path="/director/despacho" element={<DirectorOfficePage />} />
-            <Route path="/galeria" element={<GalleryPage />} />
+            <Route path="/TourVirtual" element={<CampusTour />} />
             <Route path="/docentes/no-residentes" element={<NonResidentFacultyPage />} />
             <Route path="/memorias" element={<MemoriasPage />} />
+            <Route path="/transparencia/estados-financieros" element={<EstadosFinancierosPage />} />
             <Route path="/memorias/:slug" element={<MemoriaContentPage />} />
             <Route path="/memorias/postgrado" element={<MemoriasPostgradoPage />} />
             <Route path="/docentes/residentes" element={<ResidentFacultyPage />} />
             <Route path="/docentes/no-residentes" element={<ResidentFacultyPage />} />
             <Route path="/docentes/:slug" element={<DocenteDetailPage />} />
-            <Route path="/docentes-page" element={<DocentesPage />} /> 
-            
-            {/* Página de login */}
-            <Route path="/admin-login" element={<AdminLoginPage />} />
-            
+            <Route path="/docentes-page" element={<DocentesPage />} />
+            <Route path="/innovaciones" element={<InnovacionesEducativas />} />
+            <Route path="/preguntas-frecuentes" element={<Frequentquestions />} />
+            <Route path="/contacto" element={<ContactosPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+
             {/* Rutas protegidas para admin */}
-            <Route 
-              path="/admin-panel" 
+            <Route
+              path="/admin-panel"
               element={
                 <ProtectedRoute>
                   <AdminPanelPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
-            <Route 
-              path="/slides-editor" 
+            <Route
+              path="/slides-editor"
               element={
                 <ProtectedRoute>
                   <SlidesEditorPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
-            <Route 
-              path="/memorias-editor" 
+            <Route
+              path="/memorias-editor"
               element={
                 <ProtectedRoute>
                   <MemoriasEditorPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
-            <Route 
-              path="/docentes-editor" 
+            <Route
+              path="/docentes-editor"
               element={
                 <ProtectedRoute>
                   <DocentesEditorPage />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+            <Route
+              path="/estados-financieros"
+              element={
+                <ProtectedRoute>
+                  <EstadosFinancierosManager />
+                </ProtectedRoute>
+              }
+            />
             {/* Ruta protegida solo para superadmin */}
             <Route
-              path="/admin/users" 
+              path="/admin/users"
               element={
                 <SuperAdminRoute>
                   <UserManagementPage />
                 </SuperAdminRoute>
               }
             />
-            
             {/* Ruta de acceso denegado */}
-            <Route path="/unauthorized" element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-center p-8 bg-white rounded-lg shadow-md">
-                  <h1 className="text-2xl font-bold text-red-600 mb-4">Acceso Denegado</h1>
-                  <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
+            <Route
+              path="/unauthorized"
+              element={
+                <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                  <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                    <h1 className="text-2xl font-bold text-red-600 mb-4">Acceso Denegado</h1>
+                    <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
+                  </div>
                 </div>
-              </div>
-            } />
-          </Routes>
-          <Footer />
-        </div>
-      </Router>
+              }
+            />
+          </Route>
+
+          {/* Ruta sin Navigation, QuickNav ni Footer */}
+          <Route path="/admin-login" element={<AdminLoginPage />} />
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

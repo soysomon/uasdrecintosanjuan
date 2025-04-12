@@ -7,7 +7,7 @@ import logoUASD from '../../img/logouasd.png';
 
 const MemoriasEditorPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 pt-32">
+    <div className="min-h-screen bg-white pt-32">
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">

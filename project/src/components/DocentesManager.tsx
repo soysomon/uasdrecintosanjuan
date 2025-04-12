@@ -567,17 +567,21 @@ const DocentesManager: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Descripción General
-                    </label>
-                    <textarea
-                      name="descripcionGeneral"
-                      value={currentDocente.descripcionGeneral || ''}
-                      onChange={handleChange}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
-                      placeholder="Breve biografía o descripción del docente..."
-                    />
-                  </div>
+  <label className="block text-sm font-medium text-gray-600 mb-1">
+    Descripción General
+  </label>
+  <textarea
+    name="descripcionGeneral"
+    value={currentDocente.descripcionGeneral || ''}
+    onChange={handleChange}
+    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+    placeholder="Breve biografía o descripción del docente..."
+    style={{ whiteSpace: 'pre-wrap' }} // Añadir esta línea
+  />
+  <p className="text-xs text-gray-500 mt-1">
+    Puedes usar saltos de línea para crear párrafos y secciones.
+  </p>
+</div>
                 </div>
                 
                 {/* Foto del Docente */}

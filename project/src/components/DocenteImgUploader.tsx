@@ -44,7 +44,6 @@ const DocenteImgUploader: React.FC<DocenteImgUploaderProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Usar el endpoint del servidor en lugar de subir directamente a Cloudinary
       console.log('Enviando imagen al servidor (docente)...');
       const res = await axios.post(
         'http://localhost:5000/api/upload-image',

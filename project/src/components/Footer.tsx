@@ -35,7 +35,7 @@ export function Footer() {
           <div>
             <div className="mb-6">
               <img
-                src="https://i.ibb.co/ksnpGmqH/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
+                src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
                 alt="UASD Recinto San Juan"
                 className="h-24 w-auto"
               />

@@ -8,6 +8,10 @@ const API_ROUTES = {
   SLIDES: `${API_BASE_URL}/slides`,
   SLIDES_BY_ID: (id: string) => `${API_BASE_URL}/slides/${id}`,
 
+    // Rutas para estados financieros
+    ESTADOS_FINANCIEROS: `${API_BASE_URL}/estados-financieros`,
+    ESTADOS_FINANCIEROS_BY_ID: (id: string) => `${API_BASE_URL}/estados-financieros/${id}`,
+
   MEMORIAS: `${API_BASE_URL}/memorias`,
   MEMORIAS_BY_ID: (id: string) => `${API_BASE_URL}/memorias/${id}`,
   MEMORIAS_BY_SLUG: (slug: string) => `${API_BASE_URL}/memorias/${slug}`,
@@ -32,6 +36,8 @@ const API_ROUTES = {
   // Rutas para uploads
   UPLOAD_IMAGE: `${API_BASE_URL}/upload-image`,
   UPLOAD_PDF: `${API_BASE_URL}/upload-pdf`,
+
+  
 };
 
 export default API_ROUTES;

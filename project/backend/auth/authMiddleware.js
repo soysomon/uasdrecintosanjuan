@@ -3,6 +3,11 @@ const User = require('../models/User');
 
 exports.authMiddleware = async (req, res, next) => {
   try {
+    // Verificar que JWT_SECRET esté definido
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET no está definido en las variables de entorno');
+    }
+
     // Obtener token del header
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
@@ -11,7 +16,7 @@ exports.authMiddleware = async (req, res, next) => {
     }
     
     // Verificar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'uasd-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Buscar usuario
     const user = await User.findById(decoded.userId);
@@ -24,6 +29,7 @@ exports.authMiddleware = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Token inválido.' });
+    console.error('Error en authMiddleware:', error.message);
+    return res.status(401).json({ message: 'Token inválido o configuración incorrecta.' });
   }
 };

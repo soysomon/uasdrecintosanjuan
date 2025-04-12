@@ -1,12 +1,10 @@
 import React from 'react';
-import { FileText, Download, Building2, Users, ClipboardList } from 'lucide-react';
 
 interface Report {
   id: string;
   title: string;
   period: string;
   department: string;
-  icon: React.ReactNode;
   downloadUrl?: string;
 }
 
@@ -16,95 +14,70 @@ const reports: Report[] = [
     title: 'Informe Planta Física',
     period: '2018 - 2023',
     department: 'Departamento de Planta Física',
-    icon: <Building2 className="w-6 h-6" />,
-    downloadUrl: '#'
+    downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME+PLANTA+F%C3%8DSICA+AGOSTO+2023.pdf'
   },
   {
     id: 'ucotesis',
     title: 'Informe UCOTESIS',
     period: '2018 - 2023',
     department: 'Unidad de Coordinación de Tesis',
-    icon: <ClipboardList className="w-6 h-6" />,
-    downloadUrl: '#'
+    downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME-UCOTESIS-2018-2024-1_1742492648542_1743827696419.pdf'
   },
   {
     id: 'human-resources',
     title: 'Informe Recursos Humanos',
     period: '2018 - 2023',
     department: 'Departamento de Recursos Humanos',
-    icon: <Users className="w-6 h-6" />,
-    downloadUrl: '#'
+    downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME-Recursos-Humanos-2018-2023.pdf'
   }
 ];
 
+const primaryColor = '#A51E37'; // Rojo 
+const secondaryColor = '#00316E'; // Azul institucional como alternativa
+
 export function ReportsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-[#2f2382] py-16">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-          <br></br>
-          <br></br>
-          <br></br>
-          <br></br>
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+    <div className="min-h-screen bg-white">
+      {/* Espaciador para compensar la barra de navegación fija */}
+      <div className="pt-24 md:pt-28">
+        {/* Header Section */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h1 className="text-3xl font-light tracking-tight text-gray-900 sm:text-4xl mb-2">
               Informes Institucionales
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-100">
+            <div className="w-16 h-1 bg-red-700 mb-6"></div>
+            <p className="mt-4 max-w-2xl text-lg text-gray-500">
               Informes presentados por las distintas unidades de UASD Recinto San Juan de la Maguana
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Reports Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="relative group bg-white rounded-lg shadow-xl overflow-hidden border border-[#2f2382]/10 hover:border-[#2f2382]/30 transition-all duration-300"
-            >
-              {/* Decorative Elements */}
-              <div className="absolute top-0 left-0 w-2 h-2 bg-[#2f2382] transform -translate-x-1/2 -translate-y-1/2" />
-              <div className="absolute top-0 right-0 w-2 h-2 bg-[#2f2382] transform translate-x-1/2 -translate-y-1/2" />
-              <div className="absolute bottom-0 left-0 w-2 h-2 bg-[#2f2382] transform -translate-x-1/2 translate-y-1/2" />
-              <div className="absolute bottom-0 right-0 w-2 h-2 bg-[#2f2382] transform translate-x-1/2 translate-y-1/2" />
+        {/* Reports Section */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {reports.map((report) => (
+              <div
+                key={report.id}
+                className="bg-white border border-gray-200 hover:border-red-700 transition-colors duration-200"
+              >
+                <div className="p-6">
+                  <h2 className="text-xl font-medium text-gray-900 mb-1">{report.title}</h2>
+                  <p className="text-sm text-gray-500 mb-4">{report.period}</p>
+                  <p className="text-gray-600 mb-6">{report.department}</p>
 
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="p-2 bg-[#2f2382]/10 rounded-lg text-[#2f2382]">
-                    {report.icon}
-                  </div>
-                  <div className="ml-4">
-                    <h2 className="text-xl font-semibold text-[#2f2382]">{report.title}</h2>
-                    <p className="text-sm text-gray-500">{report.period}</p>
-                  </div>
+                  {report.downloadUrl && (
+                    <a
+                      href={report.downloadUrl}
+                      className="inline-block text-red-700 hover:text-red-800 font-medium transition-colors"
+                    >
+                      Descargar informe →
+                    </a>
+                  )}
                 </div>
-
-                <p className="text-gray-600 mb-6">{report.department}</p>
-
-                {report.downloadUrl && (
-                  <a
-                    href={report.downloadUrl}
-                    className="inline-flex items-center px-4 py-2 border border-[#2f2382] text-sm font-medium rounded-md text-[#2f2382] hover:bg-[#2f2382] hover:text-white transition-colors duration-200"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar Informe
-                  </a>
-                )}
               </div>
-
-              {/* Hover Effect Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/0 to-[#2f2382]/0 group-hover:from-[#2f2382]/5 group-hover:to-[#2f2382]/10 transition-all duration-300" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
