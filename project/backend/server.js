@@ -1,13 +1,17 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const cron = require('node-cron'); // Import node-cron
 const axios = require('axios');
 const cors = require('cors');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const fs = require('fs-extra');
 const path = require('path');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+const estadosFinancierosRoutes = require('./estados/estadofinanciero');
+const IpAttempt = require('./models/IpAttempt'); // Move IpAttempt import up
 
 const app = express();
 app.use(express.json());
@@ -20,17 +24,45 @@ app.use(cors({
   credentials: true
 }));
 
-// Configura Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dvy5fb4nq',
-  api_key: process.env.CLOUDINARY_API_KEY || '985923124478855',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'UH6cLZ5eL4YoQCUh8xMx9NrmRyk'
+app.use('/api/estados-financieros', estadosFinancierosRoutes);
+
+// Configuración del cliente S3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIA4U7RPRX7OECPX4N5',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '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'
+  }
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Conectado a MongoDB'))
-  .catch(err => console.error(err));
+// Nombre del bucket de S3
+const bucketName = process.env.AWS_S3_BUCKET || 'uasd-recinto-sanjuan-media';
 
+// Función auxiliar para generar URL pública de S3
+const getS3PublicUrl = (key) => {
+  return `https://${bucketName}.s3.amazonaws.com/${key}`;
+};
+
+// Conectar a MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('Conectado a MongoDB');
+
+    // Configurar tarea de limpieza con node-cron
+    cron.schedule('0 0 * * *', async () => {
+      try {
+        const result = await IpAttempt.deleteMany({
+          lastAttempt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        });
+        console.log(`Eliminados ${result.deletedCount} registros antiguos de IpAttempt`);
+      } catch (error) {
+        console.error('Error al eliminar registros de IpAttempt:', error);
+      }
+    });
+  })
+  .catch(err => console.error('Error al conectar a MongoDB:', err));
+
+  
 const newsSchema = new mongoose.Schema({
   title: String,
   sections: [{
@@ -55,12 +87,16 @@ const authController = require('./auth/authController');
 const { authMiddleware } = require('./auth/authMiddleware');
 const { roleMiddleware } = require('./auth/roleMiddleware');
 
+
+
 // Ruta para cambiar la contraseña del usuario actual
 app.post('/api/auth/change-password', authMiddleware, authController.changePassword);
 // Rutas de autenticación
 app.post('/api/auth/login', authController.login);
 app.get('/api/auth/me', authMiddleware, authController.getCurrentUser);
 
+//asegura que solo los superadmins puedan acceder
+app.get('/api/auth/blocked-ips', authMiddleware, roleMiddleware(['superadmin']), authController.getBlockedIps);
 // Rutas de gestión de usuarios (solo superadmin)
 app.get('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.getUsers);
 app.post('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.createUser);
@@ -180,7 +216,7 @@ app.post('/api/slides', async (req, res) => {
 
 app.get('/api/slides', async (req, res) => {
   const slides = await Slide.find().sort({ order: 1 });
-  console.log('Enviando slides:', slides.length);
+ // console.log('Enviando slides:', slides.length);
   res.json(slides);
 });
 
@@ -589,7 +625,7 @@ app.delete('/api/publicaciones-docentes/:id', async (req, res) => {
   }
 });
 
-// Configuración para almacenamiento temporal en disco para PDFs
+// Configuración para almacenamiento temporal en disco para archivos
 const tempStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const tempDir = path.join(__dirname, 'temp');
@@ -604,63 +640,11 @@ const tempStorage = multer.diskStorage({
   }
 });
 
-const pdfUpload = multer({ storage: tempStorage });
+const upload = multer({ storage: tempStorage });
 
-// Ruta para subir PDFs
-app.post('/api/upload-pdf', pdfUpload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No se proporcionó ningún archivo' });
-    }
 
-    // Subir a Cloudinary usando la API
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: 'raw',
-      folder: 'memorias_pdfs',
-      public_id: path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_') + '_' + Date.now()
-    });
-
-    // Eliminar el archivo temporal después de subirlo
-    fs.removeSync(req.file.path);
-
-    // Devolver la URL del PDF
-    res.json({
-      success: true,
-      pdfUrl: result.secure_url,
-      public_id: result.public_id
-    });
-  } catch (error) {
-    console.error('Error al subir PDF:', error);
-    // Si hay un archivo temporal, intentar eliminarlo
-    if (req.file && req.file.path) {
-      try {
-        fs.removeSync(req.file.path);
-      } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
-      }
-    }
-    res.status(500).json({ success: false, error: 'Error al subir el PDF' });
-  }
-});
-
-// Configuración para almacenamiento temporal en disco para imágenes
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tempDir = path.join(__dirname, 'temp');
-    fs.ensureDirSync(tempDir);
-    cb(null, tempDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
-  }
-});
-
-const imageUpload = multer({ storage: imageStorage });
-
-// Ruta para subir imágenes para noticias
-app.post('/api/upload-image', imageUpload.single('file'), async (req, res) => {
+// Ruta para subir imágenes a S3
+app.post('/api/upload-image', upload.single('file'), async (req, res) => {
   try {
     console.log('Received image upload request');
     if (!req.file) {
@@ -670,53 +654,49 @@ app.post('/api/upload-image', imageUpload.single('file'), async (req, res) => {
 
     console.log('File received:', req.file.originalname, 'Size:', req.file.size);
 
-    // Obtener las opciones de transformación de la solicitud
-    const transformation = req.body.transformation || {}; // Por ejemplo: width, height, crop, etc.
+    const fileKey = `news_images/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
+    console.log('Generated S3 key:', fileKey);
 
-    // Preparar opciones para la carga
-    const uploadOptions = {
-      folder: 'news_images',
-      public_id: path.basename(req.file.originalname, path.extname(req.file.originalname))
-        .replace(/\s+/g, '_') + '_' + Date.now()
+    console.log('Reading file from:', req.file.path);
+    const fileContent = await fs.readFile(req.file.path);
+    console.log('File read successfully, length:', fileContent.length);
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: fileKey,
+      Body: fileContent,
+      ContentType: req.file.mimetype
     };
+    console.log('Uploading to S3 with params:', uploadParams);
 
-    // Añadir transformaciones si se especificaron
-    if (Object.keys(transformation).length > 0) {
-      uploadOptions.transformation = [transformation];
-    }
+    const uploadCommand = new PutObjectCommand(uploadParams);
+    await s3Client.send(uploadCommand);
+    console.log('Upload to S3 successful');
 
-    console.log('Uploading to Cloudinary with options:', uploadOptions);
+    const url = getS3PublicUrl(fileKey);
+    console.log('Generated public URL:', url);
 
-    // Subir a Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, uploadOptions);
+    console.log('Removing temporary file:', req.file.path);
+    await fs.remove(req.file.path);
+    console.log('Temporary file removed');
 
-    console.log('Cloudinary upload success:', result.secure_url);
-
-    // Eliminar el archivo temporal
-    fs.removeSync(req.file.path);
-
-    // Devolver la URL de la imagen y metadatos adicionales
     res.json({
       success: true,
-      imageUrl: result.secure_url,
-      public_id: result.public_id,
-      originalWidth: result.width,
-      originalHeight: result.height,
-      format: result.format,
-      resourceType: result.resource_type
+      imageUrl: url,
+      public_id: fileKey,
+      format: path.extname(req.file.originalname).substring(1),
+      resourceType: 'image'
     });
   } catch (error) {
     console.error('Error al subir imagen:', error);
-    // Si hay un archivo temporal, intentar eliminarlo
     if (req.file && req.file.path) {
       try {
-        fs.removeSync(req.file.path);
+        await fs.remove(req.file.path);
+        console.log('Temporary file cleaned up');
       } catch (cleanupError) {
         console.error('Error al limpiar archivo temporal:', cleanupError);
       }
     }
-
-    // Respuesta detallada de error
     res.status(500).json({
       success: false,
       error: 'Error al subir la imagen',
@@ -725,14 +705,126 @@ app.post('/api/upload-image', imageUpload.single('file'), async (req, res) => {
   }
 });
 
+//---------------------------------------------------------------------------------------------------------
+
+// Ruta para subir PDFs a S3
+app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
+  try {
+    console.log('Received PDF upload request');
+    if (!req.file) {
+      console.error('No file provided in request');
+      return res.status(400).json({ success: false, error: 'No se proporcionó ningún archivo' });
+    }
+
+    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
+
+    // Validar que sea un PDF
+    if (req.file.mimetype !== 'application/pdf') {
+      await fs.remove(req.file.path);
+      console.error('Invalid file type:', req.file.mimetype);
+      return res.status(400).json({ success: false, error: 'Solo se permiten archivos PDF' });
+    }
+
+    // Generar una clave única para el PDF en S3 (prefijo diferente a imágenes)
+    const fileKey = `pdfs/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
+    console.log('Generated S3 key:', fileKey);
+
+    console.log('Reading file from:', req.file.path);
+    const fileContent = await fs.readFile(req.file.path);
+    console.log('File read successfully, length:', fileContent.length);
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: fileKey,
+      Body: fileContent,
+      ContentType: req.file.mimetype
+    };
+    console.log('Uploading to S3 with params:', uploadParams);
+
+    const uploadCommand = new PutObjectCommand(uploadParams);
+    await s3Client.send(uploadCommand);
+    console.log('Upload to S3 successful');
+
+    const url = getS3PublicUrl(fileKey);
+    console.log('Generated public URL:', url);
+
+    console.log('Removing temporary file:', req.file.path);
+    await fs.remove(req.file.path);
+    console.log('Temporary file removed');
+
+    res.json({
+      success: true,
+      pdfUrl: url, // Cambiado de imageUrl a pdfUrl para coincidir con el frontend
+      public_id: fileKey,
+      format: path.extname(req.file.originalname).substring(1),
+      resourceType: 'pdf'
+    });
+  } catch (error) {
+    console.error('Error al subir PDF:', error);
+    if (req.file && req.file.path) {
+      try {
+        await fs.remove(req.file.path);
+        console.log('Temporary file cleaned up');
+      } catch (cleanupError) {
+        console.error('Error al limpiar archivo temporal:', cleanupError);
+      }
+    }
+    res.status(500).json({
+      success: false,
+      error: 'Error al subir el PDF',
+      details: error.message
+    });
+  }
+});
+
+//------------------------------------------------------------------------------------------------------------
+
+
+// Ruta que me genera una URL pre-firmada para la subida directa a S3
+app.get('/api/get-upload-url', async (req, res) => {
+  try {
+    const fileName = req.query.fileName || 'default.pdf';
+    const fileKey = `pdfs/${path.basename(fileName, path.extname(fileName)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(fileName)}`;
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: fileKey,
+      ContentType: 'application/pdf',
+    };
+
+    const command = new PutObjectCommand(uploadParams);
+    const uploadUrl = await getSignedUrl(s3Client, command, {
+      expiresIn: 3600, // URL válida por 1 hora
+      signableHeaders: new Set(['content-type']), // Solo firmar content-type
+    });
+
+    const pdfUrl = getS3PublicUrl(fileKey);
+    console.log('Generated pre-signed URL for:', fileKey);
+
+    res.json({
+      success: true,
+      uploadUrl,
+      fileKey,
+      pdfUrl,
+    });
+  } catch (error) {
+    console.error('Error generating pre-signed URL:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al generar URL de subida',
+      details: error.message,
+    });
+  }
+});
+//------------------------------------------------------------------------------------------------------------------
+
 // Ruta proxy para servir PDFs
-app.get('/api/pdf/:cloudinaryId(*)', (req, res) => {
-  const cloudinaryId = req.params.cloudinaryId;
-  console.log(`Solicitud de PDF con ID: ${cloudinaryId}`);
+app.get('/api/pdf/:s3Key(*)', (req, res) => {
+  const s3Key = req.params.s3Key;
+  console.log(`Solicitud de PDF con Key: ${s3Key}`);
 
   // Crear URL pública directa
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dvy5fb4nq';
-  const pdfUrl = `https://res.cloudinary.com/${cloudName}/raw/upload/${cloudinaryId}`;
+  const pdfUrl = getS3PublicUrl(s3Key);
 
   console.log(`Redireccionando a: ${pdfUrl}`);
 
@@ -740,7 +832,7 @@ app.get('/api/pdf/:cloudinaryId(*)', (req, res) => {
   res.redirect(pdfUrl);
 });
 
-// Ruta para depurar URLs de Cloudinary
+// Ruta para depurar URLs
 app.get('/api/debug-pdf/:url(*)', (req, res) => {
   const encodedUrl = req.params.url;
   const decodedUrl = decodeURIComponent(encodedUrl);
@@ -749,12 +841,14 @@ app.get('/api/debug-pdf/:url(*)', (req, res) => {
 
   res.json({
     original: decodedUrl,
-    cloudinaryInfo: {
-      isCloudinary: decodedUrl.includes('cloudinary.com'),
+    s3Info: {
+      isS3: decodedUrl.includes('s3.amazonaws.com'),
       parts: decodedUrl.split('/'),
       host: new URL(decodedUrl).host,
       pathname: new URL(decodedUrl).pathname,
-      publicId: decodedUrl.split('/upload/')[1]?.split('?')[0] || 'No disponible'
+      bucket: decodedUrl.includes('s3.amazonaws.com') ? 
+              new URL(decodedUrl).host.split('.')[0] : 
+              'No es una URL de S3'
     }
   });
 });

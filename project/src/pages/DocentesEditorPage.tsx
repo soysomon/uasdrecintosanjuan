@@ -9,7 +9,7 @@ const DocentesEditorPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'docentes' | 'publicaciones'>('docentes');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 pt-40 pb-16">
+    <div className="min-h-screen bg-white pt-32">
       <Toaster position="top-center" />
 
       <div className="container mx-auto px-4">

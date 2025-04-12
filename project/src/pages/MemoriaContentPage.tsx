@@ -234,21 +234,25 @@ const MemoriaContentPage: React.FC = () => {
 const getPdfUrl = (memoria: MemoriaItem) => {
   if (!memoria.pdfUrl) return '';
   
-  // Si es una URL de Cloudinary con versión, usar nuestro proxy
-  if (memoria.pdfUrl.includes('cloudinary.com')) {
+  // Si es una URL de S3, usar nuestro proxy
+  if (memoria.pdfUrl.includes('s3.amazonaws.com')) {
     try {
-      const cloudinaryId = memoria.pdfUrl.split('/upload/')[1];
-      if (cloudinaryId) {
-        return `http://localhost:5000/api/pdf/${cloudinaryId}`;
+      // Extraer la clave del objeto de S3 (parte después del nombre del bucket)
+      const s3Parts = memoria.pdfUrl.split('.s3.amazonaws.com/');
+      if (s3Parts.length > 1) {
+        const s3Key = s3Parts[1];
+        return `http://localhost:5000/api/pdf/${s3Key}`;
       }
     } catch (error) {
-      console.error('Error procesando URL de Cloudinary:', error);
+      console.error('Error procesando URL de S3:', error);
     }
   }
   
   // Si todo lo demás falla, devolver la URL original
   return memoria.pdfUrl;
 };
+  
+ 
 
 useEffect(() => {
   const fetchMemoriaData = async () => {

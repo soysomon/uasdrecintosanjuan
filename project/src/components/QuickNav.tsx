@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { UserCircle2, GraduationCap, CreditCard, RotateCcw, Key, Car as IdCard, Mail } from 'lucide-react';
+import { UserCircle2, GraduationCap, CreditCard, RotateCcw, Key, Mail, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface QuickLink {
   icon: React.ReactNode;
@@ -70,6 +70,7 @@ const quickLinks: QuickLink[] = [
 
 export function QuickNav() {
   const [isVisible, setIsVisible] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
 
@@ -92,52 +93,77 @@ export function QuickNav() {
     return null;
   }
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <nav
-      className={`fixed right-4 top-32 z-50 transition-transform duration-300 ${
+      className={`fixed right-4 top-32 z-50 transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-x-0' : 'translate-x-full'
       }`}
       aria-label="Navegación rápida"
     >
-      <div className="bg-white rounded-lg shadow-lg p-4 w-64">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4" id="quick-nav-heading">
-          Estudiantes
-        </h2>
-        <ul
-          role="list"
-          aria-labelledby="quick-nav-heading"
-          className="space-y-2"
+      <div className="flex">
+        {/* Botón para expandir/colapsar */}
+        <button
+          onClick={toggleExpand}
+          className="bg-burgundy-700 hover:bg-burgundy-800 text-white p-2 rounded-l-md self-start transition-colors"
+          aria-label={isExpanded ? "Ocultar panel" : "Mostrar panel"}
+          style={{ backgroundColor: '#0d6efd' }}
         >
-          {quickLinks.map((link) => (
-            <li key={link.label}>
-              {link.external ? (
-                <a
-                  href={link.href}
-                  className="flex items-center p-2 text-gray-700 rounded-md hover:bg-blue-50 transition-colors group"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${link.label} - ${link.description}`}
-                >
-                  <span className="text-blue-600 group-hover:text-blue-700">
-                    {link.icon}
-                  </span>
-                  <span className="ml-3">{link.label}</span>
-                </a>
-              ) : (
-                <Link
-                  to={link.href}
-                  className="flex items-center p-2 text-gray-700 rounded-md hover:bg-blue-50 transition-colors group"
-                  aria-label={`${link.label} - ${link.description}`}
-                >
-                  <span className="text-blue-600 group-hover:text-blue-700">
-                    {link.icon}
-                  </span>
-                  <span className="ml-3">{link.label}</span>
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
+          {isExpanded ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </button>
+
+        {/* Panel principal */}
+        <div 
+          className={`bg-white rounded-r-lg shadow-md transition-all duration-300 ease-in-out overflow-hidden ${
+            isExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
+          }`}
+        >
+          <div className="p-4">
+            <div className="flex items-center mb-5 pb-3 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-burgundy-800" id="quick-nav-heading" style={{ color: '#840d2d' }}>
+                Estudiantes
+              </h2>
+            </div>
+            <ul
+              role="list"
+              aria-labelledby="quick-nav-heading"
+              className="space-y-1"
+            >
+              {quickLinks.map((link) => (
+                <li key={link.label}>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      className="flex items-center p-2 text-gray-700 rounded-md hover:bg-gray-50 transition-colors group"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${link.label} - ${link.description}`}
+                    >
+                      <span className="text-burgundy-600 group-hover:text-burgundy-700" style={{ color: '#9e1c3f' }}>
+                        {link.icon}
+                      </span>
+                      <span className="ml-3 text-sm font-medium">{link.label}</span>
+                    </a>
+                  ) : (
+                    <Link
+                      to={link.href}
+                      className="flex items-center p-2 text-gray-700 rounded-md hover:bg-gray-50 transition-colors group"
+                      aria-label={`${link.label} - ${link.description}`}
+                    >
+                      <span className="text-burgundy-600 group-hover:text-burgundy-700" style={{ color: '#9e1c3f' }}>
+                        {link.icon}
+                      </span>
+                      <span className="ml-3 text-sm font-medium">{link.label}</span>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </nav>
   );

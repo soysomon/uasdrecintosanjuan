@@ -10,7 +10,7 @@ interface MemoriaItem {
   title: string;
   slug: string;
   isPublished: boolean;
-  order: number; // Añadida la propiedad order
+  order: number; 
 }
 
 interface NavChildItem {
@@ -18,8 +18,6 @@ interface NavChildItem {
   href: string;
 }
 
-// Elementos de navegación estáticos (excepto memorias)
-// Elementos de navegación estáticos (excepto memorias)
 const baseNavItems: NavItem[] = [
   {
     label: 'General',
@@ -33,8 +31,8 @@ const baseNavItems: NavItem[] = [
       { label: 'UASD Elías Piña', href: '/inicio/elias-pina' },
       { label: 'Consejo Directivo', href: '/inicio/consejo-directivo' },
       { label: 'Unidades', href: '/inicio/unidades' },
-      { label: 'Preguntas Frecuentes', href: '/inicio/faq' },
-      { label: 'Dispensario Médico', href: '/inicio/dispensario' },
+      { label: 'Preguntas Frecuentes', href: '/preguntas-frecuentes' },
+     // { label: 'Dispensario Médico', href: '/inicio/dispensario' },
     ],
   },
   { label: 'Noticias', href: '/noticias' },
@@ -44,13 +42,20 @@ const baseNavItems: NavItem[] = [
     children: [
       { label: 'Grado', href: '/carreras/grado' },
       { label: 'Postgrado', href: '/carreras/postgrado' },
-      { label: 'Doctorado', href: '/carreras/doctorado' },
+     /* { label: 'Doctorado', href: '/carreras/doctorado' }, */
     ],
   },
-  { label: 'Galería', href: '/galeria' },
+  { label: 'Tour Virtual', href: '/TourVirtual' },
   { label: 'Docentes', href: '/docentes-page' },
   { label: 'Contacto', href: '/contacto' },
-  // Memorias se cargarán dinámicamente
+  {
+    label: 'Transparencia',
+    href: '/transparencia',
+    children: [
+      { label: 'Estados Financieros', href: '/transparencia/estados-financieros' },
+      { label: 'Memorias', href: '/memorias' },
+    ],
+  },
 ];
 
 const serviceLinks = [
@@ -66,38 +71,7 @@ function Navigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const [navItems, setNavItems] = useState<NavItem[]>(baseNavItems);
 
-  // Cargar las memorias desde la API
-useEffect(() => {
-  const fetchMemorias = async () => {
-    try {
-      // Intentar cargar memorias desde la API
-      const response = await axios.get('http://localhost:5000/api/memorias');
-      
-      // Independientemente del resultado, agregamos Memorias como enlace simple, no como desplegable
-      const memoriasNavItem: NavItem = {
-        label: 'Memorias',
-        href: '/memorias'
-        // No incluyo children para que no sea desplegable
-      };
-      
-      // Actualizar los elementos de navegación
-      setNavItems([...baseNavItems, memoriasNavItem]);
-    } catch (error) {
-      console.error('Error al cargar memorias para el menú:', error);
-      
-      // Incluso en caso de error, agregamos Memorias como enlace simple
-      const memoriasNavItem: NavItem = {
-        label: 'Memorias',
-        href: '/memorias'
-      };
-      
-      setNavItems([...baseNavItems, memoriasNavItem]);
-    }
-  };
 
-  fetchMemorias();
-
-  }, []);
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 10);
@@ -144,15 +118,14 @@ useEffect(() => {
       <div className={`transition-all duration-300 ${isScrolled ? 'py-2 bg-white shadow-sm' : 'py-3 bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0 -ml-8">
-
-            <img
-              src="https://i.ibb.co/ksnpGmqH/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
-              alt="UASD Recinto San Juan"
-              className="h-14 md:h-16 lg:h-18 transition-all"
-            />
-          </Link>
+         {/* Logo */}
+<Link to="/" className="flex-shrink-0 mx-auto lg:-ml-8 lg:mx-0">
+  <img
+    src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
+    alt="UASD Recinto San Juan"
+    className="h-14 md:h-16 lg:h-18 transition-all"
+  />
+</Link>
 
           {/* Menú Desktop */}
           <div className="hidden lg:flex items-center space-x-2">

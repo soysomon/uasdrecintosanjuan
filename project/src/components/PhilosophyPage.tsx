@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { School, BookOpen, Scale, Globe2, ChevronRight, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface PhilosophyCard {
   id: string;
   title: string;
-  icon: React.ReactNode;
   description: string;
   details: string[];
   color: string;
@@ -15,7 +14,6 @@ const philosophyCards: PhilosophyCard[] = [
   {
     id: 'naturaleza',
     title: 'Naturaleza Institucional',
-    icon: <School className="w-8 h-8" />,
     description: 'Los fundamentos que definen nuestra identidad como institución educativa.',
     details: [
       'Institución integradora que une a la comunidad académica',
@@ -28,7 +26,6 @@ const philosophyCards: PhilosophyCard[] = [
   {
     id: 'modelo',
     title: 'Modelo Educativo',
-    icon: <BookOpen className="w-8 h-8" />,
     description: 'Nuestro enfoque integral para la formación de profesionales.',
     details: [
       'Docencia de excelencia',
@@ -37,12 +34,11 @@ const philosophyCards: PhilosophyCard[] = [
       'Desarrollo del pensamiento crítico',
       'Fomento de la creatividad'
     ],
-    color: '#1a237e'
+    color: '#003087'
   },
   {
     id: 'principios',
     title: 'Principios Fundamentales',
-    icon: <Scale className="w-8 h-8" />,
     description: 'Los valores que guían nuestras acciones y decisiones.',
     details: [
       'Autonomía académica y administrativa',
@@ -51,12 +47,11 @@ const philosophyCards: PhilosophyCard[] = [
       'Compromiso con la verdad',
       'Responsabilidad social'
     ],
-    color: '#0d47a1'
+    color: '#003087'
   },
   {
     id: 'compromiso',
     title: 'Compromiso Institucional',
-    icon: <Globe2 className="w-8 h-8" />,
     description: 'Nuestra responsabilidad con la sociedad y el desarrollo.',
     details: [
       'Formación integral de profesionales',
@@ -65,13 +60,12 @@ const philosophyCards: PhilosophyCard[] = [
       'Fomento de la innovación',
       'Servicio a la comunidad'
     ],
-    color: '#1565c0'
+    color: '#003087'
   }
 ];
 
 export function PhilosophyPage() {
   const [selectedCard, setSelectedCard] = useState<PhilosophyCard | null>(null);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -96,126 +90,94 @@ export function PhilosophyPage() {
     }
   };
 
+  // Color principal: Azul constitucional
+  const primaryColor = '#003087';
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="relative h-[70vh] bg-[#003087] overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src="https://i.ibb.co/4nTPWVLg/filosofia.jpg"
-            alt="Filosofía UASD"
-            className="w-full h-full object-cover opacity-60"
+      {/* Hero Section con espaciador para el nav */}
+      <div className="pt-24 md:pt-28">
+        <div className="relative h-[60vh] bg-[#003087] overflow-hidden">
+          <div className="absolute inset-0">
+            <img
+              src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/news_images/Filosofia+(2).jpg"
+              alt="Filosofía UASD"
+              className="w-full h-full object-cover opacity-40"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#003087]/70 to-[#003087]/90" />
+          
+          {/* Animated geometric shapes - Mantenidas intactas como se solicitó */}
+          <motion.div
+            initial={{ scale: 0, rotate: 0 }}
+            animate={{ scale: 1, rotate: 45 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="absolute top-1/4 left-0 w-96 h-96 bg-white/10"
           />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#003087]/70 to-[#003087]/90" />
-        
-        {/* Animated geometric shapes */}
-        <motion.div
-          initial={{ scale: 0, rotate: 0 }}
-          animate={{ scale: 1, rotate: 45 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="absolute top-1/4 left-0 w-96 h-96 bg-white/10"
-        />
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5, delay: 0.3 }}
-          className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full"
-        />
-        <motion.div
-          initial={{ scale: 0, rotate: 0 }}
-          animate={{ scale: 1, rotate: -45 }}
-          transition={{ duration: 1.5, delay: 0.6 }}
-          className="absolute top-0 right-1/3 w-64 h-64 bg-white/10"
-        />
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.5, delay: 0.3 }}
+            className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full"
+          />
+          <motion.div
+            initial={{ scale: 0, rotate: 0 }}
+            animate={{ scale: 1, rotate: -45 }}
+            transition={{ duration: 1.5, delay: 0.6 }}
+            className="absolute top-0 right-1/3 w-64 h-64 bg-white/10"
+          />
 
-        <div className="relative z-10 max-w-7xl mx-auto h-full flex items-center">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="max-w-2xl"
-            >
-              <h1 className="text-6xl font-bold tracking-tighter text-white leading-none mb-6">
-                Fundamentos
-                <span className="block">Filosóficos</span>
-              </h1>
-              <p className="text-xl text-white">
-                Los principios rectores que guían nuestra misión educativa y compromiso social
-                en la formación de profesionales de excelencia.
-              </p>
-            </motion.div>
+          <div className="relative z-10 max-w-6xl mx-auto h-full flex items-center">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="max-w-2xl"
+              >
+                <h1 className="text-5xl font-light tracking-tight text-white leading-tight mb-6">
+                  Fundamentos Filosóficos
+                </h1>
+                <div className="w-24 h-1 bg-white mb-6"></div>
+                <p className="text-xl font-light text-white">
+                  Los principios rectores que guían nuestra misión educativa y compromiso social
+                  en la formación de profesionales de excelencia.
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Philosophy Cards Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
-        >
-          {philosophyCards.map((card, index) => (
-            <motion.div
-              key={card.id}
-              custom={index}
-              variants={cardVariants}
-              whileHover={{ scale: 1.02 }}
-              className="relative group cursor-pointer"
-              onMouseEnter={() => setHoveredCard(card.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-              onClick={() => setSelectedCard(card)}
-            >
-              <div 
-                className="relative bg-white rounded-xl p-8 shadow-lg border-2 transition-all duration-300"
-                style={{ 
-                  borderColor: hoveredCard === card.id ? card.color : 'transparent',
-                  transform: `perspective(1000px) rotateX(${hoveredCard === card.id ? '2deg' : '0'}) rotateY(${hoveredCard === card.id ? '2deg' : '0'})`
-                }}
+        {/* Philosophy Cards Grid - Con estilo Heidelberg */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          >
+            {philosophyCards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                custom={index}
+                variants={cardVariants}
+                className="relative cursor-pointer"
+                onClick={() => setSelectedCard(card)}
               >
-                {/* Card Header */}
-                <div className="flex items-center mb-6">
-                  <div 
-                    className="p-3 rounded-lg transition-colors duration-300"
-                    style={{ backgroundColor: `${card.color}15` }}
-                  >
-                    {React.cloneElement(card.icon as React.ReactElement, {
-                      className: `w-8 h-8 transition-colors duration-300`,
-                      style: { color: card.color }
-                    })}
+                <div className="border-t-2 border-[#003087] pt-6 hover:bg-gray-50 transition-colors duration-200">
+                  <h3 className="text-xl font-medium text-gray-900 mb-3">{card.title}</h3>
+                  <p className="text-gray-600 mb-6">{card.description}</p>
+                  <div className="text-[#003087] font-medium">
+                    Ver más →
                   </div>
-                  <h3 className="text-xl font-bold ml-4 text-gray-900">{card.title}</h3>
                 </div>
-
-                {/* Card Content */}
-                <p className="text-gray-600 mb-6">{card.description}</p>
-
-                {/* Learn More Button */}
-                <div className="flex items-center text-sm font-medium transition-colors duration-300"
-                     style={{ color: card.color }}>
-                  Ver más
-                  <ChevronRight className="w-4 h-4 ml-1 transition-transform duration-300 transform group-hover:translate-x-1" />
-                </div>
-
-                {/* Decorative Elements */}
-                <div className="absolute top-0 left-0 w-2 h-2 rounded-full transition-colors duration-300"
-                     style={{ backgroundColor: hoveredCard === card.id ? card.color : '#e5e7eb' }} />
-                <div className="absolute top-0 right-0 w-2 h-2 rounded-full transition-colors duration-300"
-                     style={{ backgroundColor: hoveredCard === card.id ? card.color : '#e5e7eb' }} />
-                <div className="absolute bottom-0 left-0 w-2 h-2 rounded-full transition-colors duration-300"
-                     style={{ backgroundColor: hoveredCard === card.id ? card.color : '#e5e7eb' }} />
-                <div className="absolute bottom-0 right-0 w-2 h-2 rounded-full transition-colors duration-300"
-                     style={{ backgroundColor: hoveredCard === card.id ? card.color : '#e5e7eb' }} />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
 
-      {/* Modal for detailed view */}
+      {/* Modal for detailed view - Simplificado al estilo Heidelberg */}
       <AnimatePresence>
         {selectedCard && (
           <motion.div
@@ -229,29 +191,21 @@ export function PhilosophyPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-white rounded-xl max-w-2xl w-full p-8"
+              className="relative bg-white max-w-2xl w-full p-8"
               onClick={e => e.stopPropagation()}
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedCard(null)}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="absolute top-6 right-6 text-gray-500 hover:text-gray-700"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="w-6 h-6" />
               </button>
 
               {/* Modal Content */}
-              <div className="mb-6">
-                <div 
-                  className="inline-flex items-center justify-center p-3 rounded-lg mb-4"
-                  style={{ backgroundColor: `${selectedCard.color}15` }}
-                >
-                  {React.cloneElement(selectedCard.icon as React.ReactElement, {
-                    className: "w-8 h-8",
-                    style: { color: selectedCard.color }
-                  })}
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedCard.title}</h3>
+              <div className="mb-8">
+                <div className="w-16 h-1 bg-[#003087] mb-4"></div>
+                <h3 className="text-2xl font-medium text-gray-900 mb-3">{selectedCard.title}</h3>
                 <p className="text-gray-600">{selectedCard.description}</p>
               </div>
 
@@ -260,15 +214,12 @@ export function PhilosophyPage() {
                 {selectedCard.details.map((detail, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className="flex items-start"
                   >
-                    <div 
-                      className="w-2 h-2 mt-2 rounded-full mr-3"
-                      style={{ backgroundColor: selectedCard.color }}
-                    />
+                    <div className="w-4 h-px bg-[#003087] mt-3 mr-3"></div>
                     <p className="text-gray-700">{detail}</p>
                   </motion.div>
                 ))}

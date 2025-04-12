@@ -24,16 +24,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: [
-          'Inter',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Arial',
-          'sans-serif',
-        ],
+        sans: ['Roboto', 'sans-serif'], // Prioriza Roboto como la fuente principal
       },
       animation: {
         'slide-up': 'slideUp 0.5s ease-out',
