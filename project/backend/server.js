@@ -1,7 +1,8 @@
+// backend/server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cron = require('node-cron'); // Import node-cron
+const cron = require('node-cron');
 const axios = require('axios');
 const cors = require('cors');
 const multer = require('multer');
@@ -11,7 +12,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const estadosFinancierosRoutes = require('./estados/estadofinanciero');
-const IpAttempt = require('./models/IpAttempt'); // Move IpAttempt import up
+const IpAttempt = require('./models/IpAttempt');
 
 const app = express();
 app.use(express.json());
@@ -62,7 +63,6 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-  
 const newsSchema = new mongoose.Schema({
   title: String,
   sections: [{
@@ -70,13 +70,14 @@ const newsSchema = new mongoose.Schema({
       url: String,
       publicId: String,
       displayOptions: {
-        size: { type: String, default: 'medium' }, // small, medium, large, full
-        alignment: { type: String, default: 'center' }, // left, center, right
+        size: { type: String, default: 'medium' },
+        alignment: { type: String, default: 'center' },
         caption: String,
-        cropMode: { type: String, default: 'cover' } // cover, contain, none
+        cropMode: { type: String, default: 'cover' }
       }
     }],
-    text: String
+    text: String,
+    videoUrl: { type: String, trim: true }
   }],
   date: String,
   category: String,
@@ -87,15 +88,13 @@ const authController = require('./auth/authController');
 const { authMiddleware } = require('./auth/authMiddleware');
 const { roleMiddleware } = require('./auth/roleMiddleware');
 
-
-
 // Ruta para cambiar la contraseña del usuario actual
 app.post('/api/auth/change-password', authMiddleware, authController.changePassword);
 // Rutas de autenticación
 app.post('/api/auth/login', authController.login);
 app.get('/api/auth/me', authMiddleware, authController.getCurrentUser);
 
-//asegura que solo los superadmins puedan acceder
+// Asegura que solo los superadmins puedan acceder
 app.get('/api/auth/blocked-ips', authMiddleware, roleMiddleware(['superadmin']), authController.getBlockedIps);
 // Rutas de gestión de usuarios (solo superadmin)
 app.get('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.getUsers);
@@ -105,9 +104,14 @@ app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), aut
 
 // Rutas para noticias
 app.post('/api/news', async (req, res) => {
-  const news = new News(req.body);
-  await news.save();
-  res.json(news);
+  try {
+    const news = new News(req.body);
+    await news.save();
+    res.status(201).json(news);
+  } catch (err) {
+    console.error('Error al crear noticia:', err);
+    res.status(400).json({ message: 'Error al crear la noticia', error: err.message });
+  }
 });
 
 app.get('/api/news', async (req, res) => {
@@ -118,11 +122,9 @@ app.get('/api/news', async (req, res) => {
     const transformedNews = news.map(item => {
       const doc = item.toObject();
 
-      // Verificar si necesita transformación (datos antiguos con imageUrl)
       if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
         doc.sections = doc.sections.map(section => {
           if ('imageUrl' in section) {
-            // Transformar formato antiguo a nuevo
             return {
               images: section.imageUrl
                 ? [{
@@ -134,7 +136,8 @@ app.get('/api/news', async (req, res) => {
                     }
                   }]
                 : [],
-              text: section.text
+              text: section.text,
+              videoUrl: section.videoUrl
             };
           }
           return section;
@@ -156,7 +159,6 @@ app.get('/api/news/:id', async (req, res) => {
     const news = await News.findById(req.params.id);
     if (!news) return res.status(404).json({ message: 'Noticia no encontrada' });
 
-    // Transformar datos antiguos si es necesario
     const doc = news.toObject();
     if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
       doc.sections = doc.sections.map(section => {
@@ -172,7 +174,8 @@ app.get('/api/news/:id', async (req, res) => {
                   }
                 }]
               : [],
-            text: section.text
+            text: section.text,
+            videoUrl: section.videoUrl
           };
         }
         return section;
@@ -181,16 +184,42 @@ app.get('/api/news/:id', async (req, res) => {
 
     res.json(doc);
   } catch (err) {
+    console.error('Error al obtener noticia:', err);
     res.status(500).json({ message: 'Error al obtener la noticia' });
   }
 });
 
-app.delete('/api/news/:id', async (req, res) => {
-  await News.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Eliminado' });
+app.put('/api/news/:id', async (req, res) => {
+  try {
+    const news = await News.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!news) {
+      return res.status(404).json({ message: 'Noticia no encontrada' });
+    }
+    res.json(news);
+  } catch (err) {
+    console.error('Error al actualizar noticia:', err);
+    res.status(400).json({ message: 'Error al actualizar la noticia', error: err.message });
+  }
 });
 
-// Modelo de Slide - definido antes de crear las rutas
+app.delete('/api/news/:id', async (req, res) => {
+  try {
+    const news = await News.findByIdAndDelete(req.params.id);
+    if (!news) {
+      return res.status(404).json({ message: 'Noticia no encontrada' });
+    }
+    res.json({ message: 'Eliminado' });
+  } catch (err) {
+    console.error('Error al eliminar noticia:', err);
+    res.status(500).json({ message: 'Error al eliminar la noticia' });
+  }
+});
+
+// Modelo de Slide
 const slideSchema = new mongoose.Schema({
   title: String,
   subtitle: String,
@@ -216,7 +245,6 @@ app.post('/api/slides', async (req, res) => {
 
 app.get('/api/slides', async (req, res) => {
   const slides = await Slide.find().sort({ order: 1 });
- // console.log('Enviando slides:', slides.length);
   res.json(slides);
 });
 
@@ -268,7 +296,6 @@ const memoriaSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Nuevo campo para secciones de contenido
   contentSections: [{
     sectionType: {
       type: String,
@@ -276,7 +303,7 @@ const memoriaSchema = new mongoose.Schema({
       required: true
     },
     title: { type: String, trim: true },
-    content: { type: mongoose.Schema.Types.Mixed }, // Contenido flexible según el tipo
+    content: { type: mongoose.Schema.Types.Mixed },
     order: { type: Number, default: 0 }
   }]
 }, { timestamps: true });
@@ -325,11 +352,9 @@ app.put('/api/memorias/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-
     if (!memoria) {
       return res.status(404).json({ message: 'Memoria no encontrada' });
     }
-
     res.json(memoria);
   } catch (err) {
     console.error('Error actualizando memoria:', err);
@@ -340,11 +365,9 @@ app.put('/api/memorias/:id', async (req, res) => {
 app.delete('/api/memorias/:id', async (req, res) => {
   try {
     const memoria = await Memoria.findByIdAndDelete(req.params.id);
-
     if (!memoria) {
       return res.status(404).json({ message: 'Memoria no encontrada' });
     }
-
     res.json({ message: 'Memoria eliminada correctamente' });
   } catch (err) {
     console.error('Error eliminando memoria:', err);
@@ -439,9 +462,8 @@ const Docente = mongoose.model('Docente', docenteSchema);
 // Rutas para Docentes
 app.get('/api/docentes', async (req, res) => {
   try {
-    const tipo = req.query.tipo; // 'residente' o 'no_residente'
+    const tipo = req.query.tipo;
     const filter = tipo ? { tipo } : {};
-
     const docentes = await Docente.find(filter).sort({ apellidos: 1, nombre: 1 });
     res.json(docentes);
   } catch (err) {
@@ -481,11 +503,9 @@ app.put('/api/docentes/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-
     if (!docente) {
       return res.status(404).json({ message: 'Docente no encontrado' });
     }
-
     res.json(docente);
   } catch (err) {
     console.error('Error actualizando docente:', err);
@@ -496,11 +516,9 @@ app.put('/api/docentes/:id', async (req, res) => {
 app.delete('/api/docentes/:id', async (req, res) => {
   try {
     const docente = await Docente.findByIdAndDelete(req.params.id);
-
     if (!docente) {
       return res.status(404).json({ message: 'Docente no encontrado' });
     }
-
     res.json({ message: 'Docente eliminado correctamente' });
   } catch (err) {
     console.error('Error eliminando docente:', err);
@@ -598,11 +616,9 @@ app.put('/api/publicaciones-docentes/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-
     if (!publicacion) {
       return res.status(404).json({ message: 'Publicación no encontrada' });
     }
-
     res.json(publicacion);
   } catch (err) {
     console.error('Error actualizando publicación:', err);
@@ -613,11 +629,9 @@ app.put('/api/publicaciones-docentes/:id', async (req, res) => {
 app.delete('/api/publicaciones-docentes/:id', async (req, res) => {
   try {
     const publicacion = await PublicacionDocente.findByIdAndDelete(req.params.id);
-
     if (!publicacion) {
       return res.status(404).json({ message: 'Publicación no encontrada' });
     }
-
     res.json({ message: 'Publicación eliminada correctamente' });
   } catch (err) {
     console.error('Error eliminando publicación:', err);
@@ -629,11 +643,10 @@ app.delete('/api/publicaciones-docentes/:id', async (req, res) => {
 const tempStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const tempDir = path.join(__dirname, 'temp');
-    fs.ensureDirSync(tempDir); // Asegura que el directorio exista
+    fs.ensureDirSync(tempDir);
     cb(null, tempDir);
   },
   filename: (req, file, cb) => {
-    // Generar un nombre único para el archivo
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extension = path.extname(file.originalname);
     cb(null, file.fieldname + '-' + uniqueSuffix + extension);
@@ -641,7 +654,6 @@ const tempStorage = multer.diskStorage({
 });
 
 const upload = multer({ storage: tempStorage });
-
 
 // Ruta para subir imágenes a S3
 app.post('/api/upload-image', upload.single('file'), async (req, res) => {
@@ -665,7 +677,8 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
       Bucket: bucketName,
       Key: fileKey,
       Body: fileContent,
-      ContentType: req.file.mimetype
+      ContentType: req.file.mimetype,
+      ACL: 'public-read', // Asegura que la imagen sea pública
     };
     console.log('Uploading to S3 with params:', uploadParams);
 
@@ -705,8 +718,6 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
   }
 });
 
-//---------------------------------------------------------------------------------------------------------
-
 // Ruta para subir PDFs a S3
 app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
   try {
@@ -718,14 +729,12 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
 
     console.log('File received:', req.file.originalname, 'Size:', req.file.size);
 
-    // Validar que sea un PDF
     if (req.file.mimetype !== 'application/pdf') {
       await fs.remove(req.file.path);
       console.error('Invalid file type:', req.file.mimetype);
       return res.status(400).json({ success: false, error: 'Solo se permiten archivos PDF' });
     }
 
-    // Generar una clave única para el PDF en S3 (prefijo diferente a imágenes)
     const fileKey = `pdfs/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
     console.log('Generated S3 key:', fileKey);
 
@@ -737,7 +746,8 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
       Bucket: bucketName,
       Key: fileKey,
       Body: fileContent,
-      ContentType: req.file.mimetype
+      ContentType: req.file.mimetype,
+      ACL: 'public-read', // Asegura que el PDF sea público
     };
     console.log('Uploading to S3 with params:', uploadParams);
 
@@ -754,7 +764,7 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
 
     res.json({
       success: true,
-      pdfUrl: url, // Cambiado de imageUrl a pdfUrl para coincidir con el frontend
+      pdfUrl: url,
       public_id: fileKey,
       format: path.extname(req.file.originalname).substring(1),
       resourceType: 'pdf'
@@ -777,10 +787,7 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
   }
 });
 
-//------------------------------------------------------------------------------------------------------------
-
-
-// Ruta que me genera una URL pre-firmada para la subida directa a S3
+// Ruta que genera una URL pre-firmada para la subida directa a S3
 app.get('/api/get-upload-url', async (req, res) => {
   try {
     const fileName = req.query.fileName || 'default.pdf';
@@ -794,8 +801,8 @@ app.get('/api/get-upload-url', async (req, res) => {
 
     const command = new PutObjectCommand(uploadParams);
     const uploadUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 3600, // URL válida por 1 hora
-      signableHeaders: new Set(['content-type']), // Solo firmar content-type
+      expiresIn: 3600,
+      signableHeaders: new Set(['content-type']),
     });
 
     const pdfUrl = getS3PublicUrl(fileKey);
@@ -816,19 +823,15 @@ app.get('/api/get-upload-url', async (req, res) => {
     });
   }
 });
-//------------------------------------------------------------------------------------------------------------------
 
 // Ruta proxy para servir PDFs
 app.get('/api/pdf/:s3Key(*)', (req, res) => {
   const s3Key = req.params.s3Key;
   console.log(`Solicitud de PDF con Key: ${s3Key}`);
 
-  // Crear URL pública directa
   const pdfUrl = getS3PublicUrl(s3Key);
-
   console.log(`Redireccionando a: ${pdfUrl}`);
 
-  // Simplemente redireccionar
   res.redirect(pdfUrl);
 });
 
@@ -846,8 +849,8 @@ app.get('/api/debug-pdf/:url(*)', (req, res) => {
       parts: decodedUrl.split('/'),
       host: new URL(decodedUrl).host,
       pathname: new URL(decodedUrl).pathname,
-      bucket: decodedUrl.includes('s3.amazonaws.com') ? 
-              new URL(decodedUrl).host.split('.')[0] : 
+      bucket: decodedUrl.includes('s3.amazonaws.com') ?
+              new URL(decodedUrl).host.split('.')[0] :
               'No es una URL de S3'
     }
   });
