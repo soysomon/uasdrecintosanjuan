@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "start": "serve -s dist",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "react-pdf": "^9.2.1",
     "react-router-dom": "^6.22.3",
     "react-toastify": "^11.0.5",
+    "serve": "^14.2.4",
     "styled-jsx": "^5.1.6"
   },
   "devDependencies": {
