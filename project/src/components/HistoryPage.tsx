@@ -10,7 +10,7 @@ const stats = [
 
 export function HistoryPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-16 md:pt-0">
       {/* Hero Section with Bauhaus-inspired design */}
       <div className="relative h-screen bg-white overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -22,8 +22,8 @@ export function HistoryPage() {
 
         <div className="relative z-10 max-w-7xl mx-auto h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 h-full items-center gap-12 px-4 sm:px-6 lg:px-8">
-            <div className="space-y-8">
-              <h1 className="text-6xl font-bold tracking-tighter text-gray-900 leading-none">
+            <div className="space-y-8 mt-16 md:mt-0">
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-gray-900 leading-none">
                 Nuestra
                 <span className="block text-blue-600">Historia</span>
               </h1>
