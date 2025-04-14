@@ -115,6 +115,8 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
             <option value="Todas">Todas las categorías</option>
             <option value="General">General</option>
             <option value="Académico">Académico</option>
+            <option value="Académico">Cultural</option>
+            
           </select>
         </div>
       </div>
