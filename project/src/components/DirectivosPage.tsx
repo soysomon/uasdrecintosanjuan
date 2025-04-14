@@ -249,11 +249,11 @@ export function DirectivosPage() {
             </div>
             
             <a 
-              href={`mailto:${directivos[0].email}`}
-              className="inline-block border border-[#2f2382] text-[#2f2382] px-5 py-2 transition-colors hover:bg-[#2f2382] hover:text-white mt-2"
-            >
-              Contactar
-            </a>
+  href="/director/despacho"
+  className="inline-block border border-[#2f2382] text-[#2f2382] px-5 py-2 transition-colors hover:bg-[#2f2382] hover:text-white mt-2"
+>
+  Conocer más sobre el director
+</a>
           </div>
         </div>
       </div>
