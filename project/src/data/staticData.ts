@@ -23,8 +23,8 @@ export const featuredServices = [
 ];
 
 export const institutionalStats = [
-  { figure: "65+", label: "Programas académicos" },
-  { figure: "18,500", label: "Estudiantes activos" },
-  { figure: "200+", label: "Docentes PhD" },
-  { figure: "35", label: "Centros de investigación" },
+  { figure: "71+", label: "Programas académicos" },
+  { figure: "12,807", label: "Estudiantes activos" },
+  { figure: "1+", label: "Docentes PhD" },
+  { figure: "1", label: "Centros de investigación" },
 ];
