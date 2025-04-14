@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import logoUASD from '../img/logouasd.png';
+import API_ROUTES from '../config/api';
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -86,7 +87,7 @@ const NewsDetailPage: React.FC = () => {
     const fetchNews = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/news/${id}`);
+        const res = await axios.get(API_ROUTES.NEWS_BY_ID(id!));
         const wordCount = res.data.sections.reduce(
           (count: number, section: Section) =>
             count + (section.text ? section.text.split(/\s+/).length : 0),
@@ -113,8 +114,7 @@ const NewsDetailPage: React.FC = () => {
 
   const fetchRelatedNews = async (category: string, currentId: string, currentDate: string) => {
     try {
-      const prevNewsRes = await axios.get(`http://localhost:5000/api/news`, {
-        params: {
+      const prevNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
           limit: 4,
           date_lt: currentDate,
           sort: '-date',
@@ -127,8 +127,7 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
-      const categoryNewsRes = await axios.get(`http://localhost:5000/api/news`, {
-        params: {
+      const categoryNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
           category,
           limit: 4,
           _id_ne: currentId,
@@ -143,8 +142,7 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
-      const recentNewsRes = await axios.get(`http://localhost:5000/api/news`, {
-        params: {
+      const recentNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
           limit: 4,
           _id_ne: currentId,
           sort: '-date',

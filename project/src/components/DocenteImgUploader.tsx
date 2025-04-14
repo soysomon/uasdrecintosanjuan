@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Trash2, Loader, Check, AlertTriangle, Image } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import API_ROUTES from '../config/api';
 
 interface DocenteImgUploaderProps {
   onImageUploaded: (url: string, publicId: string) => void;
@@ -45,9 +46,9 @@ const DocenteImgUploader: React.FC<DocenteImgUploaderProps> = ({
       formData.append('file', file);
 
       console.log('Enviando imagen al servidor (docente)...');
-      const res = await axios.post(
-        'http://localhost:5000/api/upload-image',
-        formData,
+        const res = await axios.post(
+          API_ROUTES.UPLOAD_IMAGE,
+          formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Upload, FileText, AlertTriangle, Check, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import API_ROUTES from '../config/api';
 
 interface EstadosFinancierosPdfUploaderProps {
   onPdfUploaded: (url: string, publicId: string) => void;
@@ -38,7 +39,7 @@ const EstadosFinancierosPdfUploader: React.FC<EstadosFinancierosPdfUploaderProps
 
     try {
       // Paso 1: Obtener la URL pre-firmada
-      const res = await axios.get('http://localhost:5000/api/get-upload-url', {
+      const res = await axios.get(API_ROUTES.GET_UPLOAD_URL, {
         params: { fileName: file.name },
       });
 

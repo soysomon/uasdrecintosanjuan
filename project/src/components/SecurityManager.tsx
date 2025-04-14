@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Loader, Users, AlertTriangle } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
+import API_ROUTES from '../config/api';
 
 interface User {
   id: string;
@@ -46,8 +47,8 @@ const SecurityManager: React.FC<SecurityManagerProps> = ({ token }) => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/users', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.get(API_ROUTES.USERS, {
+                headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
     } catch (err) {
@@ -61,8 +62,8 @@ const SecurityManager: React.FC<SecurityManagerProps> = ({ token }) => {
   const fetchBlockedIps = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/blocked-ips', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.get(API_ROUTES.AUTH_BLOCKED_IPS, {
+                headers: { Authorization: `Bearer ${token}` },
       });
       setBlockedIps(res.data.blockedIps);
     } catch (err) {

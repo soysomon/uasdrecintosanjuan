@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Search, Calendar, ArrowRight, Clock, Tag } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import API_ROUTES from '../config/api';
+
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -45,8 +47,7 @@ const NewsSection: React.FC = () => {
   const fetchNews = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/news');
-
+      const res = await axios.get(API_ROUTES.NEWS);
       // Ordenar noticias por fecha (de más reciente a más antigua)
       const sortedNews = [...res.data].sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();

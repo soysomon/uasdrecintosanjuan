@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Save, Upload, Loader, X, Check, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
+import API_ROUTES from '../config/api';
 
 interface Slide {
   _id?: string;
@@ -36,7 +37,7 @@ const SlidesEditorPage: React.FC = () => {
   const fetchSlides = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/slides');
+      const res = await axios.get(API_ROUTES.SLIDES);
       if (res.data.length > 0) {
         setSlides(res.data);
       } else {
@@ -118,7 +119,7 @@ const SlidesEditorPage: React.FC = () => {
 
     try {
       if (slideToDelete._id) {
-        await axios.delete(`http://localhost:5000/api/slides/${slideToDelete._id}`);
+        await axios.delete(API_ROUTES.SLIDES_BY_ID(slideToDelete._id));
       }
 
       const newSlides = slides.filter((_, i) => i !== index);
@@ -161,7 +162,7 @@ const SlidesEditorPage: React.FC = () => {
     if (!file) return;
 
     const slideId = `slide-${currentSlideIndex}`;
-    setUploadProgress(prev => ({...prev, [slideId]: 0}));
+    setUploadProgress(prev => ({ ...prev, [slideId]: 0 }));
 
     try {
       const formData = new FormData();
@@ -170,7 +171,7 @@ const SlidesEditorPage: React.FC = () => {
       // Usar el endpoint del servidor en lugar de subir directamente a Cloudinary
       console.log('Enviando imagen al servidor...');
       const res = await axios.post(
-        'http://localhost:5000/api/upload-image',
+        API_ROUTES.UPLOAD_IMAGE,
         formData,
         {
           headers: {
@@ -181,7 +182,7 @@ const SlidesEditorPage: React.FC = () => {
               (progressEvent.loaded * 100) / (progressEvent.total || 100)
             );
             console.log(`Progreso de carga: ${percentCompleted}%`);
-            setUploadProgress(prev => ({...prev, [slideId]: percentCompleted}));
+            setUploadProgress(prev => ({ ...prev, [slideId]: percentCompleted }));
           }
         }
       );
@@ -200,7 +201,7 @@ const SlidesEditorPage: React.FC = () => {
         // Limpiar progreso después de completar
         setTimeout(() => {
           setUploadProgress(prev => {
-            const newProgress = {...prev};
+            const newProgress = { ...prev };
             delete newProgress[slideId];
             return newProgress;
           });
@@ -217,7 +218,7 @@ const SlidesEditorPage: React.FC = () => {
       });
 
       setUploadProgress(prev => {
-        const newProgress = {...prev};
+        const newProgress = { ...prev };
         delete newProgress[slideId];
         return newProgress;
       });
@@ -231,18 +232,18 @@ const SlidesEditorPage: React.FC = () => {
     setSaving(true);
 
     try {
-      // Guardar cada slide
-      for (const slide of slides) {
-        if (slide._id) {
-          // Actualizar slide existente
-          await axios.put(`http://localhost:5000/api/slides/${slide._id}`, slide);
-        } else {
-          // Crear nuevo slide
-          const res = await axios.post('http://localhost:5000/api/slides', slide);
-          // Actualizar el ID en el estado
-          slide._id = res.data._id;
-        }
-      }
+  // Guardar cada slide
+  for (const slide of slides) {
+    if (slide._id) {
+      // Actualizar slide existente
+      await axios.put(API_ROUTES.SLIDES_BY_ID(slide._id), slide);
+    } else {
+      // Crear nuevo slide
+      const res = await axios.post(API_ROUTES.SLIDES, slide);
+      // Actualizar el ID en el estado
+      slide._id = res.data._id;
+    }
+  }
 
       toast.success('Cambios guardados correctamente', {
         icon: <Check className="text-green-500" size={18} />
@@ -309,11 +310,10 @@ const SlidesEditorPage: React.FC = () => {
                 <button
                   onClick={handleSaveChanges}
                   disabled={saving}
-                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                    saving
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${saving
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                    }`}
                 >
                   {saving ? (
                     <>
@@ -339,11 +339,10 @@ const SlidesEditorPage: React.FC = () => {
                 <div
                   key={index}
                   onClick={() => setCurrentSlideIndex(index)}
-                  className={`rounded-lg overflow-hidden border-2 cursor-pointer transition-all relative ${
-                    currentSlideIndex === index
+                  className={`rounded-lg overflow-hidden border-2 cursor-pointer transition-all relative ${currentSlideIndex === index
                       ? 'border-blue-500 shadow-md'
                       : 'border-gray-200 hover:border-blue-300'
-                  }`}
+                    }`}
                 >
                   <div
                     className="h-24 relative"
