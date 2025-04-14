@@ -18,8 +18,21 @@ const app = express();
 app.use(express.json());
 
 // Updated CORS configuration with more options
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://uasdrecintosanjuan-fe-production.up.railway.app',
+  'https://uasdrecintosanjuan.com' // Dominio personalizado
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -29,10 +42,10 @@ app.use('/api/estados-financieros', estadosFinancierosRoutes);
 
 // Configuración del cliente S3
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIA4U7RPRX7OECPX4N5',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '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'
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   }
 });
 

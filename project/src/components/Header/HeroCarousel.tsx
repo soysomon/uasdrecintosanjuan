@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import API_ROUTES from '../../config/api';
 
 // Definición de interfaces
 interface Slide {
@@ -75,7 +76,7 @@ const HeroCarousel: React.FC = () => {
   useEffect(() => {
     const fetchSlides = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/slides');
+        const res = await axios.get(API_ROUTES.SLIDES);
         if (res.data.length > 0) {
           const formattedSlides = res.data.map((slide: any) => ({
             title: slide.title,
@@ -240,9 +241,8 @@ const HeroCarousel: React.FC = () => {
                     setIsAutoPlaying(false);
                     setProgress(0);
                   }}
-                  className={`h-2 rounded-full transition-all ${
-                    currentSlide === index ? 'bg-white w-8' : 'bg-white/40 w-3 hover:bg-white/60'
-                  }`}
+                  className={`h-2 rounded-full transition-all ${currentSlide === index ? 'bg-white w-8' : 'bg-white/40 w-3 hover:bg-white/60'
+                    }`}
                   aria-label={`Ir al slide ${index + 1}`}
                 />
               ))}

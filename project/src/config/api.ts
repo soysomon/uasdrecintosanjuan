@@ -1,43 +1,52 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 const API_ROUTES = {
-  // Rutas existentes
-  NEWS: `${API_BASE_URL}/news`,
-  NEWS_BY_ID: (id: string) => `${API_BASE_URL}/news/${id}`,
+  // Autenticación
+  AUTH_BLOCKED_IPS: `${API_BASE_URL}/auth/blocked-ips`, // Obtiene la lista de IPs bloqueadas para seguridad
+  AUTH_LOGIN: `${API_BASE_URL}/auth/login`, // Inicia sesión de un usuario
+  AUTH_ME: `${API_BASE_URL}/auth/me`, // Obtiene los datos del usuario autenticado
 
-  SLIDES: `${API_BASE_URL}/slides`,
-  SLIDES_BY_ID: (id: string) => `${API_BASE_URL}/slides/${id}`,
+  // Docentes
+  DOCENTES: `${API_BASE_URL}/docentes`, // Lista todos los docentes
+  DOCENTES_BY_ID: (id: string) => `${API_BASE_URL}/docentes/${id}`, // Obtiene un docente por su ID
+  DOCENTES_BY_SLUG: (slug: string) => `${API_BASE_URL}/docentes/${slug}`, // Obtiene un docente por su slug
+  DOCENTES_BY_TYPE: (tipo: string) => `${API_BASE_URL}/docentes?tipo=${tipo}`, // Filtra docentes por tipo
 
-    // Rutas para estados financieros
-    ESTADOS_FINANCIEROS: `${API_BASE_URL}/estados-financieros`,
-    ESTADOS_FINANCIEROS_BY_ID: (id: string) => `${API_BASE_URL}/estados-financieros/${id}`,
+  // Estados financieros
+  ESTADOS_FINANCIEROS: `${API_BASE_URL}/estados-financieros`, // Lista todos los estados financieros
+  ESTADOS_FINANCIEROS_BY_ID: (id: string) => `${API_BASE_URL}/estados-financieros/${id}`, // Obtiene un estado financiero por su ID
 
-  MEMORIAS: `${API_BASE_URL}/memorias`,
-  MEMORIAS_BY_ID: (id: string) => `${API_BASE_URL}/memorias/${id}`,
-  MEMORIAS_BY_SLUG: (slug: string) => `${API_BASE_URL}/memorias/${slug}`,
+  // Eventos
+  EVENTS: `${API_BASE_URL}/events`, // Lista todos los eventos
 
-  // Nuevas rutas para docentes
-  DOCENTES: `${API_BASE_URL}/docentes`,
-  DOCENTES_BY_ID: (id: string) => `${API_BASE_URL}/docentes/${id}`,
-  DOCENTES_BY_SLUG: (slug: string) => `${API_BASE_URL}/docentes/${slug}`,
-  DOCENTES_BY_TYPE: (tipo: string) => `${API_BASE_URL}/docentes?tipo=${tipo}`,
+  // Memorias
+  MEMORIAS: `${API_BASE_URL}/memorias`, // Lista todas las memorias
+  MEMORIAS_BY_ID: (id: string) => `${API_BASE_URL}/memorias/${id}`, // Obtiene una memoria por su ID
+  MEMORIAS_BY_SLUG: (slug: string) => `${API_BASE_URL}/memorias/${slug}`, // Obtiene una memoria por su slug
 
-  // Publicaciones "Conoce tu Docente"
-  PUBLICACIONES_DOCENTES: `${API_BASE_URL}/publicaciones-docentes`,
-  PUBLICACION_DOCENTE_BY_ID: (id: string) => `${API_BASE_URL}/publicaciones-docentes/${id}`,
+  // Noticias
+  NEWS: `${API_BASE_URL}/news`, // Lista todas las noticias
+  NEWS_BY_ID: (id: string) => `${API_BASE_URL}/news/${id}`, // Obtiene una noticia por su ID
 
-  AUTH_LOGIN: `${API_BASE_URL}/auth/login`,
-  AUTH_ME: `${API_BASE_URL}/auth/me`,
+  // PDFs
+  PDF_BY_KEY: (s3Key: string) => `${API_BASE_URL}/pdf/${s3Key}`, // Obtiene un PDF por su clave S3
 
-  // Usuarios (solo superadmin)
-  USERS: `${API_BASE_URL}/users`,
-  USER_BY_ID: (id: string) => `${API_BASE_URL}/users/${id}`,
+  // Publicaciones de docentes
+  PUBLICACION_DOCENTE_BY_ID: (id: string) => `${API_BASE_URL}/publicaciones-docentes/${id}`, // Obtiene una publicación de docente por su ID
+  PUBLICACIONES_DOCENTES: `${API_BASE_URL}/publicaciones-docentes`, // Lista todas las publicaciones de docentes
 
-  // Rutas para uploads
-  UPLOAD_IMAGE: `${API_BASE_URL}/upload-image`,
-  UPLOAD_PDF: `${API_BASE_URL}/upload-pdf`,
+  // Slides
+  SLIDES: `${API_BASE_URL}/slides`, // Lista todos los slides
+  SLIDES_BY_ID: (id: string) => `${API_BASE_URL}/slides/${id}`, // Obtiene un slide por su ID
 
-  
+  // Subida de archivos
+  GET_UPLOAD_URL: `${API_BASE_URL}/get-upload-url`, // Obtiene una URL pre-firmada para subir archivos a S3
+  UPLOAD_IMAGE: `${API_BASE_URL}/upload-image`, // Sube una imagen al servidor
+  UPLOAD_PDF: `${API_BASE_URL}/upload-pdf`, // Sube un PDF al servidor
+
+  // Usuarios
+  USER_BY_ID: (id: string) => `${API_BASE_URL}/users/${id}`, // Obtiene un usuario por su ID
+  USERS: `${API_BASE_URL}/users`, // Lista todos los usuarios (solo superadmin)
 };
 
 export default API_ROUTES;

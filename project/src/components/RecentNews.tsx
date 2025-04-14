@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Users, Play } from 'lucide-react';
+import API_ROUTES from '../config/api';
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -43,8 +44,8 @@ const RecentNews: React.FC = () => {
   const fetchNews = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/news');
-      const sortedNews = [...res.data].sort((a, b) => {
+      const res = await axios.get(API_ROUTES.NEWS);
+            const sortedNews = [...res.data].sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
       setNewsItems(sortedNews.slice(0, 4));

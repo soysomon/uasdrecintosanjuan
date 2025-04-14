@@ -16,37 +16,37 @@ interface ContentSection {
 }
 
 // Componente para renderizar una sección de contenido según su tipo
-const ContentSectionRenderer: React.FC<{ 
-  section: ContentSection 
+const ContentSectionRenderer: React.FC<{
+  section: ContentSection
 }> = ({ section }) => {
   // Renderizar el contenido según el tipo de sección
- // Renderizar el contenido según el tipo de sección
-const renderContent = () => {
-  switch (section.sectionType) {
-    case 'text':
-      return <TextSection content={section.content} />;
-    case 'stats':
-      return <StatsSection content={section.content} />;
-    case 'timeline':
-      return <TimelineSection content={section.content} />;
-    case 'list':
-      return <ListSection content={section.content} />;
-    case 'contact':
-      return <ContactSection content={section.content} />;
-    // Otros tipos no implementados completamente
-    case 'table':
-    case 'gallery':
-    case 'quote':
-    default:
-      return (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <p className="text-gray-500 text-center">
-            Sección de tipo "{section.sectionType}" no implementada completamente
-          </p>
-        </div>
-      );
-  }
-};
+  // Renderizar el contenido según el tipo de sección
+  const renderContent = () => {
+    switch (section.sectionType) {
+      case 'text':
+        return <TextSection content={section.content} />;
+      case 'stats':
+        return <StatsSection content={section.content} />;
+      case 'timeline':
+        return <TimelineSection content={section.content} />;
+      case 'list':
+        return <ListSection content={section.content} />;
+      case 'contact':
+        return <ContactSection content={section.content} />;
+      // Otros tipos no implementados completamente
+      case 'table':
+      case 'gallery':
+      case 'quote':
+      default:
+        return (
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-center">
+              Sección de tipo "{section.sectionType}" no implementada completamente
+            </p>
+          </div>
+        );
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
@@ -62,7 +62,7 @@ const renderContent = () => {
 const TextSection: React.FC<{ content: any }> = ({ content }) => {
   // Dividir el texto en párrafos
   const paragraphs = content.text?.split('\n').filter(Boolean) || [];
-  
+
   return (
     <div className="prose max-w-none">
       {paragraphs.map((paragraph: string, i: number) => (
@@ -77,7 +77,7 @@ const TextSection: React.FC<{ content: any }> = ({ content }) => {
 // Componente para sección de estadísticas
 const StatsSection: React.FC<{ content: any }> = ({ content }) => {
   const { items = [] } = content;
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
       {items.map((item: any, index: number) => (
@@ -94,12 +94,12 @@ const StatsSection: React.FC<{ content: any }> = ({ content }) => {
 // Componente para sección timeline
 const TimelineSection: React.FC<{ content: any }> = ({ content }) => {
   const { events = [] } = content;
-  
+
   return (
     <div className="space-y-8 relative">
       {/* Línea vertical conectora */}
       <div className="absolute left-[19px] top-[40px] bottom-0 w-[2px] bg-blue-200"></div>
-      
+
       {events.map((event: any, index: number) => (
         <div key={index} className="flex">
           <div className="mr-6 relative z-10">
@@ -125,7 +125,7 @@ const TimelineSection: React.FC<{ content: any }> = ({ content }) => {
 // Componente para sección de lista
 const ListSection: React.FC<{ content: any }> = ({ content }) => {
   const { items = [] } = content;
-  
+
   return (
     <div className="space-y-6">
       {items.map((item: any, index: number) => (
@@ -157,7 +157,7 @@ const ContactSection: React.FC<{ content: any }> = ({ content }) => {
               </div>
             </div>
           )}
-          
+
           {content.phone && (
             <div className="flex items-start">
               <div className="mr-3 text-blue-600">
@@ -171,7 +171,7 @@ const ContactSection: React.FC<{ content: any }> = ({ content }) => {
               </div>
             </div>
           )}
-          
+
           {content.email && (
             <div className="flex items-start">
               <div className="mr-3 text-blue-600">
@@ -187,7 +187,7 @@ const ContactSection: React.FC<{ content: any }> = ({ content }) => {
             </div>
           )}
         </div>
-        
+
         <div className="space-y-4">
           {content.schedule && (
             <div className="flex items-start">
@@ -202,7 +202,7 @@ const ContactSection: React.FC<{ content: any }> = ({ content }) => {
               </div>
             </div>
           )}
-          
+
           {content.website && (
             <div className="flex items-start">
               <div className="mr-3 text-blue-600">
@@ -231,52 +231,52 @@ const MemoriaContentPage: React.FC = () => {
   const [error, setError] = useState<boolean>(false);
 
   // Función para generar la URL del proxy para PDFs
-const getPdfUrl = (memoria: MemoriaItem) => {
-  if (!memoria.pdfUrl) return '';
-  
-  // Si es una URL de S3, usar nuestro proxy
-  if (memoria.pdfUrl.includes('s3.amazonaws.com')) {
-    try {
-      // Extraer la clave del objeto de S3 (parte después del nombre del bucket)
-      const s3Parts = memoria.pdfUrl.split('.s3.amazonaws.com/');
-      if (s3Parts.length > 1) {
-        const s3Key = s3Parts[1];
-        return `http://localhost:5000/api/pdf/${s3Key}`;
-      }
-    } catch (error) {
-      console.error('Error procesando URL de S3:', error);
-    }
-  }
-  
-  // Si todo lo demás falla, devolver la URL original
-  return memoria.pdfUrl;
-};
-  
- 
+  const getPdfUrl = (memoria: MemoriaItem) => {
+    if (!memoria.pdfUrl) return '';
 
-useEffect(() => {
-  const fetchMemoriaData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get(API_ROUTES.MEMORIAS_BY_SLUG(slug || ''));
-      console.log('URL del PDF recibida:', response.data.pdfUrl);
-      setMemoria(response.data);
-      setError(false);
-    } catch (err) {
-      console.error('Error cargando datos de memoria:', err);
-      setError(true);
-    } finally {
-      setIsLoading(false);
+    // Si es una URL de S3, usar nuestro proxy
+    if (memoria.pdfUrl.includes('s3.amazonaws.com')) {
+      try {
+        // Extraer la clave del objeto de S3 (parte después del nombre del bucket)
+        const s3Parts = memoria.pdfUrl.split('.s3.amazonaws.com/');
+        if (s3Parts.length > 1) {
+          const s3Key = s3Parts[1];
+          return API_ROUTES.PDF_BY_KEY(s3Key);
+        }
+      } catch (error) {
+        console.error('Error procesando URL de S3:', error);
+      }
     }
+
+    // Si todo lo demás falla, devolver la URL original
+    return memoria.pdfUrl;
   };
 
-  if (slug) {
-    fetchMemoriaData();
-  } else {
-    setError(true);
-    setIsLoading(false);
-  }
-}, [slug]);
+
+
+  useEffect(() => {
+    const fetchMemoriaData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(API_ROUTES.MEMORIAS_BY_SLUG(slug || ''));
+        console.log('URL del PDF recibida:', response.data.pdfUrl);
+        setMemoria(response.data);
+        setError(false);
+      } catch (err) {
+        console.error('Error cargando datos de memoria:', err);
+        setError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchMemoriaData();
+    } else {
+      setError(true);
+      setIsLoading(false);
+    }
+  }, [slug]);
 
   if (isLoading) {
     return (
@@ -296,8 +296,8 @@ useEffect(() => {
           <FileText className="text-red-500 mx-auto mb-4" size={64} />
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Contenido no encontrado</h2>
           <p className="text-gray-600 mb-4">Lo sentimos, la página que buscas no existe o ha sido movida.</p>
-          <Link 
-            to="/memorias" 
+          <Link
+            to="/memorias"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
             <ArrowLeft size={16} className="mr-1" />
@@ -309,129 +309,129 @@ useEffect(() => {
   }
 
   // Generar la URL del PDF usando la nueva función
-const pdfUrl = memoria.pdfUrl ? getPdfUrl(memoria) : '';
+  const pdfUrl = memoria.pdfUrl ? getPdfUrl(memoria) : '';
 
-return (
-  <div className="container mx-auto px-4 py-36">
-    <div className="max-w-6xl mx-auto">
-      {/* Breadcrumb navigation */}
-      <br></br>
-      <div className="mb-8">
-        <Link to="/memorias" className="text-blue-600 hover:text-blue-800 transition-colors flex items-center text-sm">
-          <ArrowLeft size={14} className="mr-1" />
-          Volver a Memorias
-        </Link>
-      </div>
-
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">{memoria.title.toUpperCase()}</h1>
-        <div className="h-1 w-32 bg-blue-600 mx-auto mb-8"></div>
-        {memoria.description && (
-          <p className="text-center text-gray-600 max-w-3xl mx-auto">{memoria.description}</p>
-        )}
-      </div>
-
-       {/* Secciones de tipo texto - siempre antes del PDF */}
-{memoria.contentSections && memoria.contentSections.filter(s => s.sectionType === 'text').length > 0 && (
-  <div className="space-y-16 mb-16">
-    {memoria.contentSections
-      .filter(s => s.sectionType === 'text')
-      .sort((a, b) => a.order - b.order)
-      .map((section, index) => (
-        <ContentSectionRenderer 
-          key={`text-${index}`} 
-          section={section} 
-        />
-      ))}
-  </div>
-)}
-
-{/* YouTube Video Section */}
-{memoria.videoUrl && (
-  <div className="mb-16">
-    <h2 className="text-2xl font-semibold text-gray-700 mb-6">Presentación Audiovisual</h2>
-    <div className="relative pt-[56.25%] bg-black rounded-lg shadow-xl overflow-hidden">
-      <iframe
-        className="absolute top-0 left-0 w-full h-full"
-        src={memoria.videoUrl}
-        title={memoria.title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      ></iframe>
-    </div>
-  </div>
-)}
-
-{/* PDF Section */}
-{memoria.pdfUrl && (
-  <div className="mb-16">
-    <h2 className="text-2xl font-semibold text-gray-700 mb-6">Documentación Completa</h2>
-    
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="bg-gray-50 p-4 flex flex-wrap justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-800 mb-2 sm:mb-0">
-          Documento PDF
-        </h3>
-        <div className="flex gap-2">
-          <a
-            href={pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
-          >
-            <ExternalLink size={16} className="mr-1" />
-            <span>Abrir</span>
-          </a>
-          <a
-            href={pdfUrl}
-            download={`${memoria.title.replace(/\s+/g, '-').toLowerCase()}.pdf`}
-            className="flex items-center justify-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition"
-          >
-            <Download size={16} className="mr-1" />
-            <span>Descargar</span>
-          </a>
+  return (
+    <div className="container mx-auto px-4 py-36">
+      <div className="max-w-6xl mx-auto">
+        {/* Breadcrumb navigation */}
+        <br></br>
+        <div className="mb-8">
+          <Link to="/memorias" className="text-blue-600 hover:text-blue-800 transition-colors flex items-center text-sm">
+            <ArrowLeft size={14} className="mr-1" />
+            Volver a Memorias
+          </Link>
         </div>
-      </div>
-      
-      <div className="h-[600px] w-full">
-        <object
-          data={pdfUrl}
-          type="application/pdf"
-          width="100%"
-          height="100%"
-          className="w-full h-full border-0"
-        >
-          <div className="p-10 text-center">
-            <p className="mb-4">Su navegador no puede mostrar PDFs directamente.</p>
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition"
-            >
-              Abrir PDF
-            </a>
-          </div>
-        </object>
-      </div>
-    </div>
-  </div>
-)}
 
-{/* Secciones que no son tipo texto - siempre después del PDF */}
-{memoria.contentSections && memoria.contentSections.filter(s => s.sectionType !== 'text').length > 0 && (
-  <div className="space-y-16 mb-16">
-    {memoria.contentSections
-      .filter(s => s.sectionType !== 'text')
-      .sort((a, b) => a.order - b.order)
-      .map((section, index) => (
-        <ContentSectionRenderer 
-          key={`nontext-${index}`} 
-          section={section} 
-        />
-      ))}
-  </div>
-)}
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4 text-center">{memoria.title.toUpperCase()}</h1>
+          <div className="h-1 w-32 bg-blue-600 mx-auto mb-8"></div>
+          {memoria.description && (
+            <p className="text-center text-gray-600 max-w-3xl mx-auto">{memoria.description}</p>
+          )}
+        </div>
+
+        {/* Secciones de tipo texto - siempre antes del PDF */}
+        {memoria.contentSections && memoria.contentSections.filter(s => s.sectionType === 'text').length > 0 && (
+          <div className="space-y-16 mb-16">
+            {memoria.contentSections
+              .filter(s => s.sectionType === 'text')
+              .sort((a, b) => a.order - b.order)
+              .map((section, index) => (
+                <ContentSectionRenderer
+                  key={`text-${index}`}
+                  section={section}
+                />
+              ))}
+          </div>
+        )}
+
+        {/* YouTube Video Section */}
+        {memoria.videoUrl && (
+          <div className="mb-16">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-6">Presentación Audiovisual</h2>
+            <div className="relative pt-[56.25%] bg-black rounded-lg shadow-xl overflow-hidden">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src={memoria.videoUrl}
+                title={memoria.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        )}
+
+        {/* PDF Section */}
+        {memoria.pdfUrl && (
+          <div className="mb-16">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-6">Documentación Completa</h2>
+
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="bg-gray-50 p-4 flex flex-wrap justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-800 mb-2 sm:mb-0">
+                  Documento PDF
+                </h3>
+                <div className="flex gap-2">
+                  <a
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+                  >
+                    <ExternalLink size={16} className="mr-1" />
+                    <span>Abrir</span>
+                  </a>
+                  <a
+                    href={pdfUrl}
+                    download={`${memoria.title.replace(/\s+/g, '-').toLowerCase()}.pdf`}
+                    className="flex items-center justify-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition"
+                  >
+                    <Download size={16} className="mr-1" />
+                    <span>Descargar</span>
+                  </a>
+                </div>
+              </div>
+
+              <div className="h-[600px] w-full">
+                <object
+                  data={pdfUrl}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                  className="w-full h-full border-0"
+                >
+                  <div className="p-10 text-center">
+                    <p className="mb-4">Su navegador no puede mostrar PDFs directamente.</p>
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition"
+                    >
+                      Abrir PDF
+                    </a>
+                  </div>
+                </object>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Secciones que no son tipo texto - siempre después del PDF */}
+        {memoria.contentSections && memoria.contentSections.filter(s => s.sectionType !== 'text').length > 0 && (
+          <div className="space-y-16 mb-16">
+            {memoria.contentSections
+              .filter(s => s.sectionType !== 'text')
+              .sort((a, b) => a.order - b.order)
+              .map((section, index) => (
+                <ContentSectionRenderer
+                  key={`nontext-${index}`}
+                  section={section}
+                />
+              ))}
+          </div>
+        )}
 
 
 
@@ -446,7 +446,7 @@ return (
             </p>
           </div>
         )}
-        
+
         {/* Contenido específico para distintos tipos de memorias */}
         {slug === 'postgrado' && (
           <>
