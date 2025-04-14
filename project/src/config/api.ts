@@ -17,7 +17,6 @@ const API_ROUTES = {
   ESTADOS_FINANCIEROS_BY_ID: (id: string) => `${API_BASE_URL}/estados-financieros/${id}`, // Obtiene un estado financiero por su ID
 
   // Eventos
-  EVENTS: `${API_BASE_URL}/events`, // Lista todos los eventos
 
   // Memorias
   MEMORIAS: `${API_BASE_URL}/memorias`, // Lista todas las memorias
