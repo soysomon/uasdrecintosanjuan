@@ -131,7 +131,7 @@ const HeroCarousel: React.FC = () => {
   }, [slides]);
 
   return (
-    <section className="relative bg-white min-h-[50vh] sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
+    <section className="relative bg-white h-auto sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
       {sortedSlides.length > 0 && (
         <AnimatePresence mode="wait">
           <motion.div
@@ -140,11 +140,9 @@ const HeroCarousel: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7 }}
-            className="absolute inset-0 flex items-center justify-center"
+            className="relative flex items-center justify-center w-full h-full"
           >
-            {/* Ajusta el valor de scale-85 para controlar el escalado en móviles */}
-            {/* Prueba valores como scale-80, scale-90, o scale-95 para encontrar el tamaño ideal */}
-            <div className="w-full h-full transform sm:scale-100 scale-110 sm:mx-0 mx-4 sm:h-full h-auto relative group">
+            <div className="w-full transform sm:scale-100 scale-110 sm:mx-0 mx-4 sm:h-full h-auto relative group">
               <div className="absolute inset-0 overflow-hidden">
                 {imageError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -231,7 +229,7 @@ const HeroCarousel: React.FC = () => {
         </AnimatePresence>
       )}
       {sortedSlides.length > 0 && (
-        <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex flex-col items-center z-10">
+        <div className="relative bottom-2 sm:bottom-4 left-0 right-0 flex flex-col items-center z-10">
           {isAutoPlaying && (
             <div className="w-24 sm:w-32 h-1 bg-white/30 rounded-full mb-1 sm:mb-2 overflow-hidden">
               <motion.div
