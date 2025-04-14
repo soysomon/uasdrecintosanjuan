@@ -202,20 +202,19 @@ export function DirectivosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-    {/* Header con estilo minimalista inspirado en Heidelberg */}
-<div ref={headerRef} className="relative bg-[#2f2382] py-32 text-center">
+   {/* Header con estilo minimalista para Consejo Directivo */}
+<div className="relative bg-[#2f2382] py-16 md:py-24 text-center mt-16">
   <div className="max-w-4xl mx-auto px-4">
     <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white mb-6">
       Consejo Directivo
     </h1>
     <div className="w-24 h-0.5 bg-white mx-auto mb-6"></div>
-    <div className="text-gray-100 text-base tracking-wide uppercase">
+    <div className="text-white text-base tracking-wide uppercase">
       <p className="mb-1">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
       <p>RECINTO SAN JUAN DE LA MAGUANA</p>
     </div>
   </div>
 </div>
-
       {/* Sección del Rector - Estilo Heidelberg */}
       <div ref={rectorRef} className="max-w-6xl mx-auto mt-16 mb-24 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
