@@ -13,7 +13,7 @@ const reports: Report[] = [
     id: 'physical-plant',
     title: 'Empleados',
     period: '2018 - 2023',
-    department: 'Departamento de Planta Física',
+    department: ' Listado de empleados - UASD Recinto San Juan de la Maguana',
     downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME+PLANTA+F%C3%8DSICA+AGOSTO+2023.pdf'
   }
 ];
