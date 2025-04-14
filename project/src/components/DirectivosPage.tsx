@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { Mail, Phone, ChevronRight, X, Award, GraduationCap, Briefcase, BookOpen, User } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { ChevronRight, GraduationCap, Briefcase, BookOpen } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Registramos el plugin de ScrollTrigger
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 interface Education {
   degree: string;
@@ -152,267 +159,159 @@ const directivos: DirectivoProfile[] = [
 ];
 
 export function DirectivosPage() {
-  const [selectedDirectivo, setSelectedDirectivo] = useState<DirectivoProfile | null>(null);
-  const [showVideo, setShowVideo] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null); // Explicitly typed
+  const rectorRef = useRef<HTMLDivElement>(null); // Explicitly typed
+  const directivosRef = useRef<HTMLDivElement>(null); // Explicitly typed to fix the error
 
-  // Función para generar color basado en el ID (consistente para cada directivo)
-  const generateColor = (id: string) => {
-    const colors = [
-      '#4F46E5', '#7C3AED', '#EC4899', '#EF4444', '#F59E0B', 
-      '#10B981', '#3B82F6', '#8B5CF6', '#6366F1', '#14B8A6'
-    ];
-    const hash = id.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
-    return colors[hash % colors.length];
-  };
+  useEffect(() => {
+    // Animación de entrada para el header
+    gsap.from(headerRef.current, {
+      y: -100,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out"
+    });
 
-  // Función para obtener iniciales
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`;
-  };
+    // Animación para la sección del rector
+    gsap.from(rectorRef.current, {
+      y: 100,
+      opacity: 0,
+      duration: 1,
+      delay: 0.3,
+      ease: "power3.out"
+    });
+
+    // Animación para los directivos
+    if (directivosRef.current) {
+      const directivoCards = directivosRef.current.querySelectorAll('.directivo-card'); // This line now works with proper typing
+      
+      gsap.from(directivoCards, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: directivosRef.current,
+          start: "top 80%",
+          toggleActions: "play none none none"
+        }
+      });
+    }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section con diseño inspirado en Bauhaus */}
-      <div className="relative bg-[#2f2382] py-24">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
-          {/* Formas geométricas inspiradas en Bauhaus */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-white/10 transform -translate-y-1/2 rotate-12" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white">
+      {/* Header con estilo minimalista inspirado en Heidelberg */}
+      <div ref={headerRef} className="relative bg-[#2f2382] py-24">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
-            <br></br>
-            <br></br>
-            <br></br>
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <span className="block text-gray-200 text-sm tracking-widest uppercase mb-2">Universidad Autónoma de Santo Domingo</span>
+            <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white">
               Consejo Directivo
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-100">
-              Liderando la excelencia académica y el desarrollo institucional
-            </p>
+            <div className="w-16 h-1 bg-white mx-auto mt-8"></div>
           </div>
         </div>
       </div>
 
-      {/* Director destacado - estilo tarjeta moderna */}
-      <div className="relative -mt-16 mb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
-              {/* Mantener imagen solo para el director principal si se requiere */}
-              <div className="col-span-2 relative">
-                <div className="h-full bg-gradient-to-br from-[#2f2382] to-[#5e51c7] relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
-                  </div>
-                  <div className="flex items-center justify-center h-full p-8">
-                    <img
-                      src={directivos[0].imageUrl}
-                      alt={`${directivos[0].firstName} ${directivos[0].lastName}`}
-                      className="w-64 h-64 object-cover rounded-full border-4 border-white shadow-xl"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="col-span-3 p-8 lg:p-12 flex flex-col justify-center">
-                <h2 className="text-3xl font-bold text-[#2f2382] mb-4">
-                  {directivos[0].firstName} {directivos[0].lastName}
-                </h2>
-                <p className="text-xl text-gray-600 mb-6">{directivos[0].position}</p>
-                <p className="text-gray-600 mb-8">{directivos[0].bio}</p>
-                <button
-                  onClick={() => {
-                    setSelectedDirectivo(directivos[0]);
-                    setShowVideo(true);
-                  }}
-                  className="inline-flex items-center px-6 py-3 bg-[#2f2382] text-white rounded-lg hover:bg-[#2f2382]/90 transition-colors"
-                >
-                  Ver presentación
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </button>
-              </div>
-            </div>
+      {/* Sección del Rector - Estilo Heidelberg */}
+      <div ref={rectorRef} className="max-w-6xl mx-auto mt-16 mb-24 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <img
+              src={directivos[0].imageUrl}
+              alt={`${directivos[0].firstName} ${directivos[0].lastName}`}
+              className="w-full h-auto"
+            />
           </div>
-        </div>
-      </div>
-
-      {/* Directorio en forma de tarjetas modernas sin imágenes */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {directivos.slice(1).map((directivo) => {
-            const bgColor = generateColor(directivo.id);
-            const initials = getInitials(directivo.firstName, directivo.lastName);
+          <div>
+            <h2 className="text-xl font-normal tracking-widest text-[#2f2382] uppercase mb-2">Director General</h2>
+            <h3 className="text-3xl sm:text-4xl font-light text-gray-800 mb-6">
+              {directivos[0].firstName} {directivos[0].lastName}
+            </h3>
+            <div className="w-16 h-0.5 bg-[#2f2382] mb-6"></div>
+            <p className="text-gray-600 mb-6 leading-relaxed">{directivos[0].bio}</p>
             
-            return (
-              <div
-                key={directivo.id}
-                className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-[#2f2382]/30"
-              >
-                <div 
-                  className="h-32 flex items-center justify-center"
-                  style={{ background: `linear-gradient(135deg, ${bgColor}, ${bgColor}CC)` }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center text-white text-2xl font-bold">
-                    {initials}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2 text-gray-800 group-hover:text-[#2f2382] transition-colors">
-                    {directivo.firstName} {directivo.lastName}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">{directivo.position}</p>
-                  
-                  {/* Miniatura de credenciales académicas */}
-                  {directivo.education && directivo.education.length > 0 && (
-                    <div className="flex items-center text-gray-500 text-sm mb-4">
-                      <GraduationCap className="w-4 h-4 mr-2" />
-                      <span>{directivo.education[0].degree}</span>
+            <div className="mb-8">
+              <h4 className="text-lg font-normal text-[#2f2382] mb-4">Formación Académica</h4>
+              <ul className="space-y-3">
+                {directivos[0].education?.map((edu, index) => (
+                  <li key={index} className="flex items-start">
+                    <div className="w-1 h-1 mt-2 bg-[#2f2382] mr-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-normal text-gray-800">{edu.degree}</p>
+                      <p className="text-sm text-gray-600">{edu.institution}</p>
                     </div>
-                  )}
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedDirectivo(directivo);
-                      setShowVideo(Boolean(directivo.videoId));
-                    }}
-                    className="inline-flex items-center text-sm text-[#2f2382] font-medium hover:text-[#473aa5] transition-colors"
-                  >
-                    Ver más detalles
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <a 
+              href={`mailto:${directivos[0].email}`}
+              className="inline-block border border-[#2f2382] text-[#2f2382] px-5 py-2 transition-colors hover:bg-[#2f2382] hover:text-white mt-2"
+            >
+              Contactar
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Modal para vista detallada */}
-      {selectedDirectivo && (
-        <div 
-          className="fixed inset-0 pt-16 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setSelectedDirectivo(null);
-              setShowVideo(false);
-            }
-          }}
-        >
-          {/* Botón de cierre flotante visible en todos los dispositivos */}
-          <button
-            onClick={() => {
-              setSelectedDirectivo(null);
-              setShowVideo(false);
-            }}
-            className="fixed top-4 right-4 z-[60] bg-[#2f2382] text-white p-3 rounded-full shadow-lg"
-            aria-label="Cerrar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+      {/* Directivos - Estilo minimalista Heidelberg */}
+      <div className="bg-gray-50 py-24">
+        <div ref={directivosRef} className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-light text-gray-800">Equipo Directivo</h2>
+            <div className="w-16 h-0.5 bg-[#2f2382] mx-auto mt-4"></div>
+          </div>
           
-          <div className="bg-white rounded-xl w-full max-w-4xl mx-auto my-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-              <h3 className="text-xl md:text-2xl font-bold text-[#2f2382] truncate">
-                {selectedDirectivo.firstName} {selectedDirectivo.lastName}
-              </h3>
-            </div>
-            
-            <div className="p-4 md:p-6">
-              {/* Encabezado con color personalizado */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {directivos.slice(1).map((directivo) => (
               <div 
-                className="flex items-center mb-6 p-4 rounded-lg"
-                style={{ 
-                  background: `linear-gradient(135deg, ${generateColor(selectedDirectivo.id)}, ${generateColor(selectedDirectivo.id)}99)` 
-                }}
+                key={directivo.id} 
+                className="directivo-card bg-white border-t-2 border-[#2f2382] shadow-sm p-6 hover:shadow-md transition-shadow"
               >
-                <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                  {getInitials(selectedDirectivo.firstName, selectedDirectivo.lastName)}
-                </div>
-                <div className="text-white">
-                  <h4 className="text-xl font-bold">{selectedDirectivo.position}</h4>
-                  {selectedDirectivo.email && (
-                    <div className="flex items-center mt-2">
-                      <Mail className="w-4 h-4 mr-2" />
-                      <span>{selectedDirectivo.email}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {showVideo && selectedDirectivo.videoId && (
-                <div className="w-full aspect-w-16 aspect-h-9 mb-6">
-                  <iframe 
-                    src={`https://www.youtube.com/embed/${selectedDirectivo.videoId}`}
-                    title="Presentación" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                    className="rounded-lg w-full h-full"
-                  />
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-                    <GraduationCap className="w-5 h-5 mr-2 text-[#2f2382]" />
-                    Formación Académica
-                  </h4>
-                  <ul className="space-y-3">
-                    {selectedDirectivo.education?.map((edu, index) => (
-                      <li key={index} className="flex items-start">
-                        <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium">{edu.degree}</p>
-                          <p className="text-sm text-gray-600">{edu.institution}</p>
-                          {edu.year && (
-                            <p className="text-sm text-gray-500">{edu.year}</p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <h3 className="text-xl font-normal text-gray-800 mb-1">
+                  {directivo.firstName} {directivo.lastName}
+                </h3>
+                <p className="text-[#2f2382] text-sm font-medium mb-4">{directivo.position}</p>
                 
-                {selectedDirectivo.experience && (
-                  <div>
-                    <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-                      <Briefcase className="w-5 h-5 mr-2 text-[#2f2382]" />
-                      Experiencia Profesional
-                    </h4>
-                    <ul className="space-y-3">
-                      {selectedDirectivo.experience.map((exp, index) => (
-                        <li key={index} className="flex items-start">
-                          <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
-                          <div>
-                            <p className="font-medium">{exp.position}</p>
-                            <p className="text-sm text-gray-600">{exp.institution}</p>
-                            <p className="text-sm text-gray-500">{exp.period}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                {directivo.education && directivo.education.length > 0 && (
+                  <div className="mt-4 mb-2">
+                    <p className="text-sm text-gray-800 font-medium">
+                      {directivo.education[0].degree}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {directivo.education[0].institution}
+                    </p>
+                  </div>
+                )}
+                
+                {directivo.education && directivo.education.length > 1 && (
+                  <p className="text-xs text-gray-500 italic">
+                    {directivo.education.length - 1} título{directivo.education.length > 2 ? 's' : ''} adicional{directivo.education.length > 2 ? 'es' : ''}
+                  </p>
+                )}
+                
+                {directivo.videoId && (
+                  <div className="mt-4">
+                    <a 
+                      href={`https://www.youtube.com/watch?v=${directivo.videoId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#2f2382] hover:underline inline-flex items-center"
+                    >
+                      Ver presentación
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </a>
                   </div>
                 )}
               </div>
-              
-              {selectedDirectivo.bio && (
-                <div className="mt-6">
-                  <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-                    <BookOpen className="w-5 h-5 mr-2 text-[#2f2382]" />
-                    Biografía
-                  </h4>
-                  <p className="text-gray-600 leading-relaxed">{selectedDirectivo.bio}</p>
-                </div>
-              )}
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
