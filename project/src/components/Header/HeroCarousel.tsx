@@ -28,7 +28,7 @@ const defaultSlides: Slide[] = [
     subtitle: "NUEVO",
     description: "MODALIDAD SEMIPRESENCIAL • UASD San Juan de la Maguana",
     cta: { text: "Solicitar información", link: "/admisiones" },
-    image: '/path/to/graduacion.jpg', // Ajustar con la imagen real
+    image: '/path/to/graduacion.jpg',
     color: "#003087",
     order: 0,
     displayMode: 'normal',
@@ -123,7 +123,7 @@ const HeroCarousel: React.FC = () => {
   }, [isAutoPlaying, currentSlide, slides.length]);
 
   return (
-    <section className="relative bg-white h-[65vh]">
+    <section className="relative bg-white h-[70vh] sm:h-[60vh] md:h-[65vh] w-full overflow-hidden">
       {slides.length > 0 && (
         <AnimatePresence mode="wait">
           <motion.div
@@ -139,7 +139,7 @@ const HeroCarousel: React.FC = () => {
                 <img
                   src={slides[currentSlide].image}
                   alt={slides[currentSlide].title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
                 {slides[currentSlide].displayMode === 'hover' && (
                   <>
@@ -152,24 +152,24 @@ const HeroCarousel: React.FC = () => {
                       }}
                     ></div>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
-                      <div className="max-w-3xl px-8 text-center">
+                      <div className="max-w-3xl px-4 sm:px-8 text-center">
                         {slides[currentSlide].subtitle && (
-                          <span className="inline-block bg-white/20 px-3 py-1 rounded-md text-white text-sm font-semibold mb-3">
+                          <span className="inline-block bg-white/20 px-2 sm:px-3 py-1 rounded-md text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3">
                             {slides[currentSlide].subtitle}
                           </span>
                         )}
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 sm:mb-4 leading-tight">
                           {slides[currentSlide].title}
                         </h1>
-                        <p className="text-lg text-white/90 mb-8 font-light">
+                        <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 sm:mb-8 font-light">
                           {slides[currentSlide].description}
                         </p>
                         <Link
                           to={slides[currentSlide].cta.link}
-                          className="inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg"
+                          className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
                         >
                           {slides[currentSlide].cta.text}
-                          <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+                          <ArrowRight className="ml-1 sm:ml-2 w-4 sm:w-5 h-4 sm:h-5 transition-transform group-hover:translate-x-1" />
                         </Link>
                       </div>
                     </div>
@@ -187,24 +187,24 @@ const HeroCarousel: React.FC = () => {
             </div>
             {slides[currentSlide].displayMode !== 'hover' && (
               <div className="relative h-full max-w-7xl mx-auto flex items-center">
-                <div className="w-1/2 px-16 py-20">
+                <div className="w-full sm:w-3/4 md:w-1/2 px-4 sm:px-8 md:px-16 py-10 sm:py-14 md:py-20">
                   {slides[currentSlide].subtitle && (
-                    <span className="inline-block bg-white/20 px-3 py-1 rounded-md text-white text-sm font-semibold mb-3">
+                    <span className="inline-block bg-white/20 px-2 sm:px-3 py-1 rounded-md text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3">
                       {slides[currentSlide].subtitle}
                     </span>
                   )}
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 sm:mb-4 leading-tight">
                     {slides[currentSlide].title}
                   </h1>
-                  <p className="text-lg text-white/90 mb-8 font-light">
+                  <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 sm:mb-8 font-light">
                     {slides[currentSlide].description}
                   </p>
                   <Link
                     to={slides[currentSlide].cta.link}
-                    className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg"
+                    className="group inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
                   >
                     {slides[currentSlide].cta.text}
-                    <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="ml-1 sm:ml-2 w-4 sm:w-5 h-4 sm:h-5 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
               </div>
@@ -213,9 +213,9 @@ const HeroCarousel: React.FC = () => {
         </AnimatePresence>
       )}
       {slides.length > 0 && (
-        <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center z-10">
+        <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 flex flex-col items-center z-10">
           {isAutoPlaying && (
-            <div className="w-48 h-1 bg-white/30 rounded-full mb-4 overflow-hidden">
+            <div className="w-32 sm:w-48 h-1 bg-white/30 rounded-full mb-2 sm:mb-4 overflow-hidden">
               <motion.div
                 className="h-full bg-white"
                 initial={{ width: 0 }}
@@ -224,15 +224,15 @@ const HeroCarousel: React.FC = () => {
               />
             </div>
           )}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6">
             <button
               onClick={() => handleSlideChange('prev')}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
+              className="p-1 sm:p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
               aria-label="Slide anterior"
             >
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5 text-white" />
             </button>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               {slides.map((_, index) => (
                 <button
                   key={index}
@@ -241,28 +241,29 @@ const HeroCarousel: React.FC = () => {
                     setIsAutoPlaying(false);
                     setProgress(0);
                   }}
-                  className={`h-2 rounded-full transition-all ${currentSlide === index ? 'bg-white w-8' : 'bg-white/40 w-3 hover:bg-white/60'
-                    }`}
+                  className={`h-2 rounded-full transition-all ${
+                    currentSlide === index ? 'bg-white w-6 sm:w-8' : 'bg-white/40 w-2 sm:w-3 hover:bg-white/60'
+                  }`}
                   aria-label={`Ir al slide ${index + 1}`}
                 />
               ))}
             </div>
             <button
               onClick={() => handleSlideChange('next')}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
+              className="p-1 sm:p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
               aria-label="Siguiente slide"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5 text-white" />
             </button>
             <button
               onClick={() => setIsAutoPlaying((prev) => !prev)}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20 ml-2"
+              className="p-1 sm:p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20 ml-1 sm:ml-2"
               aria-label={isAutoPlaying ? "Pausar reproducción automática" : "Iniciar reproducción automática"}
             >
               {isAutoPlaying ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5 text-white"
+                  className="w-4 sm:w-5 h-4 sm:h-5 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -276,7 +277,7 @@ const HeroCarousel: React.FC = () => {
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5 text-white"
+                  className="w-4 sm:w-5 h-4 sm:h-5 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -290,7 +291,7 @@ const HeroCarousel: React.FC = () => {
             </button>
           </div>
           {isAutoPlaying && (
-            <p className="text-xs text-white/70 mt-2">
+            <p className="text-xs text-white/70 mt-1 sm:mt-2">
               {Math.ceil((slideDuration - (progress * slideDuration / 100)) / 1000)}s
             </p>
           )}
