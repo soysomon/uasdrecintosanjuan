@@ -140,7 +140,7 @@ export function DirectorOfficePage() {
             <div className="mb-8">
               <div className="bg-gray-100 p-1">
                 <img
-                  src="https://uasdrecintosanjuan.org/wp-content/uploads/2018/08/Carlos-Manuel-Sa%CC%81nchez-De-O%CC%81leo-e1659539448810.png"
+                  src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png"
                   alt="Dr. Carlos Manuel Sánchez De Óleo"
                   className="w-full h-auto"
                 />
