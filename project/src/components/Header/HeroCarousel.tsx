@@ -26,7 +26,7 @@ interface SlideProps {
   currentSlide: number;
   imageError: boolean;
   setImageError: (error: boolean) => void;
-  handleSlideChange: (direction: 'next' | 'prev') => void;
+  handleSlideChange: (direction: 'next' | 'prev' | number) => void;
   isAutoPlaying: boolean;
   setIsAutoPlaying: (playing: boolean) => void;
   progress: number;
@@ -78,9 +78,13 @@ const MobileSlide: React.FC<SlideProps> = ({
   progress,
   slideDuration,
 }) => {
+  // Depuración: Verificar los datos recibidos
+  console.log('MobileSlide - Slides:', slides);
+  console.log('MobileSlide - Current Slide:', currentSlide);
+
   return (
     <section className="relative bg-white w-full overflow-hidden flex flex-col items-center">
-      <div className="w-full h-auto flex items-center justify-center">
+      <div className="w-full h-auto min-h-[200px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -90,16 +94,16 @@ const MobileSlide: React.FC<SlideProps> = ({
             transition={{ duration: 0.7 }}
             className="w-full transform scale-85 mx-4 relative group"
           >
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="relative w-full min-h-[200px] overflow-hidden">
               {imageError ? (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                <div className="w-full min-h-[200px] flex items-center justify-center bg-gray-200">
                   <p className="text-gray-500">No se pudo cargar la imagen</p>
                 </div>
               ) : (
                 <img
                   src={slides[currentSlide].image}
                   alt={slides[currentSlide].title}
-                  className="w-full h-full object-contain object-center"
+                  className="w-full h-auto object-contain object-center"
                   onError={() => setImageError(true)}
                   loading="lazy"
                 />
@@ -148,7 +152,7 @@ const MobileSlide: React.FC<SlideProps> = ({
               )}
             </div>
             {slides[currentSlide].displayMode !== 'hover' && (
-              <div className="relative h-full max-w-7xl mx-auto flex items-center">
+              <div className="relative w-full max-w-7xl mx-auto flex items-center">
                 <div className="w-full px-2 py-6">
                   {slides[currentSlide].subtitle && (
                     <span className="inline-block bg-white/20 px-1 py-0.5 rounded-md text-white text-[10px] font-semibold mb-1">
@@ -198,7 +202,7 @@ const MobileSlide: React.FC<SlideProps> = ({
               <button
                 key={index}
                 onClick={() => {
-                  handleSlideChange(index as any);
+                  handleSlideChange(index);
                   setIsAutoPlaying(false);
                   setImageError(false);
                 }}
@@ -393,7 +397,7 @@ const DesktopSlide: React.FC<SlideProps> = ({
               <button
                 key={index}
                 onClick={() => {
-                  handleSlideChange(index as any);
+                  handleSlideChange(index);
                   setIsAutoPlaying(false);
                   setImageError(false);
                 }}
