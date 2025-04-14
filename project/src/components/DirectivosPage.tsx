@@ -202,16 +202,16 @@ export function DirectivosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-  {/* Header con estilo minimalista manteniendo la posición actual */}
+  {/* Header con estilo minimalista con texto más grande y completamente blanco */}
 <div className="relative bg-[#2f2382] py-16 md:py-24 text-center">
   <div className="max-w-4xl mx-auto px-4 pt-16 md:pt-20">
-    <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white mb-8">
+    <h1 className="text-5xl sm:text-6xl font-light tracking-tight text-white mb-8">
       Consejo Directivo
     </h1>
-    <div className="w-24 h-0.5 bg-white mx-auto mb-8"></div>
-    <div className="text-white text-base tracking-wide uppercase pb-8">
-      <p className="mb-2">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
-      <p>RECINTO SAN JUAN DE LA MAGUANA</p>
+    <div className="w-32 h-0.5 bg-white mx-auto mb-8"></div>
+    <div className="text-white text-lg md:text-xl tracking-wide uppercase pb-8">
+      <p className="mb-3 font-medium">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
+      <p className="font-medium">RECINTO SAN JUAN DE LA MAGUANA</p>
     </div>
   </div>
 </div>

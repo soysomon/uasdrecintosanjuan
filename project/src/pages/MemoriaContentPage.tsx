@@ -294,7 +294,7 @@ const MemoriaContentPage: React.FC = () => {
       <div className="container mx-auto px-4 py-36">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center">
           <FileText className="text-red-500 mx-auto mb-4" size={64} />
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Contenido no encontrado</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Contenido no encontrado.</h2>
           <p className="text-gray-600 mb-4">Lo sentimos, la página que buscas no existe o ha sido movida.</p>
           <Link
             to="/memorias"
