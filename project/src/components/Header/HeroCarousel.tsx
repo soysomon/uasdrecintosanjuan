@@ -133,7 +133,7 @@ const HeroCarousel: React.FC = () => {
   }, [slides]);
 
   return (
-    <section className="relative bg-white min-h-[200px] sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
+    <section className="relative bg-white min-h-[50vh] sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
       {sortedSlides.length > 0 ? (
         <AnimatePresence mode="wait">
           <motion.div
@@ -142,12 +142,12 @@ const HeroCarousel: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7 }}
-            className="relative flex items-center justify-center w-full h-full"
+            className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="w-full transform sm:scale-100 scale-105 sm:mx-0 mx-4 sm:h-full min-h-[200px] h-auto relative group">
+            <div className="w-full transform sm:scale-100 scale-85 sm:mx-0 mx-4 sm:h-full h-auto sm:min-h-0 min-h-[200px] relative group">
               <div className="absolute inset-0 overflow-hidden">
                 {imageError ? (
-                  <div className="w-full min-h-[200px] flex items-center justify-center bg-gray-200">
+                  <div className="w-full sm:h-full min-h-[200px] flex items-center justify-center bg-gray-200">
                     <p className="text-gray-500">No se pudo cargar la imagen</p>
                   </div>
                 ) : (
@@ -230,12 +230,12 @@ const HeroCarousel: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       ) : (
-        <div className="flex items-center justify-center min-h-[200px] text-gray-500">
+        <div className="flex items-center justify-center min-h-[50vh] sm:min-h-[60vh] md:min-h-[65vh] text-gray-500">
           No hay slides disponibles
         </div>
       )}
       {sortedSlides.length > 0 && (
-        <div className="relative bottom-2 sm:bottom-4 left-0 right-0 flex flex-col items-center z-10">
+        <div className="absolute sm:bottom-4 bottom-0 left-0 right-0 flex flex-col items-center z-10">
           {isAutoPlaying && (
             <div className="w-24 sm:w-32 h-1 bg-white/30 rounded-full mb-1 sm:mb-2 overflow-hidden">
               <motion.div
