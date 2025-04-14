@@ -14,7 +14,7 @@ interface Unit {
 const units: Unit[] = [
   {
     id: 'direccion-general',
-    name: 'Dirección General',
+    name: 'Dirección General - Dr.Carlos Manuel Sánchez De Óleo',
     description: 'Dirección general del recinto universitario',
     location: 'Edificio Administrativo, 3er Nivel',
     schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
