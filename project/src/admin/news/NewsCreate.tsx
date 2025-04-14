@@ -317,7 +317,8 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="General">General</option>
-              <option value="Académico">Académico</option>
+              <option value="Académico">Académico</option> 
+              <option value="Culltural">Cultural</option>
             </select>
           </div>
         </div>

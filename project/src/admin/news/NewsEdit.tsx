@@ -350,6 +350,8 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             >
               <option value="General">General</option>
               <option value="Académico">Académico</option>
+              <option value="Culltural">Cultural</option>
+
             </select>
           </div>
         </div>
