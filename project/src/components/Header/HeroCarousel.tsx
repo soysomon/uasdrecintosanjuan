@@ -142,7 +142,9 @@ const HeroCarousel: React.FC = () => {
             transition={{ duration: 0.7 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="w-full h-full transform sm:scale-100 scale-75 sm:mx-0 mx-4 sm:h-full h-auto relative group">
+            {/* Ajusta el valor de scale-85 para controlar el escalado en móviles */}
+            {/* Prueba valores como scale-80, scale-90, o scale-95 para encontrar el tamaño ideal */}
+            <div className="w-full h-full transform sm:scale-100 scale-85 sm:mx-0 mx-4 sm:h-full h-auto relative group">
               <div className="absolute inset-0 overflow-hidden">
                 {imageError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
