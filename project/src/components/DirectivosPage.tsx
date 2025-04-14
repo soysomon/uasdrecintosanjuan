@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, ChevronRight, X, Award, GraduationCap, Briefcase, BookOpen } from 'lucide-react';
+import { Mail, Phone, ChevronRight, X, Award, GraduationCap, Briefcase, BookOpen, User } from 'lucide-react';
 
 interface Education {
   degree: string;
@@ -18,7 +18,7 @@ interface DirectivoProfile {
   firstName: string;
   lastName: string;
   position: string;
-  imageUrl: string;
+  imageUrl?: string;
   email?: string;
   videoId?: string;
   education?: Education[];
@@ -53,7 +53,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Bienvenido',
     lastName: 'Romero Boció',
     position: 'Sub – Director Académico',
-    imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-innovaciones/Bienvenido+Romero+Bocio.jpg',
     videoId: 'zwWABUQ3qIw',
     bio: 'Nació en el municipio de Hondo Valle, provincia Elías Piña el 10 de marzo del año 1956. Desde niño recibió el calor y la protección de sus padres, familiares y amigos.',
     education: [
@@ -67,7 +66,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Leonor',
     lastName: 'Taveras',
     position: 'Sub – Directora Administrativa',
-    imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/news_images/Leonor+Taveras+Mateo.png',
     videoId: 'mkT0ggAEAsQ',
     bio: 'Nació el primero de julio en el municipio de San Juan de la Maguana, en la comunidad Río Arriba del Norte.',
     education: [
@@ -81,7 +79,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Pablo',
     lastName: 'Encarnación De la Rosa',
     position: 'Encargado de Postgrado',
-    imageUrl: 'https://i.ibb.co/zWwg6Q9s/Screen-Shot-2021-11-23-at-8-53-17-AM-e1637672177324-526x526.png',
     videoId: 'DR8-Oi0iUu4',
     bio: 'Docente de la Universidad Autónoma de Santo Domingo, nació el viernes dieciséis de enero del año 1976.',
     education: [
@@ -95,7 +92,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Rubén',
     lastName: 'Ramírez Taveras',
     position: 'Encargado de Investigación',
-    imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-innovaciones/Rub%C3%A9n+Ram%C3%ADrez+Tavera.jpg',
     videoId: 'ymYpWVlmjUI',
     bio: 'Nació en la comunidad de Loma Verde, municipio de Juan Herrera, provincia de San Juan.',
     education: [
@@ -109,7 +105,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Pablo M.',
     lastName: 'Espinosa Lebrón',
     position: 'Presidente ASOPROUASD San Juan',
-    imageUrl: 'https://i.ibb.co/NhnFZhW/Pablo-Modesto-Espinosa-Lebron-e1611776599670-526x526.png',
     education: [
       { degree: 'Maestría en Educación Superior', institution: 'UASD' },
       { degree: 'Licenciatura en Educación', institution: 'UASD' }
@@ -120,7 +115,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Suzana',
     lastName: 'Hernández Rosario',
     position: 'Secretaria General ASOPROUASD San Juan',
-    imageUrl: 'https://i.ibb.co/rjwyTXh/Screen-Shot-2021-11-05-at-12-14-35-PM-e1636128934499-526x526.png',
     education: [
       { degree: 'Maestría en Gestión Educativa', institution: 'UASD' },
       { degree: 'Licenciatura en Educación', institution: 'UASD' }
@@ -131,7 +125,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Efraín',
     lastName: 'Guzmán Nova',
     position: 'Coordinador Docente',
-    imageUrl: 'https://i.ibb.co/zVPMtcdv/Efrai-n-Guzma-n-Nova-scaled-e1623767040335-526x526.jpg',
     education: [
       { degree: 'Maestría en Educación', institution: 'UASD' },
       { degree: 'Licenciatura en Educación', institution: 'UASD' }
@@ -142,7 +135,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Lesia',
     lastName: 'Bautista Gómez',
     position: 'Encargada Extensión',
-    imageUrl: 'https://i.ibb.co/cKkXQRbF/Untitled-1-526x526.jpg',
     education: [
       { degree: 'Maestría en Gestión Cultural', institution: 'UASD' },
       { degree: 'Licenciatura en Educación', institution: 'UASD' }
@@ -153,7 +145,6 @@ const directivos: DirectivoProfile[] = [
     firstName: 'Agustina Isabel',
     lastName: 'Fragoso',
     position: 'Delegada ASODEMU-RSJM',
-    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
     education: [
       { degree: 'Licenciatura en Administración', institution: 'UASD' }
     ]
@@ -164,40 +155,37 @@ export function DirectivosPage() {
   const [selectedDirectivo, setSelectedDirectivo] = useState<DirectivoProfile | null>(null);
   const [showVideo, setShowVideo] = useState(false);
 
-  const VideoPlayer = ({ videoId }: { videoId: string }) => {
-    return (
-      <div className="aspect-w-16 aspect-h-9 mb-8">
-        <iframe 
-          width="847" 
-          height="450" 
-          src={`https://www.youtube.com/embed/${videoId}`}
-          title="Presentación" 
-          frameBorder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          className="rounded-lg w-full h-full"
-        />
-      </div>
-    );
+  // Función para generar color basado en el ID (consistente para cada directivo)
+  const generateColor = (id: string) => {
+    const colors = [
+      '#4F46E5', '#7C3AED', '#EC4899', '#EF4444', '#F59E0B', 
+      '#10B981', '#3B82F6', '#8B5CF6', '#6366F1', '#14B8A6'
+    ];
+    const hash = id.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+    return colors[hash % colors.length];
+  };
+
+  // Función para obtener iniciales
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Bauhaus-inspired design */}
+      {/* Hero Section con diseño inspirado en Bauhaus */}
       <div className="relative bg-[#2f2382] py-24">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
-          {/* Bauhaus-inspired geometric shapes */}
+          {/* Formas geométricas inspiradas en Bauhaus */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
           <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-white/10 transform -translate-y-1/2 rotate-12" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-          <br></br>
-          <br></br>
-          <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Consejo Directivo
             </h1>
@@ -208,20 +196,28 @@ export function DirectivosPage() {
         </div>
       </div>
 
-      {/* Featured Director - Apple-style hero */}
+      {/* Director destacado - estilo tarjeta moderna */}
       <div className="relative -mt-16 mb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="relative h-[600px]">
-                <img
-                  src={directivos[0].imageUrl}
-                  alt={`${directivos[0].firstName} ${directivos[0].lastName}`}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
+              {/* Mantener imagen solo para el director principal si se requiere */}
+              <div className="col-span-2 relative">
+                <div className="h-full bg-gradient-to-br from-[#2f2382] to-[#5e51c7] relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-20">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-center h-full p-8">
+                    <img
+                      src={directivos[0].imageUrl}
+                      alt={`${directivos[0].firstName} ${directivos[0].lastName}`}
+                      className="w-64 h-64 object-cover rounded-full border-4 border-white shadow-xl"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="p-8 lg:p-12 flex flex-col justify-center">
+              <div className="col-span-3 p-8 lg:p-12 flex flex-col justify-center">
                 <h2 className="text-3xl font-bold text-[#2f2382] mb-4">
                   {directivos[0].firstName} {directivos[0].lastName}
                 </h2>
@@ -243,146 +239,180 @@ export function DirectivosPage() {
         </div>
       </div>
 
-      {/* Directory Grid with Bauhaus-inspired cards */}
+      {/* Directorio en forma de tarjetas modernas sin imágenes */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {directivos.slice(1).map((directivo) => (
-            <div
-              key={directivo.id}
-              className="group relative bg-white rounded-lg shadow-xl overflow-hidden border border-[#2f2382]/10 hover:border-[#2f2382]/30 transition-all duration-300"
-            >
-              <div className="aspect-w-3 aspect-h-4">
-                <img
-                  src={directivo.imageUrl}
-                  alt={`${directivo.firstName} ${directivo.lastName}`}
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-xl font-bold mb-2 text-white">
-                {directivo.firstName} {directivo.lastName}
-              </h3>
-                <p className="text-sm text-gray-200 mb-4">{directivo.position}</p>
-                <button
-                  onClick={() => {
-                    setSelectedDirectivo(directivo);
-                    setShowVideo(true);
-                  }}
-                  className="inline-flex items-center text-sm text-white hover:text-[#2f2382] transition-colors"
+          {directivos.slice(1).map((directivo) => {
+            const bgColor = generateColor(directivo.id);
+            const initials = getInitials(directivo.firstName, directivo.lastName);
+            
+            return (
+              <div
+                key={directivo.id}
+                className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-[#2f2382]/30"
+              >
+                <div 
+                  className="h-32 flex items-center justify-center"
+                  style={{ background: `linear-gradient(135deg, ${bgColor}, ${bgColor}CC)` }}
                 >
-                  Ver más detalles
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                  <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center text-white text-2xl font-bold">
+                    {initials}
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2 text-gray-800 group-hover:text-[#2f2382] transition-colors">
+                    {directivo.firstName} {directivo.lastName}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">{directivo.position}</p>
+                  
+                  {/* Miniatura de credenciales académicas */}
+                  {directivo.education && directivo.education.length > 0 && (
+                    <div className="flex items-center text-gray-500 text-sm mb-4">
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      <span>{directivo.education[0].degree}</span>
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedDirectivo(directivo);
+                      setShowVideo(Boolean(directivo.videoId));
+                    }}
+                    className="inline-flex items-center text-sm text-[#2f2382] font-medium hover:text-[#473aa5] transition-colors"
+                  >
+                    Ver más detalles
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-    {/* Modal for detailed view */}
-    {selectedDirectivo && (
-  <div 
-    className="fixed inset-0 pt-16 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-    onClick={(e) => {
-      // Verifica si el clic fue en el fondo (overlay)
-      if (e.target === e.currentTarget) {
-        setSelectedDirectivo(null);
-        setShowVideo(false);
-      }
-    }}
-  >
-    {/* Botón de cierre flotante visible en todos los dispositivos */}
-    <button
-      onClick={() => {
-        setSelectedDirectivo(null);
-        setShowVideo(false);
-      }}
-      className="fixed top-4 right-4 z-[60] bg-[#2f2382] text-white p-3 rounded-full shadow-lg"
-      aria-label="Cerrar"
-    >
-      <X className="w-5 h-5" />
-    </button>
-    
-    <div className="bg-white rounded-xl w-full max-w-4xl mx-auto my-4 max-h-[90vh] overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-        <h3 className="text-xl md:text-2xl font-bold text-[#2f2382] truncate">
-          {selectedDirectivo.firstName} {selectedDirectivo.lastName}
-        </h3>
-      </div>
-      
-      <div className="p-4 md:p-6">
-        {showVideo && selectedDirectivo.videoId && (
-          <div className="w-full aspect-w-16 aspect-h-9 mb-6">
-            <iframe 
-              src={`https://www.youtube.com/embed/${selectedDirectivo.videoId}`}
-              title="Presentación" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              className="rounded-lg w-full h-full"
-            />
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-              <GraduationCap className="w-5 h-5 mr-2 text-[#2f2382]" />
-              Formación Académica
-            </h4>
-            <ul className="space-y-3">
-              {selectedDirectivo.education?.map((edu, index) => (
-                <li key={index} className="flex items-start">
-                  <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">{edu.degree}</p>
-                    <p className="text-sm text-gray-600">{edu.institution}</p>
-                    {edu.year && (
-                      <p className="text-sm text-gray-500">{edu.year}</p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* Modal para vista detallada */}
+      {selectedDirectivo && (
+        <div 
+          className="fixed inset-0 pt-16 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedDirectivo(null);
+              setShowVideo(false);
+            }
+          }}
+        >
+          {/* Botón de cierre flotante visible en todos los dispositivos */}
+          <button
+            onClick={() => {
+              setSelectedDirectivo(null);
+              setShowVideo(false);
+            }}
+            className="fixed top-4 right-4 z-[60] bg-[#2f2382] text-white p-3 rounded-full shadow-lg"
+            aria-label="Cerrar"
+          >
+            <X className="w-5 h-5" />
+          </button>
           
-          {selectedDirectivo.id === 'carlos-sanchez' && selectedDirectivo.experience && (
-            <div>
-              <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-                <Briefcase className="w-5 h-5 mr-2 text-[#2f2382]" />
-                Experiencia Profesional
-              </h4>
-              <ul className="space-y-3">
-                {selectedDirectivo.experience.map((exp, index) => (
-                  <li key={index} className="flex items-start">
-                    <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium">{exp.position}</p>
-                      <p className="text-sm text-gray-600">{exp.institution}</p>
-                      <p className="text-sm text-gray-500">{exp.period}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+          <div className="bg-white rounded-xl w-full max-w-4xl mx-auto my-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+              <h3 className="text-xl md:text-2xl font-bold text-[#2f2382] truncate">
+                {selectedDirectivo.firstName} {selectedDirectivo.lastName}
+              </h3>
             </div>
-          )}
-        </div>
-        
-        {selectedDirectivo.bio && (
-          <div className="mt-6">
-            <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
-              <BookOpen className="w-5 h-5 mr-2 text-[#2f2382]" />
-              Biografía
-            </h4>
-            <p className="text-gray-600 leading-relaxed">{selectedDirectivo.bio}</p>
+            
+            <div className="p-4 md:p-6">
+              {/* Encabezado con color personalizado */}
+              <div 
+                className="flex items-center mb-6 p-4 rounded-lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${generateColor(selectedDirectivo.id)}, ${generateColor(selectedDirectivo.id)}99)` 
+                }}
+              >
+                <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center text-white text-2xl font-bold mr-4">
+                  {getInitials(selectedDirectivo.firstName, selectedDirectivo.lastName)}
+                </div>
+                <div className="text-white">
+                  <h4 className="text-xl font-bold">{selectedDirectivo.position}</h4>
+                  {selectedDirectivo.email && (
+                    <div className="flex items-center mt-2">
+                      <Mail className="w-4 h-4 mr-2" />
+                      <span>{selectedDirectivo.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {showVideo && selectedDirectivo.videoId && (
+                <div className="w-full aspect-w-16 aspect-h-9 mb-6">
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${selectedDirectivo.videoId}`}
+                    title="Presentación" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="rounded-lg w-full h-full"
+                  />
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
+                    <GraduationCap className="w-5 h-5 mr-2 text-[#2f2382]" />
+                    Formación Académica
+                  </h4>
+                  <ul className="space-y-3">
+                    {selectedDirectivo.education?.map((edu, index) => (
+                      <li key={index} className="flex items-start">
+                        <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium">{edu.degree}</p>
+                          <p className="text-sm text-gray-600">{edu.institution}</p>
+                          {edu.year && (
+                            <p className="text-sm text-gray-500">{edu.year}</p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                {selectedDirectivo.experience && (
+                  <div>
+                    <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
+                      <Briefcase className="w-5 h-5 mr-2 text-[#2f2382]" />
+                      Experiencia Profesional
+                    </h4>
+                    <ul className="space-y-3">
+                      {selectedDirectivo.experience.map((exp, index) => (
+                        <li key={index} className="flex items-start">
+                          <div className="w-2 h-2 mt-2 bg-[#2f2382] rounded-full mr-2 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">{exp.position}</p>
+                            <p className="text-sm text-gray-600">{exp.institution}</p>
+                            <p className="text-sm text-gray-500">{exp.period}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              
+              {selectedDirectivo.bio && (
+                <div className="mt-6">
+                  <h4 className="flex items-center text-base md:text-lg font-semibold mb-3">
+                    <BookOpen className="w-5 h-5 mr-2 text-[#2f2382]" />
+                    Biografía
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed">{selectedDirectivo.bio}</p>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
     </div>
   );
 }
