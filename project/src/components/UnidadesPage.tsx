@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Clock, MapPin, ChevronRight } from 'lucide-react';
+import { ExternalLink, MapPin, ChevronRight } from 'lucide-react';
 import '../UnidadesPage.css';
 
 interface Unit {
@@ -432,41 +432,42 @@ export function UnidadesPage() {
           </div>
         </div>
       </div>
-
-      {/* Dirección General Destacada */}
-      {direccionGeneral && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden">
-            <div className="flex flex-col lg:flex-row">
-              <div className="lg:w-1/3">
-                <img 
-                  src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png" 
-                  alt="Dirección General" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="lg:w-2/3 p-8">
-                <div className="uppercase text-xs tracking-widest text-gray-500 mb-1">
-                  {getCategoryLabel(direccionGeneral.category)}
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">{direccionGeneral.name}</h2>
-                
-                <p className="text-gray-700 text-lg mb-6">{direccionGeneral.description}</p>
-                
-                <div className="flex flex-col sm:flex-row gap-8">
-                  <div className="flex items-center text-gray-700">
-                    <MapPin className="w-5 h-5 mr-3 text-gray-500" />
-                    <span>{direccionGeneral.location}</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <Clock className="w-5 h-5 mr-3 text-gray-500" />
-                  </div>
-                </div>
-              </div>
+{/* Dirección General Destacada */}
+{direccionGeneral && (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden">
+      <div className="flex flex-col lg:flex-row">
+        <div className="lg:w-1/3">
+          <img 
+            src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png" 
+            alt="Dirección General" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="lg:w-2/3 p-8">
+          <div className="uppercase text-xs tracking-widest text-gray-500 mb-1">
+            {getCategoryLabel(direccionGeneral.category)}
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{direccionGeneral.name}</h2>
+          
+          <p className="text-gray-700 text-lg mb-6">{direccionGeneral.description}</p>
+          
+          {/* Añadimos el nombre del rector */}
+          <p className="text-gray-800 font-medium mb-6">
+            <span className="font-bold">Director:</span> {(direccionGeneral as any).rector}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-8">
+            <div className="flex items-center text-gray-700">
+              <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+              <span>{direccionGeneral.location}</span>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Filter section */}
       <div className="bg-white border-b border-gray-200 pt-10 mt-8">
