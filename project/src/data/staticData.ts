@@ -11,14 +11,14 @@ export const featuredServices = [
     link: "/carreras/postgrado",
   },
   {
-    title: "Vida Universitaria",
-    description: "Actividades y eventos estudiantiles",
-    link: "/vida-universitaria",
+    title: "Despacho Director",
+    description: "Liderazgo y gestión de actividades académicas y eventos institucionales",
+    link: "/director/despacho",
   },
   {
-    title: "Investigación",
+    title: "Innovaciones",
     description: "Proyectos y publicaciones académicas",
-    link: "/investigacion",
+    link: "/innovaciones",
   },
 ];
 
