@@ -691,7 +691,6 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
       Key: fileKey,
       Body: fileContent,
       ContentType: req.file.mimetype,
-      ACL: 'public-read', // Asegura que la imagen sea pública
     };
     console.log('Uploading to S3 with params:', uploadParams);
 
