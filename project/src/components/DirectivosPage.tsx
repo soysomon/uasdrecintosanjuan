@@ -210,9 +210,9 @@ export function DirectivosPage() {
     </h1>
     <div className="w-32 h-0.5 bg-white mx-auto mb-8"></div>
     <div className="text-white text-lg md:text-xl tracking-wide uppercase pb-8">
-      <p className="mb-3 font-medium">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
-      <p className="font-medium">RECINTO SAN JUAN DE LA MAGUANA</p>
-    </div>
+  <p className="mb-3 font-medium text-white">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
+  <p className="font-medium text-white">RECINTO SAN JUAN DE LA MAGUANA</p>
+</div>
   </div>
 </div>
       {/* Sección del Rector - Estilo Heidelberg */}
