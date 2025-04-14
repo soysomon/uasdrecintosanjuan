@@ -11,24 +11,10 @@ interface Report {
 const reports: Report[] = [
   {
     id: 'physical-plant',
-    title: 'Informe Planta Física',
+    title: 'Empleados',
     period: '2018 - 2023',
     department: 'Departamento de Planta Física',
     downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME+PLANTA+F%C3%8DSICA+AGOSTO+2023.pdf'
-  },
-  {
-    id: 'ucotesis',
-    title: 'Informe UCOTESIS',
-    period: '2018 - 2023',
-    department: 'Unidad de Coordinación de Tesis',
-    downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME-UCOTESIS-2018-2024-1_1742492648542_1743827696419.pdf'
-  },
-  {
-    id: 'human-resources',
-    title: 'Informe Recursos Humanos',
-    period: '2018 - 2023',
-    department: 'Departamento de Recursos Humanos',
-    downloadUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdfs/INFORME-Recursos-Humanos-2018-2023.pdf'
   }
 ];
 
@@ -44,12 +30,13 @@ export function ReportsPage() {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <h1 className="text-3xl font-light tracking-tight text-gray-900 sm:text-4xl mb-2">
-              Informes Institucionales
+            Empleados de la Institución
             </h1>
             <div className="w-16 h-1 bg-red-700 mb-6"></div>
             <p className="mt-4 max-w-2xl text-lg text-gray-500">
-              Informes presentados por las distintas unidades de UASD Recinto San Juan de la Maguana
+              Personal administrativo y académico de la UASD Recinto San Juan de la Maguana
             </p>
+
           </div>
         </div>
 

@@ -17,7 +17,7 @@ const baseNavItems: NavItem[] = [
       { label: 'Filosofía', href: '/inicio/filosofia' },
       { label: 'Misión, Visión y Valores', href: '/inicio/mision-vision' },
       { label: 'Proyectos y Resoluciones', href: '/inicio/proyectos' },
-      { label: 'Informes', href: '/inicio/informes' },
+      { label: 'Empledos', href: '/inicio/informes' },
       { label: 'UASD Elías Piña', href: '/inicio/elias-pina' },
       { label: 'Consejo Directivo', href: '/inicio/consejo-directivo' },
       { label: 'Unidades', href: '/inicio/unidades' },
