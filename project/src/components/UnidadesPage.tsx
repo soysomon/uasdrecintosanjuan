@@ -7,25 +7,23 @@ interface Unit {
   name: string;
   description: string;
   location: string;
-  schedule: string;
   category: 'academic' | 'administrative' | 'student-services' | 'research';
 }
 
 const units: Unit[] = [
   {
     id: 'direccion-general',
-    name: 'Dirección General - Dr.Carlos Manuel Sánchez De Óleo',
+    name: 'Dirección General',
     description: 'Dirección general del recinto universitario',
     location: 'Edificio Administrativo, 3er Nivel',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
-    category: 'administrative'
-  },
+    category: 'administrative',
+    rector: 'Dr. Carlos Manuel Sánchez De Óleo' 
+  } as Unit & { rector: string },
   {
     id: 'admisiones',
     name: 'Admisiones',
     description: 'Gestión de procesos de admisión y nuevo ingreso de estudiantes',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -33,7 +31,6 @@ const units: Unit[] = [
     name: 'Almacén',
     description: 'Administración de inventario y suministros',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -41,7 +38,6 @@ const units: Unit[] = [
     name: 'Sub-Dirección Administrativa',
     description: 'Gestión de procesos administrativos del recinto',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -49,7 +45,6 @@ const units: Unit[] = [
     name: 'Sub-Dirección Académica',
     description: 'Supervisión y gestión de procesos académicos',
     location: 'Edificio Académico, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'academic'
   },
   {
@@ -57,7 +52,6 @@ const units: Unit[] = [
     name: 'Archivo',
     description: 'Gestión y conservación de documentos históricos y administrativos',
     location: 'Edificio Administrativo, Sótano',
-    schedule: 'Lunes a Viernes 8:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -65,7 +59,6 @@ const units: Unit[] = [
     name: 'Auditoría',
     description: 'Control y supervisión de procesos financieros',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -73,7 +66,6 @@ const units: Unit[] = [
     name: 'Bedelería',
     description: 'Control docente y gestión de aulas',
     location: 'Edificio Académico, 1er Nivel',
-    schedule: 'Lunes a Viernes 7:00 AM - 9:00 PM',
     category: 'academic'
   },
   {
@@ -81,7 +73,6 @@ const units: Unit[] = [
     name: 'Biblioteca',
     description: 'Servicios bibliotecarios y recursos de investigación',
     location: 'Edificio de Biblioteca',
-    schedule: 'Lunes a Viernes 8:00 AM - 8:00 PM',
     category: 'academic'
   },
   {
@@ -89,7 +80,6 @@ const units: Unit[] = [
     name: 'Bienestar Estudiantil',
     description: 'Servicios de apoyo y asistencia para el bienestar del estudiante',
     location: 'Edificio de Servicios Estudiantiles, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -97,7 +87,6 @@ const units: Unit[] = [
     name: 'Comedor',
     description: 'Servicios de alimentación para la comunidad universitaria',
     location: 'Edificio del Comedor',
-    schedule: 'Lunes a Viernes 7:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -105,7 +94,6 @@ const units: Unit[] = [
     name: 'Caja General',
     description: 'Gestión de pagos y transacciones financieras',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -113,7 +101,6 @@ const units: Unit[] = [
     name: 'Compras',
     description: 'Adquisición de bienes y servicios para la universidad',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -121,7 +108,6 @@ const units: Unit[] = [
     name: 'Consultoría Jurídica',
     description: 'Asesoría legal y representación jurídica de la institución',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
     category: 'administrative'
   },
   {
@@ -129,7 +115,6 @@ const units: Unit[] = [
     name: 'Consultorio Médico',
     description: 'Servicios de salud y atención médica',
     location: 'Edificio de Servicios Estudiantiles, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -137,7 +122,6 @@ const units: Unit[] = [
     name: 'Contabilidad',
     description: 'Registro y control de operaciones financieras',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -145,7 +129,6 @@ const units: Unit[] = [
     name: 'Coordinación Administrativa',
     description: 'Coordinación de procesos administrativos',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -153,7 +136,6 @@ const units: Unit[] = [
     name: 'Coordinación Académica',
     description: 'Coordinación de programas y actividades académicas',
     location: 'Edificio Académico, 3er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'academic'
   },
   {
@@ -161,7 +143,6 @@ const units: Unit[] = [
     name: 'Cursos Optativos de Tesis',
     description: 'Gestión y coordinación de cursos optativos y tesis',
     location: 'Edificio Académico, 3er Nivel',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
     category: 'academic'
   },
   {
@@ -169,7 +150,6 @@ const units: Unit[] = [
     name: 'Deportes',
     description: 'Coordinación de actividades deportivas y recreativas',
     location: 'Complejo Deportivo',
-    schedule: 'Lunes a Sábado 8:00 AM - 6:00 PM',
     category: 'student-services'
   },
   {
@@ -177,7 +157,6 @@ const units: Unit[] = [
     name: 'Economato',
     description: 'Gestión de recursos económicos y materiales',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -185,7 +164,6 @@ const units: Unit[] = [
     name: 'Educación Continuada',
     description: 'Programas de formación y actualización profesional',
     location: 'Edificio Académico, 2do Nivel',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
     category: 'academic'
   },
   {
@@ -193,7 +171,6 @@ const units: Unit[] = [
     name: 'Extensión',
     description: 'Vinculación universidad-comunidad y actividades de extensión',
     location: 'Edificio Académico, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'academic'
   },
   {
@@ -201,7 +178,6 @@ const units: Unit[] = [
     name: 'Finca Experimental',
     description: 'Espacio para prácticas e investigación agrícola',
     location: 'Campus Externo',
-    schedule: 'Lunes a Viernes 7:00 AM - 3:00 PM',
     category: 'research'
   },
   {
@@ -209,7 +185,6 @@ const units: Unit[] = [
     name: 'Gerencia Financiera',
     description: 'Administración de recursos financieros',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -217,7 +192,6 @@ const units: Unit[] = [
     name: 'Investigación',
     description: 'Coordinación de proyectos de investigación',
     location: 'Edificio de Investigación',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
     category: 'research'
   },
   {
@@ -225,7 +199,6 @@ const units: Unit[] = [
     name: 'Mayordomía',
     description: 'Gestión de servicios generales y mantenimiento',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: 'Lunes a Viernes 7:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -233,7 +206,6 @@ const units: Unit[] = [
     name: 'ARS UASD',
     description: 'Administradora de Riesgos de Salud de la universidad',
     location: 'Edificio de Servicios Estudiantiles, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -241,7 +213,6 @@ const units: Unit[] = [
     name: 'Multimedia',
     description: 'Recursos audiovisuales y servicios multimedia',
     location: 'Edificio Académico, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     category: 'academic'
   },
   {
@@ -249,7 +220,6 @@ const units: Unit[] = [
     name: 'Orientación',
     description: 'Servicios de orientación académica y profesional',
     location: 'Edificio de Servicios Estudiantiles, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -257,7 +227,6 @@ const units: Unit[] = [
     name: 'Ornato',
     description: 'Cuidado y mantenimiento de áreas verdes',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: 'Lunes a Viernes 7:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -265,7 +234,6 @@ const units: Unit[] = [
     name: 'Planificación',
     description: 'Desarrollo de planes estratégicos y proyectos institucionales',
     location: 'Edificio Administrativo, 3er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -273,7 +241,6 @@ const units: Unit[] = [
     name: 'Planta Física',
     description: 'Mantenimiento y desarrollo de infraestructura',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: 'Lunes a Viernes 7:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -281,7 +248,6 @@ const units: Unit[] = [
     name: 'Postgrado',
     description: 'Coordinación de programas de postgrado',
     location: 'Edificio Académico, 3er Nivel',
-    schedule: 'Lunes a Viernes 2:00 PM - 8:00 PM',
     category: 'academic'
   },
   {
@@ -289,7 +255,6 @@ const units: Unit[] = [
     name: 'Protocolo',
     description: 'Organización de eventos y ceremonias institucionales',
     location: 'Edificio Administrativo, 3er Nivel',
-    schedule: 'Lunes a Viernes 9:00 AM - 5:00 PM',
     category: 'administrative'
   },
   {
@@ -297,7 +262,6 @@ const units: Unit[] = [
     name: 'Recursos Humanos',
     description: 'Gestión del personal y relaciones laborales',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -305,7 +269,6 @@ const units: Unit[] = [
     name: 'Redes y Sistemas',
     description: 'Soporte técnico e infraestructura tecnológica',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     category: 'administrative'
   },
   {
@@ -313,7 +276,6 @@ const units: Unit[] = [
     name: 'Registro',
     description: 'Gestión de inscripciones y expedientes académicos',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -321,7 +283,6 @@ const units: Unit[] = [
     name: 'Seguridad',
     description: 'Servicios de seguridad y vigilancia del campus',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: '24 horas, todos los días',
     category: 'administrative'
   },
   {
@@ -329,7 +290,6 @@ const units: Unit[] = [
     name: 'Transportación',
     description: 'Servicio de transporte para estudiantes y personal',
     location: 'Edificio de Servicios, Planta Baja',
-    schedule: 'Lunes a Viernes 6:00 AM - 10:00 PM',
     category: 'student-services'
   },
   {
@@ -337,7 +297,6 @@ const units: Unit[] = [
     name: 'UASD Virtual',
     description: 'Gestión de plataformas y cursos virtuales',
     location: 'Edificio Académico, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     category: 'academic'
   },
   {
@@ -345,7 +304,6 @@ const units: Unit[] = [
     name: 'Plan de Retiro',
     description: 'Administración de planes de jubilación del personal',
     location: 'Edificio Administrativo, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -353,7 +311,6 @@ const units: Unit[] = [
     name: 'Inclusión y Accesibilidad',
     description: 'Programas y servicios para estudiantes con necesidades especiales',
     location: 'Edificio de Servicios Estudiantiles, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   },
   {
@@ -361,7 +318,6 @@ const units: Unit[] = [
     name: 'Caja',
     description: 'Gestión de pagos y cobros diarios',
     location: 'Edificio Administrativo, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 3:00 PM',
     category: 'administrative'
   },
   {
@@ -369,7 +325,6 @@ const units: Unit[] = [
     name: 'Apoyo Docente',
     description: 'Servicios de apoyo para la actividad docente',
     location: 'Edificio Académico, 2do Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     category: 'academic'
   },
   {
@@ -377,7 +332,6 @@ const units: Unit[] = [
     name: 'Oficina Administrativa Elías Piña',
     description: 'Coordinación administrativa de la extensión en Elías Piña',
     location: 'Extensión Elías Piña',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'administrative'
   },
   {
@@ -385,7 +339,6 @@ const units: Unit[] = [
     name: 'Laboratorio',
     description: 'Espacios para prácticas y experimentos científicos',
     location: 'Edificio de Ciencias',
-    schedule: 'Lunes a Viernes 8:00 AM - 6:00 PM',
     category: 'academic'
   },
   {
@@ -393,7 +346,6 @@ const units: Unit[] = [
     name: 'Enfermería',
     description: 'Servicios de primeros auxilios y atención básica en salud',
     location: 'Edificio de Servicios Estudiantiles, 1er Nivel',
-    schedule: 'Lunes a Viernes 8:00 AM - 4:00 PM',
     category: 'student-services'
   }
 ];
@@ -508,7 +460,6 @@ export function UnidadesPage() {
                   </div>
                   <div className="flex items-center text-gray-700">
                     <Clock className="w-5 h-5 mr-3 text-gray-500" />
-                    <span>{direccionGeneral.schedule}</span>
                   </div>
                 </div>
               </div>

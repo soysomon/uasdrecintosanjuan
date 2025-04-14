@@ -203,7 +203,7 @@ export function DirectivosPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header con estilo minimalista inspirado en Heidelberg */}
-      <div ref={headerRef} className="relative bg-[#2f2382] py-24">
+      <div ref={headerRef} className="relative bg-[#2f2382] py-32">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <span className="block text-gray-200 text-sm tracking-widest uppercase mb-2">Universidad Autónoma de Santo Domingo</span>
