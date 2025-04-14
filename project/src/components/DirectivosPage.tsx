@@ -202,16 +202,16 @@ export function DirectivosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header con estilo minimalista inspirado en Heidelberg */}
-<div ref={headerRef} className="relative bg-[#2f2382] py-32">
-  <div className="max-w-6xl mx-auto px-4">
-    <div className="text-center">
-      <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white">
-        Consejo Directivo
-      </h1>
-      <div className="w-16 h-1 bg-white mx-auto mt-4 mb-4"></div>
-      <span className="block text-gray-200 text-sm tracking-widest uppercase mb-1">Universidad Autónoma de Santo Domingo</span>
-      <span className="block text-gray-200 text-sm tracking-widest uppercase">Recinto San Juan de la Maguana</span>
+    {/* Header con estilo minimalista inspirado en Heidelberg */}
+<div ref={headerRef} className="relative bg-[#2f2382] py-32 text-center">
+  <div className="max-w-4xl mx-auto px-4">
+    <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white mb-6">
+      Consejo Directivo
+    </h1>
+    <div className="w-24 h-0.5 bg-white mx-auto mb-6"></div>
+    <div className="text-gray-100 text-base tracking-wide uppercase">
+      <p className="mb-1">UNIVERSIDAD AUTÓNOMA DE SANTO DOMINGO</p>
+      <p>RECINTO SAN JUAN DE LA MAGUANA</p>
     </div>
   </div>
 </div>
