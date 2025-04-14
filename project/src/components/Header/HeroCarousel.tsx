@@ -127,12 +127,14 @@ const HeroCarousel: React.FC = () => {
   }, [isAutoPlaying, currentSlide, slides.length]);
 
   const sortedSlides = useMemo(() => {
-    return [...slides].sort((a, b) => a.order - b.order);
+    const sorted = [...slides].sort((a, b) => a.order - b.order);
+    console.log('Sorted Slides:', sorted); // Para depuración
+    return sorted;
   }, [slides]);
 
   return (
-    <section className="relative bg-white h-auto sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
-      {sortedSlides.length > 0 && (
+    <section className="relative bg-white min-h-[200px] sm:min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
+      {sortedSlides.length > 0 ? (
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -142,10 +144,10 @@ const HeroCarousel: React.FC = () => {
             transition={{ duration: 0.7 }}
             className="relative flex items-center justify-center w-full h-full"
           >
-            <div className="w-full transform sm:scale-100 scale-110 sm:mx-0 mx-4 sm:h-full h-auto relative group">
+            <div className="w-full transform sm:scale-100 scale-105 sm:mx-0 mx-4 sm:h-full min-h-[200px] h-auto relative group">
               <div className="absolute inset-0 overflow-hidden">
                 {imageError ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  <div className="w-full min-h-[200px] flex items-center justify-center bg-gray-200">
                     <p className="text-gray-500">No se pudo cargar la imagen</p>
                   </div>
                 ) : (
@@ -227,6 +229,10 @@ const HeroCarousel: React.FC = () => {
             </div>
           </motion.div>
         </AnimatePresence>
+      ) : (
+        <div className="flex items-center justify-center min-h-[200px] text-gray-500">
+          No hay slides disponibles
+        </div>
       )}
       {sortedSlides.length > 0 && (
         <div className="relative bottom-2 sm:bottom-4 left-0 right-0 flex flex-col items-center z-10">
