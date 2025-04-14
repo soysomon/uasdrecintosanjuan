@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Clock, MapPin, ChevronRight, X } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, ChevronRight } from 'lucide-react';
 import '../UnidadesPage.css';
 
 interface Unit {
@@ -415,7 +415,6 @@ const getCategoryLabel = (category: string): string => {
 
 export function UnidadesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
 
   const categories = [
     { id: 'all', name: 'Todas las Unidades' },
@@ -425,9 +424,14 @@ export function UnidadesPage() {
     { id: 'research', name: 'Investigación' }
   ];
 
+  // Extraemos la Dirección General para mostrarla por separado
+  const direccionGeneral = units.find(unit => unit.id === 'direccion-general');
+  
+  // Filtramos las unidades (excluyendo la dirección general)
   const filteredUnits = units.filter(unit => {
+    const isNotDireccionGeneral = unit.id !== 'direccion-general';
     const matchesCategory = selectedCategory === 'all' || unit.category === selectedCategory;
-    return matchesCategory;
+    return isNotDireccionGeneral && matchesCategory;
   });
 
   return (
@@ -477,6 +481,42 @@ export function UnidadesPage() {
         </div>
       </div>
 
+      {/* Dirección General Destacada */}
+      {direccionGeneral && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden">
+            <div className="flex flex-col lg:flex-row">
+              <div className="lg:w-1/3">
+                <img 
+                  src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png" 
+                  alt="Dirección General" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="lg:w-2/3 p-8">
+                <div className="uppercase text-xs tracking-widest text-gray-500 mb-1">
+                  {getCategoryLabel(direccionGeneral.category)}
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">{direccionGeneral.name}</h2>
+                
+                <p className="text-gray-700 text-lg mb-6">{direccionGeneral.description}</p>
+                
+                <div className="flex flex-col sm:flex-row gap-8">
+                  <div className="flex items-center text-gray-700">
+                    <MapPin className="w-5 h-5 mr-3 text-gray-500" />
+                    <span>{direccionGeneral.location}</span>
+                  </div>
+                  <div className="flex items-center text-gray-700">
+                    <Clock className="w-5 h-5 mr-3 text-gray-500" />
+                    <span>{direccionGeneral.schedule}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter section */}
       <div className="bg-white border-b border-gray-200 pt-10 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -513,7 +553,6 @@ export function UnidadesPage() {
           {filteredUnits.map((unit) => (
             <div
               key={unit.id}
-              onClick={() => setSelectedUnit(unit)}
               className="bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer transition-all hover:shadow-md hover:border-gray-300"
             >
               <div className="p-6">
@@ -534,61 +573,6 @@ export function UnidadesPage() {
           ))}
         </div>
       </div>
-
-      {/* Modal for detailed view */}
-      {selectedUnit && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setSelectedUnit(null)}>
-          <div
-            className="bg-white max-w-xl w-full max-h-[90vh] overflow-y-auto rounded-lg relative shadow-2xl animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setSelectedUnit(null)}
-              className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 p-1 rounded-full bg-white/80 backdrop-blur-sm"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="p-8">
-              <div className="uppercase text-xs tracking-widest text-gray-500 mb-1">
-                {getCategoryLabel(selectedUnit.category)}
-              </div>
-
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {selectedUnit.name}
-              </h2>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-2">Descripción</h3>
-                  <p className="text-gray-700">{selectedUnit.description}</p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-2">Información de contacto</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center text-gray-700">
-                      <MapPin className="w-4 h-4 mr-3 text-gray-500" />
-                      <span>{selectedUnit.location}</span>
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Clock className="w-4 h-4 mr-3 text-gray-500" />
-                      <span>{selectedUnit.schedule}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200">
-                  <a href="#" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-                    <span>Contactar esta unidad</span>
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
