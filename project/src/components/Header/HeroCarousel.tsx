@@ -92,7 +92,7 @@ const MobileSlide: React.FC<SlideProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7 }}
-            className="w-full transform scale-100 mx-4 relative group"
+            className="w-full transform scale-100 mx-1 relative group"
           >
             <div className="relative w-full min-h-[200px] overflow-hidden">
               {imageError ? (
