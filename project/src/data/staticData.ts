@@ -12,7 +12,7 @@ export const featuredServices = [
   },
   {
     title: "Despacho Director",
-    description: "Liderazgo y gestión de actividades académicas y eventos institucionales",
+    description: "Director UASD – Centro San Juan de la Maguana",
     link: "/director/despacho",
   },
   {
