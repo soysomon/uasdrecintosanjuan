@@ -13,19 +13,16 @@ interface Event {
 }
 
 export const useEvents = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get(API_ROUTES.NEWS); // Cambia EVENTS por NEWS
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      throw error;
+    }
+  };
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await axios.get(API_ROUTES.EVENTS);
-        setEvents(res.data.slice(0, 4));
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      }
-    };
-    fetchEvents();
-  }, []);
+  return { fetchEvents };
 
-  return events;
 };
