@@ -10,10 +10,8 @@ const QuickLinks: React.FC = () => {
             key={index}
             href={service.link}
             className={`group flex flex-col items-center text-center py-4 relative 
-              ${index % 2 === 0 ? 'border-r border-gray-200' : ''} 
-              ${index < 2 ? 'border-b border-gray-200' : ''} 
-              sm:${index % 2 === 0 ? 'border-r border-gray-200' : ''} 
-              sm:${index < 2 ? 'border-b border-gray-200' : ''} 
+              ${index % 2 === 0 ? 'border-r border-gray-200 sm:border-r sm:border-gray-200' : ''} 
+              ${index < 2 ? 'border-b border-gray-200 sm:border-b sm:border-gray-200' : ''} 
               lg:${index < featuredServices.length - 1 ? 'border-r border-gray-200' : ''} 
               lg:border-b-0`}
           >
