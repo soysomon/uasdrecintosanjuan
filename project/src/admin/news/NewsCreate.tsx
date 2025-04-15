@@ -90,7 +90,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       return;
     }
 
-    console.log('File size before upload:', file.size, 'bytes');
+    console.log('File size before upload:', file.size, 'bytes'); // Add logging
     console.log('File type:', file.type);
 
     setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
