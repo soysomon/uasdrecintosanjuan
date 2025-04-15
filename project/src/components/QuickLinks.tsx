@@ -55,7 +55,7 @@ const QuickLinks: React.FC = () => {
                   {service.title}
                 </div>
                 <div className="mt-2">
-                  <span className="text-red-500 text-lg">→</span>
+                  <span className="text-blue-500 text-lg">→</span>
                 </div>
               </a>
             );
