@@ -152,7 +152,7 @@ const MobileSlide: React.FC<SlideProps> = ({
               )}
             </div>
             {slides[currentSlide].displayMode !== 'hover' && (
-              <div className="relative w-full max-w-7xl mx-1 flex items-center">
+              <div className="relative w-full max-w-7xl mx-auto flex items-center">
                 <div className="w-full px-2 py-6">
                   {slides[currentSlide].subtitle && (
                     <span className="inline-block bg-white/20 px-1 py-0.5 rounded-md text-white text-[10px] font-semibold mb-1">
@@ -180,7 +180,7 @@ const MobileSlide: React.FC<SlideProps> = ({
       </div>
       <div className="w-full relative bottom-0 left-0 right-0 flex flex-col items-center z-10 -mt-4">
         {isAutoPlaying && (
-          <div className="w-24 h-1 bg-white/30 rounded-full mb-0.5 overflow-hidden border border-blue-900">
+          <div className="w-24 h-1 bg-white/30 rounded-full mb-0.5 overflow-hidden border border-gray-300">
             <motion.div
               className="h-full bg-blue-900"
               initial={{ width: 0 }}
@@ -192,7 +192,7 @@ const MobileSlide: React.FC<SlideProps> = ({
         <div className="flex items-center gap-2 mb-0.5">
           <button
             onClick={() => handleSlideChange('prev')}
-            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-gray-300"
             aria-label="Slide anterior"
           >
             <ChevronLeft className="w-3 h-3 text-gray-800" />
@@ -215,14 +215,14 @@ const MobileSlide: React.FC<SlideProps> = ({
           </div>
           <button
             onClick={() => handleSlideChange('next')}
-            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-gray-300"
             aria-label="Siguiente slide"
           >
             <ChevronRight className="w-3 h-3 text-gray-800" />
           </button>
           <button
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900 ml-1"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-gray-300 ml-1"
             aria-label={isAutoPlaying ? "Pausar reproducción automática" : "Iniciar reproducción automática"}
           >
             {isAutoPlaying ? (
