@@ -250,50 +250,6 @@ const Events: React.FC = () => {
                 </ul>
               </motion.div>
               
-              {/* Academic information card for web version - Positioned correctly on the page */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.7 }}
-                className="hidden sm:block backdrop-blur-md bg-gradient-to-br from-white/5 to-white/10 border border-white/10 p-6 rounded-lg"
-              >
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <BookOpen className="w-5 h-5 text-blue-300" />
-                  </div>
-                  <h4 className="font-semibold text-white text-lg">Formación Académica</h4>
-                </div>
-                
-                <ul className="space-y-3 pl-12 relative">
-                  <div className="absolute top-0 bottom-0 left-5 w-px bg-gradient-to-b from-blue-400/40 via-blue-400/10 to-transparent"></div>
-                  
-                  <motion.li 
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.8 }}
-                    className="relative"
-                  >
-                    <div className="absolute left-[-24px] top-1 w-3 h-3 rounded-full bg-blue-400"></div>
-                    <p className="text-white/90 text-[15px]">Doctorado en Matemáticas</p>
-                    <p className="text-white/70 text-[13px]">Universidad Politécnica de Valencia</p>
-                  </motion.li>
-                  
-                  <motion.li 
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.9 }}
-                    className="relative"
-                  >
-                    <div className="absolute left-[-24px] top-1 w-3 h-3 rounded-full bg-blue-400"></div>
-                    <p className="text-white/90 text-[15px]">Maestría en Física Aplicada</p>
-                    <p className="text-white/70 text-[13px]">Universidad de Barcelona</p>
-                  </motion.li>
-                </ul>
-              </motion.div>
-              
               {/* Button with elegant animation */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -312,6 +268,36 @@ const Events: React.FC = () => {
             </motion.div>
           </div>
         </div>
+        
+        {/* Academic info card positioned in the right area (web version only) */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, x: 30 }}
+          whileInView={{ opacity: 1, y: 0, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ 
+            delay: 0.4, 
+            duration: 0.8,
+            ease: [0.25, 0.1, 0.25, 1] 
+          }}
+          className="hidden sm:block absolute top-2/3 right-16 bg-white p-6 rounded-lg shadow-xl z-20 max-w-xs"
+        >
+          <div className="flex items-center mb-3">
+            <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
+              <BookOpen className="w-4 h-4" />
+            </span>
+            <h4 className="text-lg font-semibold text-gray-900">Formación Académica</h4>
+          </div>
+          <ul className="space-y-2 text-gray-700 text-sm pl-4">
+            <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+              <span className="font-medium">Doctorado en Matemáticas</span>
+              <p className="text-gray-500">Universidad Politécnica de Valencia</p>
+            </li>
+            <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+              <span className="font-medium">Maestría en Física Aplicada</span>
+              <p className="text-gray-500">Universidad de Barcelona</p>
+            </li>
+          </ul>
+        </motion.div>
       </section>
     </>
   );
