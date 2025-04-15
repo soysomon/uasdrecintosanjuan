@@ -4,28 +4,18 @@ import { featuredServices } from '../data/staticData';
 const QuickLinks: React.FC = () => {
   return (
     <section className="quick-links bg-white p-5 md:p-10">
-      <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0">
+      <div className="max-w-7xl mx-auto grid grid-cols-4 gap-0">
         {featuredServices.map((service, index) => {
-          // Defining border classes for mobile and sm (2x2 grid)
-          const mobileAndSmBorders = [
-            index % 2 === 0 ? 'border-r border-gray-200' : '', // Right border for even columns (0, 2)
-            'border-b border-gray-200',                       // Bottom border for ALL items to create horizontal lines
-          ].join(' ').trim();
-
-          // Defining border classes for lg (4x1 grid)
-          const lgBorders = [
-            index < featuredServices.length - 1 ? 'border-r border-gray-200' : '', // Right border for all except the last
-            index < featuredServices.length - 1 ? 'border-b-0' : '', // No bottom border in lg view except when needed
+          // Definir clases de bordes para todas las versiones (4x1)
+          const borders = [
+            index < featuredServices.length - 1 ? 'border-r border-gray-200' : '', // Borde derecho en todos menos el último
           ].join(' ').trim();
 
           return (
             <a
               key={index}
               href={service.link}
-              className={`group flex flex-col items-center text-center py-4 relative 
-                ${mobileAndSmBorders} 
-                sm:${mobileAndSmBorders} 
-                lg:${lgBorders}`}
+              className={`group flex flex-col items-center text-center py-4 relative ${borders}`}
             >
               <div className="text-lg text-gray-700 group-hover:text-[#003087] transition-colors duration-300">
                 {service.title}
