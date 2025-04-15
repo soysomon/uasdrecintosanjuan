@@ -6,7 +6,7 @@ export const featuredServices = [
     link: "/carreras/grado",
   },
   {
-    title: "Maestrías",
+    title: "Conoce nuestras Maestrías",
     description: "Accede a recursos académicos en línea",
     link: "/carreras/postgrado",
   },
