@@ -1,4 +1,3 @@
-// src/admin/news/NewsCreate.tsx
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -78,6 +77,22 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   };
 
   const handleUploadImage = async (sectionId: string, file: File) => {
+    // Client-side validation
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Solo se permiten imágenes (JPEG, PNG, GIF, WEBP).');
+      return;
+    }
+
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSize) {
+      toast.error('La imagen es demasiado grande. El tamaño máximo es 20MB.');
+      return;
+    }
+
+    console.log('File size before upload:', file.size, 'bytes');
+    console.log('File type:', file.type);
+
     setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
     try {
       const formData = new FormData();
@@ -101,6 +116,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       }
 
       const data = await response.json();
+      console.log('Upload successful. S3 URL:', data.imageUrl);
 
       if (!data.success) {
         throw new Error(data.error || 'Error al subir la imagen');
@@ -127,8 +143,6 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
             : section
         )
       );
-
-      console.log('Imagen subida:', newImage.url); // Depuración
 
       const fakeProgress = setInterval(() => {
         setUploadingImages((prev) => {
@@ -240,7 +254,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
         <div ref={formRef}>
           {sections.map((section) => (
             <div
-              key={section.id} // Asegurado que section.id es único
+              key={section.id}
               className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
             >
               <h3 className="text-lg font-medium text-gray-800 mb-4">Sección</h3>
@@ -317,8 +331,8 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="General">General</option>
-              <option value="Académico">Académico</option> 
-              <option value="Culltural">Cultural</option>
+              <option value="Académico">Académico</option>
+              <option value="Cultural">Cultural</option>
             </select>
           </div>
         </div>
