@@ -1,3 +1,4 @@
+// backend/server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -9,8 +10,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const imageSize = require('image-size');
-const fileType = require('file-type');
 
 const estadosFinancierosRoutes = require('./estados/estadofinanciero');
 const IpAttempt = require('./models/IpAttempt');
@@ -18,12 +17,12 @@ const IpAttempt = require('./models/IpAttempt');
 const app = express();
 app.use(express.json());
 
-// Updated CORS configuration
+// Updated CORS configuration with more options
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://uasdrecintosanjuan-fe-production.up.railway.app',
-  'https://uasdrecintosanjuan.com'
+  'https://uasdrecintosanjuan.com' // Dominio personalizado
 ];
 
 app.use(cors({
@@ -41,7 +40,7 @@ app.use(cors({
 
 app.use('/api/estados-financieros', estadosFinancierosRoutes);
 
-// S3 Client Configuration
+// Configuración del cliente S3
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -50,16 +49,20 @@ const s3Client = new S3Client({
   }
 });
 
+// Nombre del bucket de S3
 const bucketName = process.env.AWS_S3_BUCKET || 'uasd-recinto-sanjuan-media';
 
+// Función auxiliar para generar URL pública de S3
 const getS3PublicUrl = (key) => {
   return `https://${bucketName}.s3.amazonaws.com/${key}`;
 };
 
-// MongoDB Connection
+// Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Conectado a MongoDB');
+
+    // Configurar tarea de limpieza con node-cron
     cron.schedule('0 0 * * *', async () => {
       try {
         const result = await IpAttempt.deleteMany({
@@ -98,16 +101,21 @@ const authController = require('./auth/authController');
 const { authMiddleware } = require('./auth/authMiddleware');
 const { roleMiddleware } = require('./auth/roleMiddleware');
 
+// Ruta para cambiar la contraseña del usuario actual
 app.post('/api/auth/change-password', authMiddleware, authController.changePassword);
+// Rutas de autenticación
 app.post('/api/auth/login', authController.login);
 app.get('/api/auth/me', authMiddleware, authController.getCurrentUser);
+
+// Asegura que solo los superadmins puedan acceder
 app.get('/api/auth/blocked-ips', authMiddleware, roleMiddleware(['superadmin']), authController.getBlockedIps);
+// Rutas de gestión de usuarios (solo superadmin)
 app.get('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.getUsers);
 app.post('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.createUser);
 app.put('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.updateUser);
 app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.deleteUser);
 
-// News Routes
+// Rutas para noticias
 app.post('/api/news', async (req, res) => {
   try {
     const news = new News(req.body);
@@ -122,8 +130,11 @@ app.post('/api/news', async (req, res) => {
 app.get('/api/news', async (req, res) => {
   try {
     const news = await News.find();
+
+    // Transformar datos antiguos si es necesario
     const transformedNews = news.map(item => {
       const doc = item.toObject();
+
       if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
         doc.sections = doc.sections.map(section => {
           if ('imageUrl' in section) {
@@ -145,8 +156,10 @@ app.get('/api/news', async (req, res) => {
           return section;
         });
       }
+
       return doc;
     });
+
     res.json(transformedNews);
   } catch (err) {
     console.error('Error al obtener noticias:', err);
@@ -158,6 +171,7 @@ app.get('/api/news/:id', async (req, res) => {
   try {
     const news = await News.findById(req.params.id);
     if (!news) return res.status(404).json({ message: 'Noticia no encontrada' });
+
     const doc = news.toObject();
     if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
       doc.sections = doc.sections.map(section => {
@@ -180,6 +194,7 @@ app.get('/api/news/:id', async (req, res) => {
         return section;
       });
     }
+
     res.json(doc);
   } catch (err) {
     console.error('Error al obtener noticia:', err);
@@ -217,120 +232,7 @@ app.delete('/api/news/:id', async (req, res) => {
   }
 });
 
-// Multer Configuration
-const tempStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tempDir = path.join(__dirname, 'temp');
-    fs.ensureDirSync(tempDir);
-    cb(null, tempDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
-  }
-});
-
-const upload = multer({
-  storage: tempStorage,
-  limits: {
-    fileSize: 20 * 1024 * 1024, // Increased to 20MB to handle larger images
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Solo se permiten imágenes (JPEG, PNG, GIF, WEBP)'));
-    }
-    cb(null, true);
-  }
-});
-
-// Image Upload Route with Quality Preservation
-app.post('/api/upload-image', upload.single('file'), async (req, res) => {
-  try {
-    console.log('Received image upload request');
-    if (!req.file) {
-      console.error('No file provided in request');
-      return res.status(400).json({ success: false, error: 'No se proporcionó ningún archivo' });
-    }
-
-    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
-
-    // Validate file type
-    const fileInfo = await fileType.fromFile(req.file.path);
-    if (!fileInfo || !['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileInfo.ext)) {
-      await fs.remove(req.file.path);
-      return res.status(400).json({ success: false, error: 'Archivo no es una imagen válida' });
-    }
-
-    // Validate image dimensions
-    const dimensions = imageSize(req.file.path);
-    console.log('Image dimensions:', dimensions);
-
-    // Read file into memory (compatible with Railway)
-    const fileContent = await fs.readFile(req.file.path);
-    console.log('File read successfully, size:', fileContent.length);
-
-    const fileKey = `news_images/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
-    console.log('Generated S3 key:', fileKey);
-
-    const uploadParams = {
-      Bucket: bucketName,
-      Key: fileKey,
-      Body: fileContent,
-      ContentType: req.file.mimetype,
-      Metadata: {
-        'original-filename': req.file.originalname,
-        'content-type': req.file.mimetype,
-        'upload-date': new Date().toISOString(),
-      },
-    };
-    console.log('Uploading to S3 with params:', uploadParams);
-
-    const uploadCommand = new PutObjectCommand(uploadParams);
-    await s3Client.send(uploadCommand);
-    console.log('Upload to S3 successful');
-
-    const url = getS3PublicUrl(fileKey);
-    console.log('Generated public URL:', url);
-
-    // Verify file size after upload by fetching the file from S3 (optional, for debugging)
-    const response = await axios.head(url);
-    const uploadedSize = parseInt(response.headers['content-length'], 10);
-    console.log('Uploaded file size:', uploadedSize);
-    if (uploadedSize !== fileContent.length) {
-      console.error('File size mismatch after upload. Original:', fileContent.length, 'Uploaded:', uploadedSize);
-    }
-
-    await fs.remove(req.file.path);
-    console.log('Temporary file removed');
-
-    res.json({
-      success: true,
-      imageUrl: url,
-      public_id: fileKey,
-      format: path.extname(req.file.originalname).substring(1),
-      resourceType: 'image'
-    });
-  } catch (error) {
-    console.error('Error al subir imagen:', error);
-    if (req.file && req.file.path) {
-      try {
-        await fs.remove(req.file.path);
-        console.log('Temporary file cleaned up');
-      } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
-      }
-    }
-    res.status(500).json({
-      success: false,
-      error: 'Error al subir la imagen',
-      details: error.message
-    });
-  }
-});
-
-// Other Routes (Slides, Memorias, Docentes, Publicaciones)
+// Modelo de Slide
 const slideSchema = new mongoose.Schema({
   title: String,
   subtitle: String,
@@ -346,6 +248,7 @@ const slideSchema = new mongoose.Schema({
 });
 const Slide = mongoose.model('Slide', slideSchema);
 
+// Rutas para slides
 app.post('/api/slides', async (req, res) => {
   console.log('Creando nuevo slide:', req.body);
   const slide = new Slide(req.body);
@@ -369,15 +272,43 @@ app.delete('/api/slides/:id', async (req, res) => {
   res.json({ message: 'Eliminado' });
 });
 
+// Modelo de Memorias
 const memoriaSchema = new mongoose.Schema({
-  title: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, unique: true, trim: true },
-  description: { type: String, trim: true },
-  pdfUrl: { type: String, trim: true },
-  pdfPublicId: { type: String, trim: true },
-  videoUrl: { type: String, trim: true },
-  order: { type: Number, default: 0 },
-  isPublished: { type: Boolean, default: true },
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    trim: true
+  },
+  pdfUrl: {
+    type: String,
+    trim: true
+  },
+  pdfPublicId: {
+    type: String,
+    trim: true
+  },
+  videoUrl: {
+    type: String,
+    trim: true
+  },
+  order: {
+    type: Number,
+    default: 0
+  },
+  isPublished: {
+    type: Boolean,
+    default: true
+  },
   contentSections: [{
     sectionType: {
       type: String,
@@ -392,6 +323,7 @@ const memoriaSchema = new mongoose.Schema({
 
 const Memoria = mongoose.model('Memoria', memoriaSchema);
 
+// Rutas para Memorias
 app.get('/api/memorias', async (req, res) => {
   try {
     const memorias = await Memoria.find().sort({ order: 1 });
@@ -456,29 +388,91 @@ app.delete('/api/memorias/:id', async (req, res) => {
   }
 });
 
+// Modelo de Docentes
 const docenteSchema = new mongoose.Schema({
-  nombre: { type: String, required: true, trim: true },
-  apellidos: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, unique: true, trim: true },
-  tipo: { type: String, enum: ['residente', 'no_residente'], required: true },
-  cargo: { type: String, trim: true },
-  especialidad: { type: String, trim: true },
-  departamento: { type: String, trim: true },
-  fotoPerfil: { type: String, trim: true },
-  fotoPublicId: { type: String, trim: true },
-  descripcionGeneral: { type: String, trim: true },
-  videoUrl: { type: String, trim: true },
-  educacion: [{ titulo: String, institucion: String, anio: String }],
+  nombre: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  apellidos: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  tipo: {
+    type: String,
+    enum: ['residente', 'no_residente'],
+    required: true
+  },
+  cargo: {
+    type: String,
+    trim: true
+  },
+  especialidad: {
+    type: String,
+    trim: true
+  },
+  departamento: {
+    type: String,
+    trim: true
+  },
+  fotoPerfil: {
+    type: String,
+    trim: true
+  },
+  fotoPublicId: {
+    type: String,
+    trim: true
+  },
+  descripcionGeneral: {
+    type: String,
+    trim: true
+  },
+  videoUrl: {
+    type: String,
+    trim: true
+  },
+  educacion: [{
+    titulo: String,
+    institucion: String,
+    anio: String
+  }],
   idiomas: [String],
-  experienciaProfesional: [{ cargo: String, institucion: String, periodo: String }],
-  reconocimientos: [{ titulo: String, otorgadoPor: String, anio: String }],
-  participacionEventos: [{ nombre: String, lugar: String, anio: String }],
-  order: { type: Number, default: 0 },
-  isPublished: { type: Boolean, default: true }
+  experienciaProfesional: [{
+    cargo: String,
+    institucion: String,
+    periodo: String
+  }],
+  reconocimientos: [{
+    titulo: String,
+    otorgadoPor: String,
+    anio: String
+  }],
+  participacionEventos: [{
+    nombre: String,
+    lugar: String,
+    anio: String
+  }],
+  order: {
+    type: Number,
+    default: 0
+  },
+  isPublished: {
+    type: Boolean,
+    default: true
+  }
 }, { timestamps: true });
 
 const Docente = mongoose.model('Docente', docenteSchema);
 
+// Rutas para Docentes
 app.get('/api/docentes', async (req, res) => {
   try {
     const tipo = req.query.tipo;
@@ -545,21 +539,55 @@ app.delete('/api/docentes/:id', async (req, res) => {
   }
 });
 
+// Modelo de Publicaciones de Docentes (Conoce tu Docente)
 const publicacionDocenteSchema = new mongoose.Schema({
-  titulo: { type: String, required: true, trim: true },
-  volumen: { type: String, required: true, trim: true },
-  descripcion: { type: String, trim: true },
-  anio: { type: String, trim: true },
-  pdfUrl: { type: String, trim: true },
-  pdfPublicId: { type: String, trim: true },
-  portadaUrl: { type: String, trim: true },
-  portadaPublicId: { type: String, trim: true },
-  isPublished: { type: Boolean, default: true },
-  order: { type: Number, default: 0 }
+  titulo: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  volumen: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  descripcion: {
+    type: String,
+    trim: true
+  },
+  anio: {
+    type: String,
+    trim: true
+  },
+  pdfUrl: {
+    type: String,
+    trim: true
+  },
+  pdfPublicId: {
+    type: String,
+    trim: true
+  },
+  portadaUrl: {
+    type: String,
+    trim: true
+  },
+  portadaPublicId: {
+    type: String,
+    trim: true
+  },
+  isPublished: {
+    type: Boolean,
+    default: true
+  },
+  order: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 const PublicacionDocente = mongoose.model('PublicacionDocente', publicacionDocenteSchema);
 
+// Rutas para Publicaciones de Docentes
 app.get('/api/publicaciones-docentes', async (req, res) => {
   try {
     const publicaciones = await PublicacionDocente.find().sort({ order: 1 });
@@ -624,7 +652,85 @@ app.delete('/api/publicaciones-docentes/:id', async (req, res) => {
   }
 });
 
-// PDF Upload Route
+// Configuración para almacenamiento temporal en disco para archivos
+const tempStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const tempDir = path.join(__dirname, 'temp');
+    fs.ensureDirSync(tempDir);
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+  }
+});
+
+const upload = multer({ storage: tempStorage });
+
+// Ruta para subir imágenes a S3
+app.post('/api/upload-image', upload.single('file'), async (req, res) => {
+  try {
+    console.log('Received image upload request');
+    if (!req.file) {
+      console.error('No file provided in request');
+      return res.status(400).json({ success: false, error: 'No se proporcionó ningún archivo' });
+    }
+
+    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
+
+    const fileKey = `news_images/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
+    console.log('Generated S3 key:', fileKey);
+
+    console.log('Reading file from:', req.file.path);
+    const fileContent = await fs.readFile(req.file.path);
+    console.log('File read successfully, length:', fileContent.length);
+
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: fileKey,
+      Body: fileContent,
+      ContentType: req.file.mimetype,
+    };
+    console.log('Uploading to S3 with params:', uploadParams);
+
+    const uploadCommand = new PutObjectCommand(uploadParams);
+    await s3Client.send(uploadCommand);
+    console.log('Upload to S3 successful');
+
+    const url = getS3PublicUrl(fileKey);
+    console.log('Generated public URL:', url);
+
+    console.log('Removing temporary file:', req.file.path);
+    await fs.remove(req.file.path);
+    console.log('Temporary file removed');
+
+    res.json({
+      success: true,
+      imageUrl: url,
+      public_id: fileKey,
+      format: path.extname(req.file.originalname).substring(1),
+      resourceType: 'image'
+    });
+  } catch (error) {
+    console.error('Error al subir imagen:', error);
+    if (req.file && req.file.path) {
+      try {
+        await fs.remove(req.file.path);
+        console.log('Temporary file cleaned up');
+      } catch (cleanupError) {
+        console.error('Error al limpiar archivo temporal:', cleanupError);
+      }
+    }
+    res.status(500).json({
+      success: false,
+      error: 'Error al subir la imagen',
+      details: error.message
+    });
+  }
+});
+
+// Ruta para subir PDFs a S3
 app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
   try {
     console.log('Received PDF upload request');
@@ -644,15 +750,16 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
     const fileKey = `pdfs/${path.basename(req.file.originalname, path.extname(req.file.originalname)).replace(/\s+/g, '_')}_${Date.now()}${path.extname(req.file.originalname)}`;
     console.log('Generated S3 key:', fileKey);
 
+    console.log('Reading file from:', req.file.path);
     const fileContent = await fs.readFile(req.file.path);
-    console.log('File read successfully, size:', fileContent.length);
+    console.log('File read successfully, length:', fileContent.length);
 
     const uploadParams = {
       Bucket: bucketName,
       Key: fileKey,
       Body: fileContent,
       ContentType: req.file.mimetype,
-      ACL: 'public-read',
+      ACL: 'public-read', // Asegura que el PDF sea público
     };
     console.log('Uploading to S3 with params:', uploadParams);
 
@@ -663,6 +770,7 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
     const url = getS3PublicUrl(fileKey);
     console.log('Generated public URL:', url);
 
+    console.log('Removing temporary file:', req.file.path);
     await fs.remove(req.file.path);
     console.log('Temporary file removed');
 
@@ -691,6 +799,7 @@ app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
   }
 });
 
+// Ruta que genera una URL pre-firmada para la subida directa a S3
 app.get('/api/get-upload-url', async (req, res) => {
   try {
     const fileName = req.query.fileName || 'default.pdf';
@@ -727,18 +836,24 @@ app.get('/api/get-upload-url', async (req, res) => {
   }
 });
 
+// Ruta proxy para servir PDFs
 app.get('/api/pdf/:s3Key(*)', (req, res) => {
   const s3Key = req.params.s3Key;
   console.log(`Solicitud de PDF con Key: ${s3Key}`);
+
   const pdfUrl = getS3PublicUrl(s3Key);
   console.log(`Redireccionando a: ${pdfUrl}`);
+
   res.redirect(pdfUrl);
 });
 
+// Ruta para depurar URLs
 app.get('/api/debug-pdf/:url(*)', (req, res) => {
   const encodedUrl = req.params.url;
   const decodedUrl = decodeURIComponent(encodedUrl);
+
   console.log('URL recibida para depuración:', decodedUrl);
+
   res.json({
     original: decodedUrl,
     s3Info: {
