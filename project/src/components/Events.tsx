@@ -16,7 +16,7 @@ const Events: React.FC = () => {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"></div>
         <div className="absolute -top-[500px] -right-[300px] w-[800px] h-[800px] rounded-full bg-blue-400/5 blur-3xl"></div>
         <div className="absolute -bottom-[300px] -left-[200px] w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-3xl"></div>
-        
+
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-16 items-center">
             {/* Image container with effects */}
@@ -24,7 +24,7 @@ const Events: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ 
+              transition={{
                 duration: 1,
                 ease: [0.25, 0.1, 0.25, 1]
               }}
@@ -34,30 +34,30 @@ const Events: React.FC = () => {
               <div className="hidden sm:block relative">
                 {/* Decorative frame */}
                 <div className="absolute -inset-4 rounded-xl border border-blue-400/20 z-0"></div>
-                
+
                 {/* Image with mask and effects */}
                 <div className="relative rounded-lg overflow-hidden shadow-2xl z-10">
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#051c45]/90 via-[#051c45]/60 to-transparent z-10"></div>
                   {/* Dot pattern overlay */}
-                  <div className="absolute inset-0 z-20 opacity-5 mix-blend-overlay" 
-                    style={{ 
+                  <div className="absolute inset-0 z-20 opacity-5 mix-blend-overlay"
+                    style={{
                       backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)',
-                      backgroundSize: '8px 8px' 
+                      backgroundSize: '8px 8px'
                     }}>
                   </div>
-                  
-                  <img 
+
+                  <img
                     src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png"
-                    alt="Dr. Carlos Manuel Sánchez De Óleo" 
+                    alt="Dr. Carlos Manuel Sánchez De Óleo"
                     className="w-full aspect-[3/4] object-cover object-center"
                   />
-                  
+
                   {/* Top graphic element */}
                   <div className="absolute top-6 left-6 flex items-center z-30">
                     <div className="w-2 h-2 rounded-full bg-blue-400 mr-2"></div>
                     <div className="w-12 h-px bg-blue-400/60"></div>
                   </div>
-                  
+
                   {/* Bottom text */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
                     <h3 className="text-2xl font-bold text-white">Dr. Carlos Manuel Sánchez De Óleo</h3>
@@ -71,30 +71,30 @@ const Events: React.FC = () => {
                 <div className="relative">
                   {/* Decorative frame */}
                   <div className="absolute -inset-4 rounded-xl border border-blue-400/20 z-0"></div>
-                  
+
                   {/* Image with mask and effects */}
                   <div className="relative rounded-lg overflow-hidden shadow-2xl z-10">
                     <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#051c45]/90 via-[#051c45]/60 to-transparent z-10"></div>
                     {/* Dot pattern overlay */}
-                    <div className="absolute inset-0 z-20 opacity-5 mix-blend-overlay" 
-                      style={{ 
+                    <div className="absolute inset-0 z-20 opacity-5 mix-blend-overlay"
+                      style={{
                         backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)',
-                        backgroundSize: '8px 8px' 
+                        backgroundSize: '8px 8px'
                       }}>
                     </div>
-                    
-                    <img 
+
+                    <img
                       src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png"
-                      alt="Dr. Carlos Manuel Sánchez De Óleo" 
+                      alt="Dr. Carlos Manuel Sánchez De Óleo"
                       className="w-full aspect-[3/4] object-cover object-center"
                     />
-                    
+
                     {/* Top graphic element */}
                     <div className="absolute top-6 left-6 flex items-center z-30">
                       <div className="w-2 h-2 rounded-full bg-blue-400 mr-2"></div>
                       <div className="w-12 h-px bg-blue-400/60"></div>
                     </div>
-                    
+
                     {/* Bottom text */}
                     <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
                       <h3 className="text-2xl font-bold text-white">Dr. Carlos Manuel Sánchez De Óleo</h3>
@@ -102,16 +102,16 @@ const Events: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Academic info in mobile */}
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ 
-                    delay: 0.4, 
+                  transition={{
+                    delay: 0.4,
                     duration: 0.8,
-                    ease: [0.25, 0.1, 0.25, 1] 
+                    ease: [0.25, 0.1, 0.25, 1]
                   }}
                   className="bg-white p-4 rounded-lg shadow-md mt-4 mx-6"
                 >
@@ -134,7 +134,7 @@ const Events: React.FC = () => {
                 </motion.div>
               </div>
             </motion.div>
-            
+
             {/* Content with sophisticated animations */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -144,15 +144,15 @@ const Events: React.FC = () => {
               className="w-full lg:w-1/2 order-1 lg:order-2 space-y-8"
             >
               <div>
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, width: 0 }}
                   whileInView={{ opacity: 1, width: "100px" }}
                   viewport={{ once: true }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="h-0.5 bg-blue-400 mb-6"
                 ></motion.div>
-                
-                <motion.span 
+
+                <motion.span
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -161,19 +161,19 @@ const Events: React.FC = () => {
                 >
                   Liderazgo Institucional
                 </motion.span>
-                
-                <motion.h2 
+
+                <motion.h2
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                   className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight"
                 >
-                  Comprometido con la <br/>
+                  Comprometido con la <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-blue-400">excelencia académica</span>
                 </motion.h2>
-                
-                <motion.p 
+
+                <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -183,22 +183,22 @@ const Events: React.FC = () => {
                   Director UASD – Centro San Juan de la Maguana
                 </motion.p>
               </div>
-              
-              <motion.p 
+
+              <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.5 }}
                 className="text-lg text-white/80 leading-relaxed"
               >
-                Maestro de la Universidad Autónoma de Santo Domingo desde 2005, el Dr. Sánchez De Óleo 
-                ha dedicado su trayectoria a la transformación de la educación superior en la región. 
-                Su visión innovadora ha impulsado importantes avances en infraestructura, calidad 
+                Maestro de la Universidad Autónoma de Santo Domingo desde 2005, el Dr. Sánchez De Óleo
+                ha dedicado su trayectoria a la transformación de la educación superior en la región.
+                Su visión innovadora ha impulsado importantes avances en infraestructura, calidad
                 educativa y vinculación comunitaria.
               </motion.p>
-              
+
               {/* Achievement card with glassmorphism effect */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -211,11 +211,11 @@ const Events: React.FC = () => {
                   </div>
                   <h4 className="font-semibold text-white text-lg">Logros Destacados</h4>
                 </div>
-                
+
                 <ul className="space-y-3 pl-12 relative">
                   <div className="absolute top-0 bottom-0 left-5 w-px bg-gradient-to-b from-blue-400/40 via-blue-400/10 to-transparent"></div>
-                  
-                  <motion.li 
+
+                  <motion.li
                     initial={{ opacity: 0, x: -10 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -225,8 +225,8 @@ const Events: React.FC = () => {
                     <div className="absolute left-[-24px] top-1 w-3 h-3 rounded-full bg-blue-400"></div>
                     <p className="text-white/90 text-[15px]">Director del Proyecto LIMA para la innovación académica</p>
                   </motion.li>
-                  
-                  <motion.li 
+
+                  <motion.li
                     initial={{ opacity: 0, x: -10 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -236,8 +236,8 @@ const Events: React.FC = () => {
                     <div className="absolute left-[-24px] top-1 w-3 h-3 rounded-full bg-blue-400"></div>
                     <p className="text-white/90 text-[15px]">Colaborador investigador en CERN, Ginebra</p>
                   </motion.li>
-                  
-                  <motion.li 
+
+                  <motion.li
                     initial={{ opacity: 0, x: -10 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -249,7 +249,7 @@ const Events: React.FC = () => {
                   </motion.li>
                 </ul>
               </motion.div>
-              
+
               {/* Button with elegant animation */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -268,18 +268,18 @@ const Events: React.FC = () => {
             </motion.div>
           </div>
         </div>
-        
+
         {/* Academic info card positioned in the right area (web version only) */}
         <motion.div
           initial={{ opacity: 0, y: 30, x: 30 }}
           whileInView={{ opacity: 1, y: 0, x: 0 }}
           viewport={{ once: true }}
-          transition={{ 
-            delay: 0.4, 
+          transition={{
+            delay: 0.4,
             duration: 0.8,
-            ease: [0.25, 0.1, 0.25, 1] 
+            ease: [0.25, 0.1, 0.25, 1]
           }}
-          className="hidden sm:block absolute top-2/3 right-16 bg-white p-6 rounded-lg shadow-xl z-20 max-w-xs"
+          className="hidden sm:block absolute top-[75%] right-16 bg-white p-6 rounded-lg shadow-xl z-20 max-w-xs"
         >
           <div className="flex items-center mb-3">
             <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
@@ -298,6 +298,7 @@ const Events: React.FC = () => {
             </li>
           </ul>
         </motion.div>
+
       </section>
     </>
   );
