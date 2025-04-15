@@ -58,38 +58,9 @@ const Events: React.FC = () => {
                   </div>
                   
                   {/* Bottom text */}
-                  <div className="relative z-20 p-6">
+                  <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
                     <h3 className="text-2xl font-bold text-white">Dr. Carlos Manuel Sánchez De Óleo</h3>
                     <p className="text-blue-200 mt-2 font-medium">Director UASD – Centro San Juan</p>
-                    {/* Academic info in mobile */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ 
-                        delay: 0.4, 
-                        duration: 0.8,
-                        ease: [0.25, 0.1, 0.25, 1] 
-                      }}
-                      className="mt-4 sm:hidden bg-white p-4 rounded-lg shadow-md"
-                    >
-                      <div className="flex items-center mb-3">
-                        <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
-                          <BookOpen className="w-4 h-4" />
-                        </span>
-                        <h4 className="text-lg font-semibold text-gray-900">Formación Académica</h4>
-                      </div>
-                      <ul className="space-y-2 text-gray-700 text-sm pl-4">
-                        <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
-                          <span className="font-medium">Doctorado en Matemáticas</span>
-                          <p className="text-gray-500">Universidad Politécnica de Valencia</p>
-                        </li>
-                        <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
-                          <span className="font-medium">Maestría en Física Aplicada</span>
-                          <p className="text-gray-500">Universidad de Barcelona</p>
-                        </li>
-                      </ul>
-                    </motion.div>
                   </div>
                 </div>
                 
@@ -123,6 +94,35 @@ const Events: React.FC = () => {
                   </ul>
                 </motion.div>
               </div>
+              {/* Academic info in mobile */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ 
+                  delay: 0.4, 
+                  duration: 0.8,
+                  ease: [0.25, 0.1, 0.25, 1] 
+                }}
+                className="sm:hidden bg-white p-4 rounded-lg shadow-md mt-4 mx-6"
+              >
+                <div className="flex items-center mb-3">
+                  <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
+                    <BookOpen className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-lg font-semibold text-gray-900">Formación Académica</h4>
+                </div>
+                <ul className="space-y-2 text-gray-700 text-sm pl-4">
+                  <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+                    <span className="font-medium">Doctorado en Matemáticas</span>
+                    <p className="text-gray-500">Universidad Politécnica de Valencia</p>
+                  </li>
+                  <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+                    <span className="font-medium">Maestría en Física Aplicada</span>
+                    <p className="text-gray-500">Universidad de Barcelona</p>
+                  </li>
+                </ul>
+              </motion.div>
             </motion.div>
             
             {/* Content with sophisticated animations */}
