@@ -4,7 +4,8 @@ import { featuredServices } from '../data/staticData';
 const QuickLinks: React.FC = () => {
   return (
     <section className="quick-links bg-white p-5 md:p-10">
-      <div className="max-w-7xl mx-auto grid grid-cols-4 gap-0">
+      {/* Versión desktop - Mantiene exactamente el mismo diseño original */}
+      <div className="max-w-7xl mx-auto hidden md:grid md:grid-cols-4 md:gap-0">
         {featuredServices.map((service, index) => {
           // Definir clases de bordes para todas las versiones (4x1)
           const borders = [
@@ -13,7 +14,7 @@ const QuickLinks: React.FC = () => {
 
           return (
             <a
-              key={index}
+              key={`desktop-${index}`}
               href={service.link}
               className={`group flex flex-col items-center text-center py-4 relative ${borders}`}
             >
@@ -31,6 +32,35 @@ const QuickLinks: React.FC = () => {
             </a>
           );
         })}
+      </div>
+
+      {/* Versión móvil - Similar a la segunda imagen */}
+      <div className="max-w-7xl mx-auto md:hidden">
+        <div className="grid grid-cols-2 gap-0">
+          {featuredServices.map((service, index) => {
+            // Determinar bordes para la versión móvil (cuadrícula 2x2)
+            const mobileBorders = [
+              'border-b border-gray-200', // Borde inferior en todos
+              index % 2 === 0 ? 'border-r border-gray-200' : '', // Borde derecho en elementos pares (0, 2)
+              index >= featuredServices.length - 2 ? 'border-b-0' : '', // Sin borde inferior en los últimos dos elementos
+            ].join(' ').trim();
+
+            return (
+              <a
+                key={`mobile-${index}`}
+                href={service.link}
+                className={`flex flex-col items-center justify-center text-center p-4 ${mobileBorders}`}
+              >
+                <div className="text-base font-medium text-gray-800">
+                  {service.title}
+                </div>
+                <div className="mt-2">
+                  <span className="text-red-500 text-lg">→</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
