@@ -30,7 +30,8 @@ const Events: React.FC = () => {
               }}
               className="w-full lg:w-1/2 order-2 lg:order-1"
             >
-              <div className="relative">
+              {/* Web Version (sm and above) */}
+              <div className="hidden sm:block relative">
                 {/* Decorative frame */}
                 <div className="absolute -inset-4 rounded-xl border border-blue-400/20 z-0"></div>
                 
@@ -52,7 +53,7 @@ const Events: React.FC = () => {
                   />
                   
                   {/* Top graphic element */}
-                  <div className="absolute top-6 left-6 flex items-center z-20">
+                  <div className="absolute top-6 left-6 flex items-center z-30">
                     <div className="w-2 h-2 rounded-full bg-blue-400 mr-2"></div>
                     <div className="w-12 h-px bg-blue-400/60"></div>
                   </div>
@@ -62,19 +63,87 @@ const Events: React.FC = () => {
                     <h3 className="text-2xl font-bold text-white">Dr. Carlos Manuel Sánchez De Óleo</h3>
                     <p className="text-blue-200 mt-2 font-medium">Director UASD – Centro San Juan</p>
                   </div>
+                  
+                  {/* Floating card with deep effects */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30, x: 30 }}
+                    whileInView={{ opacity: 1, y: 0, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ 
+                      delay: 0.4, 
+                      duration: 0.8,
+                      ease: [0.25, 0.1, 0.25, 1] 
+                    }}
+                    className="absolute -bottom-8 -right-8 bg-white p-6 rounded-lg shadow-xl z-20 max-w-xs"
+                  >
+                    <div className="flex items-center mb-3">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
+                        <BookOpen className="w-4 h-4" />
+                      </span>
+                      <h4 className="text-lg font-semibold text-gray-900">Formación Académica</h4>
+                    </div>
+                    <ul className="space-y-2 text-gray-700 text-sm pl-4">
+                      <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+                        <span className="font-medium">Doctorado en Matemáticas</span>
+                        <p className="text-gray-500">Universidad Politécnica de Valencia</p>
+                      </li>
+                      <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
+                        <span className="font-medium">Maestría en Física Aplicada</span>
+                        <p className="text-gray-500">Universidad de Barcelona</p>
+                      </li>
+                    </ul>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Mobile Version (below sm) */}
+              <div className="sm:hidden">
+                <div className="relative">
+                  {/* Decorative frame */}
+                  <div className="absolute -inset-4 rounded-xl border border-blue-400/20 z-0"></div>
+                  
+                  {/* Image with mask and effects */}
+                  <div className="relative rounded-lg overflow-hidden shadow-2xl z-10">
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#051c45]/90 via-[#051c45]/60 to-transparent z-10"></div>
+                    {/* Dot pattern overlay */}
+                    <div className="absolute inset-0 z-20 opacity-5 mix-blend-overlay" 
+                      style={{ 
+                        backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)',
+                        backgroundSize: '8px 8px' 
+                      }}>
+                    </div>
+                    
+                    <img 
+                      src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png"
+                      alt="Dr. Carlos Manuel Sánchez De Óleo" 
+                      className="w-full aspect-[3/4] object-cover object-center"
+                    />
+                    
+                    {/* Top graphic element */}
+                    <div className="absolute top-6 left-6 flex items-center z-30">
+                      <div className="w-2 h-2 rounded-full bg-blue-400 mr-2"></div>
+                      <div className="w-12 h-px bg-blue-400/60"></div>
+                    </div>
+                    
+                    {/* Bottom text */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
+                      <h3 className="text-2xl font-bold text-white">Dr. Carlos Manuel Sánchez De Óleo</h3>
+                      <p className="text-blue-200 mt-2 font-medium">Director UASD – Centro San Juan</p>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Floating card with deep effects (visible only in sm and above) */}
+                {/* Academic info in mobile */}
                 <motion.div
-                  initial={{ opacity: 0, y: 30, x: 30 }}
-                  whileInView={{ opacity: 1, y: 0, x: 0 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ 
                     delay: 0.4, 
                     duration: 0.8,
                     ease: [0.25, 0.1, 0.25, 1] 
                   }}
-                  className="hidden sm:block absolute -bottom-8 -right-8 bg-white p-6 rounded-lg shadow-xl z-20 max-w-xs"
+                  className="bg-white p-4 rounded-lg shadow-md mt-4 mx-6"
                 >
                   <div className="flex items-center mb-3">
                     <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
@@ -94,35 +163,6 @@ const Events: React.FC = () => {
                   </ul>
                 </motion.div>
               </div>
-              {/* Academic info in mobile */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  delay: 0.4, 
-                  duration: 0.8,
-                  ease: [0.25, 0.1, 0.25, 1] 
-                }}
-                className="sm:hidden bg-white p-4 rounded-lg shadow-md mt-4 mx-6"
-              >
-                <div className="flex items-center mb-3">
-                  <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 mr-3">
-                    <BookOpen className="w-4 h-4" />
-                  </span>
-                  <h4 className="text-lg font-semibold text-gray-900">Formación Académica</h4>
-                </div>
-                <ul className="space-y-2 text-gray-700 text-sm pl-4">
-                  <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
-                    <span className="font-medium">Doctorado en Matemáticas</span>
-                    <p className="text-gray-500">Universidad Politécnica de Valencia</p>
-                  </li>
-                  <li className="relative before:absolute before:top-2.5 before:left-[-1rem] before:w-1.5 before:h-1.5 before:rounded-full before:bg-blue-500">
-                    <span className="font-medium">Maestría en Física Aplicada</span>
-                    <p className="text-gray-500">Universidad de Barcelona</p>
-                  </li>
-                </ul>
-              </motion.div>
             </motion.div>
             
             {/* Content with sophisticated animations */}
