@@ -92,7 +92,7 @@ const MobileSlide: React.FC<SlideProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7 }}
-            className="w-full transform scale-100 mx-1 relative group"
+            className="w-full transform scale-85 relative group"
           >
             <div className="relative w-full min-h-[200px] overflow-hidden">
               {imageError ? (
@@ -152,7 +152,7 @@ const MobileSlide: React.FC<SlideProps> = ({
               )}
             </div>
             {slides[currentSlide].displayMode !== 'hover' && (
-              <div className="relative w-full max-w-7xl mx-auto flex items-center">
+              <div className="relative w-full max-w-7xl mx-1 flex items-center">
                 <div className="w-full px-2 py-6">
                   {slides[currentSlide].subtitle && (
                     <span className="inline-block bg-white/20 px-1 py-0.5 rounded-md text-white text-[10px] font-semibold mb-1">
@@ -178,24 +178,24 @@ const MobileSlide: React.FC<SlideProps> = ({
           </motion.div>
         </AnimatePresence>
       </div>
-      <div className="w-full relative bottom-0 left-0 right-0 flex flex-col items-center z-10">
+      <div className="w-full relative bottom-0 left-0 right-0 flex flex-col items-center z-10 -mt-4">
         {isAutoPlaying && (
-          <div className="w-24 h-1 bg-white/30 rounded-full mb-1 overflow-hidden">
+          <div className="w-24 h-1 bg-white/30 rounded-full mb-0.5 overflow-hidden border border-blue-900">
             <motion.div
-              className="h-full bg-white"
+              className="h-full bg-blue-900"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.1, ease: "linear" }}
             />
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-0.5">
           <button
             onClick={() => handleSlideChange('prev')}
-            className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900"
             aria-label="Slide anterior"
           >
-            <ChevronLeft className="w-3 h-3 text-white" />
+            <ChevronLeft className="w-3 h-3 text-gray-800" />
           </button>
           <div className="flex gap-1">
             {slides.map((_, index) => (
@@ -215,20 +215,20 @@ const MobileSlide: React.FC<SlideProps> = ({
           </div>
           <button
             onClick={() => handleSlideChange('next')}
-            className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900"
             aria-label="Siguiente slide"
           >
-            <ChevronRight className="w-3 h-3 text-white" />
+            <ChevronRight className="w-3 h-3 text-gray-800" />
           </button>
           <button
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20 ml-1"
+            className="p-1 rounded-full bg-white/40 hover:bg-white/50 transition-colors border border-blue-900 ml-1"
             aria-label={isAutoPlaying ? "Pausar reproducción automática" : "Iniciar reproducción automática"}
           >
             {isAutoPlaying ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-3 h-3 text-white"
+                className="w-3 h-3 text-gray-800"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -242,7 +242,7 @@ const MobileSlide: React.FC<SlideProps> = ({
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-3 h-3 text-white"
+                className="w-3 h-3 text-gray-800"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -256,7 +256,7 @@ const MobileSlide: React.FC<SlideProps> = ({
           </button>
         </div>
         {isAutoPlaying && (
-          <p className="text-[10px] text-white/70 mt-0.5">
+          <p className="text-[10px] text-white/70">
             {Math.ceil((slideDuration - (progress * slideDuration / 100)) / 1000)}s
           </p>
         )}
