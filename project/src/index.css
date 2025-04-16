@@ -1,6 +1,6 @@
 /* Configuración del zoom global */
 :root {
-  --page-scale: 0.95; /* equivale a un zoom del 75% */
+  --page-scale: 0.93; /* equivale a un zoom del 75% */
 }
 
 body {
@@ -14,10 +14,10 @@ body {
 }
 
 /* Soporte adicional para navegadores específicos */
-@supports (zoom: 0.95) {
+@supports (zoom: 0.93) {
   body {
-    zoom: 0.95; /* Para Chrome y Safari */
-    -moz-transform: scale(0.95); /* Para Firefox */
+    zoom: 0.93; /* Para Chrome y Safari */
+    -moz-transform: scale(0.93); /* Para Firefox */
     -moz-transform-origin: 0 0;
   }
 }
