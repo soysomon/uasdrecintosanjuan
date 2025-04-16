@@ -60,11 +60,10 @@ footer {
   }
 }
 
-/* Contenedor interno del panel */
-.chatbot-panel-inner {
-  width: 100% !important; /* Sobrescribe w-96 */
-  max-height: 80vh !important; /* Sobrescribe h-[500px] */
-  overflow-y: auto; /* Permite scroll vertical */
+/* Asegurar que el contenedor interno del panel también sea responsivo */
+.chatbot-panel > .relative {
+  max-height: 80vh; /* Coincide con el contenedor padre */
+  overflow-y: auto; /* Permite scroll vertical si el contenido es muy largo */
 }
 
 /* Backdrop del chatbot */
