@@ -1,12 +1,5 @@
-/* Configuración del zoom global */
-:root {
-  --page-scale: 0.93;
-}
-
+/* Configuración base */
 body {
-  transform: scale(var(--page-scale));
-  transform-origin: top left;
-  width: calc(100% / var(--page-scale));
   margin: 0; /* Elimina márgenes predeterminados */
   padding: 0; /* Elimina paddings predeterminados */
   min-height: 100vh; /* Asegura que el body no cree espacio extra */
@@ -33,7 +26,7 @@ footer {
   bottom: 16px; /* Equivalente a bottom-4 en Tailwind */
   right: 16px; /* Equivalente a right-4 */
   z-index: 1000; /* Más alto que el menú móvil (z-50) */
-  width: 56px; /* Tamaño fijo para evitar efectos del escalado */
+  width: 56px; /* Tamaño fijo para visibilidad */
   height: 56px;
 }
 
