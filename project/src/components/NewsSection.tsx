@@ -33,7 +33,7 @@ interface NewsItem {
   category: string;
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 13;
 
 const NewsSection: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
