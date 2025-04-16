@@ -1,4 +1,8 @@
 /* Configuración base */
+html {
+  zoom: 0.93; /* Aplica un zoom del 93% a toda la página */
+}
+
 body {
   margin: 0; /* Elimina márgenes predeterminados */
   padding: 0; /* Elimina paddings predeterminados */
@@ -28,6 +32,44 @@ footer {
   z-index: 1000; /* Más alto que el menú móvil (z-50) */
   width: 56px; /* Tamaño fijo para visibilidad */
   height: 56px;
+  zoom: 1; /* Restaura el tamaño original, ignorando el zoom global */
+}
+
+/* Chatbot panel */
+.chatbot-panel {
+  position: fixed;
+  bottom: 80px; /* Justo encima del icono (16px del icono + 56px de altura del icono + 8px de separación) */
+  right: 16px; /* Alineado con el icono */
+  z-index: 1000; /* Igual que el icono, por encima del menú móvil (z-50) */
+  width: 100%;
+  max-width: 320px; /* Equivalente a max-w-sm, pero más pequeño para pantallas pequeñas */
+  max-height: 80vh; /* No exceder el 80% de la altura del viewport */
+  zoom: 1; /* Restaura el tamaño original, ignorando el zoom global */
+}
+
+/* Ajustes responsivos para el panel */
+@media (min-width: 640px) {
+  .chatbot-panel {
+    max-width: 448px; /* Equivalente a sm:max-w-md */
+  }
+}
+
+@media (min-width: 768px) {
+  .chatbot-panel {
+    max-width: 512px; /* Equivalente a md:max-w-lg */
+  }
+}
+
+/* Contenedor interno del panel */
+.chatbot-panel-inner {
+  width: 100% !important; /* Sobrescribe w-96 */
+  max-height: 80vh !important; /* Sobrescribe h-[500px] */
+  overflow-y: auto; /* Permite scroll vertical */
+}
+
+/* Backdrop del chatbot */
+.chatbot-panel > .fixed {
+  z-index: 900; /* Justo debajo del panel y el icono, pero por encima de otros elementos */
 }
 
 /* Importar las fuentes Roboto desde public/fonts */
