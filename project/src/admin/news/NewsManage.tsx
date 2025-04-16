@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { NewsService } from './NewsService';
-import { Search, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { gsap } from 'gsap';
 
 const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
@@ -82,6 +82,40 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Función para generar el array de páginas visibles
+  const getVisiblePages = () => {
+    const delta = 1; // Número de páginas adicionales a mostrar a cada lado de la página actual
+    const pages = [];
+    
+    // Siempre mostrar la primera página
+    if (currentPage > 2 + delta) {
+      pages.push(1);
+      // Agregar puntos suspensivos si es necesario
+      if (currentPage > 3 + delta) {
+        pages.push('...');
+      }
+    }
+
+    // Páginas alrededor de la página actual
+    const rangeStart = Math.max(1, currentPage - delta);
+    const rangeEnd = Math.min(totalPages, currentPage + delta);
+
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      pages.push(i);
+    }
+
+    // Siempre mostrar la última página
+    if (currentPage < totalPages - 1 - delta) {
+      // Agregar puntos suspensivos si es necesario
+      if (currentPage < totalPages - 2 - delta) {
+        pages.push('...');
+      }
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
   return (
     <div className="max-w-5xl mx-auto py-8">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6 font-sans">
@@ -116,7 +150,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
             <option value="General">General</option>
             <option value="Académico">Académico</option>
             <option value="Cultural">Cultural</option>
-
           </select>
         </div>
       </div>
@@ -172,45 +205,82 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
             ))}
           </div>
 
-          {/* Paginación */}
+          {/* Paginación Mejorada */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center mt-6 space-x-2">
+            <div className="flex items-center justify-center mt-6 space-x-1">
+              {/* Botón para ir a la primera página */}
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
+                onClick={() => handlePageChange(1)}
                 disabled={currentPage === 1}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-md ${
                   currentPage === 1
                     ? 'text-gray-400 cursor-not-allowed'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                title="Primera página"
               >
-                <ChevronLeft size={18} />
+                <ChevronsLeft size={16} />
               </button>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-                (page) => (
+
+              {/* Botón para página anterior */}
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-md ${
+                  currentPage === 1
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Página anterior"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              {/* Números de página */}
+              {getVisiblePages().map((page, index) => (
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-2 text-gray-500">...</span>
+                ) : (
                   <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 rounded-full font-sans ${
+                    key={`page-${page}`}
+                    onClick={() => handlePageChange(page as number)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md font-sans ${
                       currentPage === page
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-900 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     {page}
                   </button>
                 )
-              )}
+              ))}
+
+              {/* Botón para página siguiente */}
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-md ${
                   currentPage === totalPages
                     ? 'text-gray-400 cursor-not-allowed'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                title="Página siguiente"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={16} />
+              </button>
+
+              {/* Botón para ir a la última página */}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-md ${
+                  currentPage === totalPages
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Última página"
+              >
+                <ChevronsRight size={16} />
               </button>
             </div>
           )}
