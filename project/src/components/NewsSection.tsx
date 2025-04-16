@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, ArrowRight, Clock, Tag } from 'lucide-react';
+import { Search, Calendar, ArrowRight, Clock, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import API_ROUTES from '../config/api';
-
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -34,15 +33,23 @@ interface NewsItem {
   category: string;
 }
 
+const ITEMS_PER_PAGE = 12;
+
 const NewsSection: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todas');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchNews();
   }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeCategory]);
 
   const fetchNews = async () => {
     setIsLoading(true);
@@ -84,6 +91,17 @@ const NewsSection: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredNews.length / ITEMS_PER_PAGE);
+  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+  const currentItems = filteredNews.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Featured news (first item) from current page
+  const featuredNews = currentItems.length > 0 ? currentItems[0] : null;
+  // Regular news (remaining items) from current page
+  const regularNews = currentItems.length > 1 ? currentItems.slice(1) : [];
+
   // Format date function with more elegant styling
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -104,10 +122,53 @@ const NewsSection: React.FC = () => {
     return '';
   };
 
-  // Featured news (first item)
-  const featuredNews = filteredNews.length > 0 ? filteredNews[0] : null;
-  // Regular news (remaining items)
-  const regularNews = filteredNews.length > 1 ? filteredNews.slice(1) : [];
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToPage = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Less than max pages, show all
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // More than max pages, show selected range
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      // Adjust if we're near the end
+      if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  };
 
   return (
     <section className="pt-28 pb-24 bg-white">
@@ -218,7 +279,9 @@ const NewsSection: React.FC = () => {
             )}
 
             {/* Divider after featured news */}
-            <div className="border-t border-gray-100 mb-16"></div>
+            {regularNews.length > 0 && (
+              <div className="border-t border-gray-100 mb-16"></div>
+            )}
 
             {/* Regular news grid - estilo minimalista y elegante */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -264,18 +327,48 @@ const NewsSection: React.FC = () => {
               ))}
             </div>
 
-            {/* View all news button - estilo refinado */}
-            {newsItems.length > filteredNews.length && (
-              <div className="text-center mt-20">
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setActiveCategory('Todas');
-                  }}
-                  className="border border-gray-900 text-gray-900 px-8 py-3 font-serif hover:bg-gray-900 hover:text-white transition-colors inline-flex items-center"
-                >
-                  Ver todas las noticias <ArrowRight size={16} className="ml-2" />
-                </button>
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-16">
+                <nav className="inline-flex items-center">
+                  <button
+                    onClick={goToPrevPage}
+                    disabled={currentPage === 1}
+                    className={`flex items-center justify-center w-10 h-10 ${
+                      currentPage === 1
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  {getPageNumbers().map(number => (
+                    <button
+                      key={number}
+                      onClick={() => goToPage(number)}
+                      className={`flex items-center justify-center w-10 h-10 text-sm font-serif transition-colors ${
+                        currentPage === number
+                          ? 'bg-gray-900 text-white'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`flex items-center justify-center w-10 h-10 ${
+                      currentPage === totalPages
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </nav>
               </div>
             )}
           </>
