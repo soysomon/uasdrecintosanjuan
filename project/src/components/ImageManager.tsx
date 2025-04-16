@@ -1,41 +1,21 @@
 // src/admin/components/ImageManager.tsx
 import React, { useState } from 'react';
 import { Upload, Image as ImageIcon, Settings, X, AlignLeft, AlignCenter, AlignRight, Minimize, Maximize, AlertCircle } from 'lucide-react';
-
-interface ImageDisplayOptions {
-  size: 'small' | 'medium' | 'large' | 'full';
-  alignment: 'left' | 'center' | 'right';
-  caption?: string;
-  cropMode: 'cover' | 'contain' | 'none';
-}
-
-interface NewsImage {
-  id?: string;
-  url: string;
-  publicId?: string;
-  displayOptions: ImageDisplayOptions;
-}
-
-interface Section {
-  id: string;
-  images: NewsImage[];
-  text: string;
-  videoUrl?: string;
-}
+import { ImageDisplayOptions, NewsImage, Section } from '../types/news';
 
 const ImageManager: React.FC<{
   section: Section;
   onUpload: (file: File) => void;
-  onRemoveImage: (imageId: string) => void;
-  onSettingsChange: (imageId: string, setting: keyof ImageDisplayOptions, value: any) => void;
+  onRemoveImage: (imageIndex: number) => void;
+  onSettingsChange: (imageIndex: number, setting: keyof ImageDisplayOptions, value: any) => void;
   uploadProgress?: number;
 }> = ({ section, onUpload, onRemoveImage, onSettingsChange, uploadProgress }) => {
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set()); // Estado para rastrear imágenes fallidas
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set()); // Cambiamos a índices
 
-  const handleImageError = (imageId: string, imageUrl: string) => {
+  const handleImageError = (imageIndex: number, imageUrl: string) => {
     console.error('Error al cargar la imagen:', imageUrl);
-    setFailedImages((prev) => new Set(prev).add(imageId)); // Agregamos la imagen a la lista de fallidas
+    setFailedImages((prev) => new Set(prev).add(imageIndex)); // Usamos índices
   };
 
   return (
@@ -77,12 +57,11 @@ const ImageManager: React.FC<{
       {section.images.length > 0 && (
         <div className="mt-4 grid grid-cols-1 gap-4">
           {section.images.map((image, index) => {
-            const imageId = image.id || `image-${index}`;
-            const hasFailed = failedImages.has(imageId);
+            const hasFailed = failedImages.has(index);
 
             return (
               <div
-                key={imageId} // Garantiza una clave única
+                key={index} // Usamos el índice como clave
                 className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="relative">
@@ -120,7 +99,7 @@ const ImageManager: React.FC<{
                             : 'object-none'
                         }`}
                         onError={(e) => {
-                          handleImageError(imageId, image.url);
+                          handleImageError(index, image.url);
                           e.currentTarget.src = '/placeholder-image.jpg'; // Imagen de respaldo
                         }}
                         onLoad={() => console.log('Imagen cargada correctamente:', image.url)} // Depuración
@@ -130,7 +109,7 @@ const ImageManager: React.FC<{
                       <button
                         type="button"
                         onClick={() =>
-                          setSelectedImageId(selectedImageId === imageId ? null : imageId)
+                          setSelectedImageIndex(selectedImageIndex === index ? null : index)
                         }
                         className="bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-md hover:scale-110"
                       >
@@ -138,14 +117,14 @@ const ImageManager: React.FC<{
                       </button>
                       <button
                         type="button"
-                        onClick={() => onRemoveImage(imageId)}
+                        onClick={() => onRemoveImage(index)}
                         className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-md hover:scale-110"
                       >
                         <X size={14} />
                       </button>
                     </div>
                   </div>
-                  {selectedImageId === imageId && (
+                  {selectedImageIndex === index && (
                     <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
                       <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
                         <Settings size={14} className="mr-1 text-blue-500" />
@@ -156,7 +135,7 @@ const ImageManager: React.FC<{
                         <div className="flex space-x-2">
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'size', 'small')}
+                            onClick={() => onSettingsChange(index, 'size', 'small')}
                             className={`p-2 rounded ${
                               image.displayOptions.size === 'small'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -168,7 +147,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'size', 'medium')}
+                            onClick={() => onSettingsChange(index, 'size', 'medium')}
                             className={`p-2 rounded ${
                               image.displayOptions.size === 'medium'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -180,7 +159,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'size', 'large')}
+                            onClick={() => onSettingsChange(index, 'size', 'large')}
                             className={`p-2 rounded ${
                               image.displayOptions.size === 'large'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -192,7 +171,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'size', 'full')}
+                            onClick={() => onSettingsChange(index, 'size', 'full')}
                             className={`p-2 rounded ${
                               image.displayOptions.size === 'full'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -223,7 +202,7 @@ const ImageManager: React.FC<{
                         <div className="flex space-x-2">
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'alignment', 'left')}
+                            onClick={() => onSettingsChange(index, 'alignment', 'left')}
                             className={`p-2 rounded ${
                               image.displayOptions.alignment === 'left'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -235,7 +214,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'alignment', 'center')}
+                            onClick={() => onSettingsChange(index, 'alignment', 'center')}
                             className={`p-2 rounded ${
                               image.displayOptions.alignment === 'center'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -247,7 +226,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'alignment', 'right')}
+                            onClick={() => onSettingsChange(index, 'alignment', 'right')}
                             className={`p-2 rounded ${
                               image.displayOptions.alignment === 'right'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -264,7 +243,7 @@ const ImageManager: React.FC<{
                         <div className="flex space-x-2">
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'cropMode', 'cover')}
+                            onClick={() => onSettingsChange(index, 'cropMode', 'cover')}
                             className={`p-2 rounded text-xs ${
                               image.displayOptions.cropMode === 'cover'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -276,7 +255,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'cropMode', 'contain')}
+                            onClick={() => onSettingsChange(index, 'cropMode', 'contain')}
                             className={`p-2 rounded text-xs ${
                               image.displayOptions.cropMode === 'contain'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -288,7 +267,7 @@ const ImageManager: React.FC<{
                           </button>
                           <button
                             type="button"
-                            onClick={() => onSettingsChange(imageId, 'cropMode', 'none')}
+                            onClick={() => onSettingsChange(index, 'cropMode', 'none')}
                             className={`p-2 rounded text-xs ${
                               image.displayOptions.cropMode === 'none'
                                 ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
@@ -305,7 +284,7 @@ const ImageManager: React.FC<{
                         <input
                           type="text"
                           value={image.displayOptions.caption || ''}
-                          onChange={(e) => onSettingsChange(imageId, 'caption', e.target.value)}
+                          onChange={(e) => onSettingsChange(index, 'caption', e.target.value)}
                           placeholder="Añadir una leyenda para esta imagen..."
                           className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
