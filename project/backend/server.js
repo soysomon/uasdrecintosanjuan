@@ -120,32 +120,7 @@ app.post('/api/news', async (req, res) => {
 app.get('/api/news', async (req, res) => {
   try {
     const news = await News.find();
-    const transformedNews = news.map(item => {
-      const doc = item.toObject();
-      if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
-        doc.sections = doc.sections.map(section => {
-          if ('imageUrl' in section) {
-            return {
-              images: section.imageUrl
-                ? [{
-                    url: section.imageUrl,
-                    displayOptions: {
-                      size: 'medium',
-                      alignment: 'center',
-                      cropMode: 'cover'
-                    }
-                  }]
-                : [],
-              text: section.text,
-              videoUrl: section.videoUrl
-            };
-          }
-          return section;
-        });
-      }
-      return doc;
-    });
-    res.json(transformedNews);
+    res.json(news);
   } catch (err) {
     console.error('Error al obtener noticias:', err);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -156,29 +131,7 @@ app.get('/api/news/:id', async (req, res) => {
   try {
     const news = await News.findById(req.params.id);
     if (!news) return res.status(404).json({ message: 'Noticia no encontrada' });
-    const doc = news.toObject();
-    if (doc.sections && doc.sections.some(section => 'imageUrl' in section)) {
-      doc.sections = doc.sections.map(section => {
-        if ('imageUrl' in section) {
-          return {
-            images: section.imageUrl
-              ? [{
-                  url: section.imageUrl,
-                  displayOptions: {
-                    size: 'medium',
-                    alignment: 'center',
-                    cropMode: 'cover'
-                  }
-                }]
-              : [],
-            text: section.text,
-            videoUrl: section.videoUrl
-          };
-        }
-        return section;
-      });
-    }
-    res.json(doc);
+    res.json(news);
   } catch (err) {
     console.error('Error al obtener noticia:', err);
     res.status(500).json({ message: 'Error al obtener la noticia' });
@@ -187,9 +140,17 @@ app.get('/api/news/:id', async (req, res) => {
 
 app.put('/api/news/:id', async (req, res) => {
   try {
+    // Eliminar el campo "id" de las secciones, ya que el esquema no lo espera
+    const updateData = {
+      ...req.body,
+      sections: req.body.sections.map(section => {
+        const { id, ...rest } = section; // Elimina el campo "id"
+        return rest;
+      })
+    };
     const news = await News.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     if (!news) {

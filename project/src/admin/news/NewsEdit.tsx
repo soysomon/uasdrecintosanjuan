@@ -6,27 +6,7 @@ import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
-
-interface ImageDisplayOptions {
-  size: 'small' | 'medium' | 'large' | 'full';
-  alignment: 'left' | 'center' | 'right';
-  caption?: string;
-  cropMode: 'cover' | 'contain' | 'none';
-}
-
-interface NewsImage {
-  id?: string;
-  url: string;
-  publicId?: string;
-  displayOptions: ImageDisplayOptions;
-}
-
-interface Section {
-  id: string;
-  images: NewsImage[];
-  text: string;
-  videoUrl?: string;
-}
+import { ImageDisplayOptions, NewsImage, Section } from '../../types/news';
 
 const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId, onSuccess }) => {
   const [title, setTitle] = useState('');
@@ -35,7 +15,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState<{ [sectionId: string]: number | undefined }>({});
+  const [uploadingImages, setUploadingImages] = useState<{ [sectionIndex: number]: number | undefined }>({});
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,12 +26,9 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         const news = data.find((item: any) => item._id === newsId);
         if (news) {
           setTitle(news.title);
-          const sectionsWithUniqueIds = news.sections.map((section: any, index: number) => ({
-            ...section,
-            id: section.id || `${news._id}-section-${index}`, // Garantiza un ID único
-            images: (section.images || []).map((image: any, imgIndex: number) => ({
+          const formattedSections = news.sections.map((section: any) => ({
+            images: (section.images || []).map((image: any) => ({
               ...image,
-              id: image.id || `${news._id}-section-${index}-image-${imgIndex}`, // ID único para imágenes
               displayOptions: image.displayOptions || {
                 size: 'medium',
                 alignment: 'center',
@@ -61,8 +38,8 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             text: section.text || '',
             videoUrl: section.videoUrl || '',
           }));
-          setSections(sectionsWithUniqueIds);
-          console.log('Secciones cargadas:', sectionsWithUniqueIds); // Depuración
+          setSections(formattedSections);
+          console.log('Secciones cargadas:', formattedSections);
           const formattedDate = new Date(news.date).toISOString().split('T')[0];
           setDate(formattedDate);
           setCategory(news.category);
@@ -82,7 +59,6 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     setSections([
       ...sections,
       {
-        id: Date.now().toString(),
         images: [],
         text: '',
         videoUrl: '',
@@ -95,24 +71,24 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     }, 100);
   };
 
-  const handleRemoveSection = (sectionId: string) => {
+  const handleRemoveSection = (sectionIndex: number) => {
     if (sections.length === 1) {
       toast.error('Debe haber al menos una sección.');
       return;
     }
-    setSections(sections.filter((section) => section.id !== sectionId));
+    setSections(sections.filter((_, index) => index !== sectionIndex));
   };
 
-  const handleSectionChange = (sectionId: string, field: keyof Section, value: any) => {
+  const handleSectionChange = (sectionIndex: number, field: keyof Section, value: any) => {
     setSections(
-      sections.map((section) =>
-        section.id === sectionId ? { ...section, [field]: value } : section
+      sections.map((section, index) =>
+        index === sectionIndex ? { ...section, [field]: value } : section
       )
     );
   };
 
-  const handleUploadImage = async (sectionId: string, file: File) => {
-    setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
+  const handleUploadImage = async (sectionIndex: number, file: File) => {
+    setUploadingImages((prev) => ({ ...prev, [sectionIndex]: 0 }));
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -140,20 +116,19 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         throw new Error(data.error || 'Error al subir la imagen');
       }
 
-      const newImage = {
-        id: Date.now().toString(),
+      const newImage: NewsImage = {
         url: data.imageUrl,
         publicId: data.public_id,
         displayOptions: {
-          size: 'medium' as const,
-          alignment: 'center' as const,
-          cropMode: 'cover' as const,
+          size: 'medium',
+          alignment: 'center',
+          cropMode: 'cover',
         },
       };
 
       setSections((prevSections) =>
-        prevSections.map((section) =>
-          section.id === sectionId
+        prevSections.map((section, index) =>
+          index === sectionIndex
             ? {
                 ...section,
                 images: [...section.images, newImage],
@@ -162,16 +137,16 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         )
       );
 
-      console.log('Imagen subida:', newImage.url); // Depuración
+      console.log('Imagen subida:', newImage.url);
 
       const fakeProgress = setInterval(() => {
         setUploadingImages((prev) => {
-          const currentProgress = prev[sectionId] || 0;
+          const currentProgress = prev[sectionIndex] || 0;
           if (currentProgress >= 100) {
             clearInterval(fakeProgress);
-            return { ...prev, [sectionId]: undefined };
+            return { ...prev, [sectionIndex]: undefined };
           }
-          return { ...prev, [sectionId]: currentProgress + 10 };
+          return { ...prev, [sectionIndex]: currentProgress + 10 };
         });
       }, 200);
     } catch (err) {
@@ -179,17 +154,17 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
       toast.error(error.message || 'Error al subir la imagen.');
       console.error('Error en handleUploadImage:', error);
     } finally {
-      setUploadingImages((prev) => ({ ...prev, [sectionId]: undefined }));
+      setUploadingImages((prev) => ({ ...prev, [sectionIndex]: undefined }));
     }
   };
 
-  const handleRemoveImage = (sectionId: string, imageId: string) => {
+  const handleRemoveImage = (sectionIndex: number, imageIndex: number) => {
     setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
+      prevSections.map((section, index) =>
+        index === sectionIndex
           ? {
               ...section,
-              images: section.images.filter((image) => image.id !== imageId),
+              images: section.images.filter((_, imgIndex) => imgIndex !== imageIndex),
             }
           : section
       )
@@ -197,18 +172,18 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
   };
 
   const handleImageSettingsChange = (
-    sectionId: string,
-    imageId: string,
+    sectionIndex: number,
+    imageIndex: number,
     setting: keyof ImageDisplayOptions,
     value: any
   ) => {
     setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
+      prevSections.map((section, index) =>
+        index === sectionIndex
           ? {
               ...section,
-              images: section.images.map((image) =>
-                image.id === imageId
+              images: section.images.map((image, imgIndex) =>
+                imgIndex === imageIndex
                   ? {
                       ...image,
                       displayOptions: { ...image.displayOptions, [setting]: value },
@@ -270,16 +245,16 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         </div>
 
         <div ref={formRef}>
-          {sections.map((section) => (
+          {sections.map((section, index) => (
             <div
-              key={section.id} // Asegurado que section.id es único
+              key={index}
               className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
             >
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Sección</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-4">Sección {index + 1}</h3>
               {sections.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => handleRemoveSection(section.id)}
+                  onClick={() => handleRemoveSection(index)}
                   className="absolute top-4 right-4 text-red-500 hover:text-red-700"
                 >
                   <X size={20} />
@@ -288,19 +263,19 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
 
               <ImageManager
                 section={section}
-                onUpload={(file) => handleUploadImage(section.id, file)}
-                onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
-                onSettingsChange={(imageId, setting, value) =>
-                  handleImageSettingsChange(section.id, imageId, setting, value)
+                onUpload={(file) => handleUploadImage(index, file)}
+                onRemoveImage={(imageIndex) => handleRemoveImage(index, imageIndex)}
+                onSettingsChange={(imageIndex, setting, value) =>
+                  handleImageSettingsChange(index, imageIndex, setting, value)
                 }
-                uploadProgress={uploadingImages[section.id]}
+                uploadProgress={uploadingImages[index]}
               />
 
               <div className="mt-6">
                 <label className="block text-gray-700 text-sm font-medium mb-2">Texto</label>
                 <textarea
                   value={section.text}
-                  onChange={(e) => handleSectionChange(section.id, 'text', e.target.value)}
+                  onChange={(e) => handleSectionChange(index, 'text', e.target.value)}
                   placeholder="Contenido de la sección"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[150px]"
                   required
@@ -312,7 +287,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 <input
                   type="url"
                   value={section.videoUrl || ''}
-                  onChange={(e) => handleSectionChange(section.id, 'videoUrl', e.target.value)}
+                  onChange={(e) => handleSectionChange(index, 'videoUrl', e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -350,8 +325,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             >
               <option value="General">General</option>
               <option value="Académico">Académico</option>
-              <option value="Culltural">Cultural</option>
-
+              <option value="Cultural">Cultural</option>
             </select>
           </div>
         </div>
