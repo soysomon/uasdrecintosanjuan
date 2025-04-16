@@ -1,4 +1,3 @@
-// src/admin/news/NewsEdit.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -34,7 +33,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 alignment: image.displayOptions?.alignment || 'center',
                 cropMode: image.displayOptions?.cropMode || 'cover',
                 caption: image.displayOptions?.caption,
-                layout: image.displayOptions?.layout || 'horizontal', // Default to horizontal
+                layout: image.displayOptions?.layout || 'vertical', // Default to vertical
               },
             })),
             text: section.text || '',
@@ -125,9 +124,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           size: 'medium',
           alignment: 'center',
           cropMode: 'cover',
-          layout: sections[sectionIndex].images.length > 0
-            ? sections[sectionIndex].images[0].displayOptions.layout || 'horizontal'
-            : 'horizontal', // Inherit layout from existing images or default to horizontal
+          layout: sections[sectionIndex].images.length > 0 ? 'vertical' : 'vertical', // Default to vertical
         },
       };
 
@@ -289,7 +286,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 onSettingsChange={(imageIndex, setting, value) =>
                   handleImageSettingsChange(index, imageIndex, setting, value)
                 }
-                onLayoutChange={(layout) => handleLayoutChange(index, layout)} // Pass layout change handler
+                onLayoutChange={(layout) => handleLayoutChange(index, layout)}
                 uploadProgress={uploadingImages[index]}
               />
 
