@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, ArrowRight, Clock, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Calendar, ArrowRight, Clock, Tag, ChevronLeft, ChevronRight, ChevronsRight, ChevronsLeft } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import API_ROUTES from '../config/api';
@@ -140,6 +140,21 @@ const NewsSection: React.FC = () => {
   const goToPage = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Navigate to first or last page
+  const goToFirstPage = () => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const goToLastPage = () => {
+    if (currentPage !== totalPages) {
+      setCurrentPage(totalPages);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Generate page numbers to display
@@ -327,10 +342,25 @@ const NewsSection: React.FC = () => {
               ))}
             </div>
 
-            {/* Pagination controls */}
+            {/* Pagination controls with first/last page buttons */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-16">
                 <nav className="inline-flex items-center">
+                  {/* First page button */}
+                  <button
+                    onClick={goToFirstPage}
+                    disabled={currentPage === 1}
+                    className={`flex items-center justify-center w-10 h-10 ${
+                      currentPage === 1
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    aria-label="Ir a la primera página"
+                  >
+                    <ChevronsLeft size={18} />
+                  </button>
+                  
+                  {/* Previous page button */}
                   <button
                     onClick={goToPrevPage}
                     disabled={currentPage === 1}
@@ -339,10 +369,12 @@ const NewsSection: React.FC = () => {
                         ? 'text-gray-300 cursor-not-allowed'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
+                    aria-label="Página anterior"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   
+                  {/* Page numbers */}
                   {getPageNumbers().map(number => (
                     <button
                       key={number}
@@ -352,11 +384,14 @@ const NewsSection: React.FC = () => {
                           ? 'bg-gray-900 text-white'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
+                      aria-label={`Ir a página ${number}`}
+                      aria-current={currentPage === number ? 'page' : undefined}
                     >
                       {number}
                     </button>
                   ))}
                   
+                  {/* Next page button */}
                   <button
                     onClick={goToNextPage}
                     disabled={currentPage === totalPages}
@@ -365,8 +400,23 @@ const NewsSection: React.FC = () => {
                         ? 'text-gray-300 cursor-not-allowed'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
+                    aria-label="Página siguiente"
                   >
                     <ChevronRight size={20} />
+                  </button>
+                  
+                  {/* Last page button - exactly what you requested */}
+                  <button
+                    onClick={goToLastPage}
+                    disabled={currentPage === totalPages}
+                    className={`flex items-center justify-center w-10 h-10 ${
+                      currentPage === totalPages
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    aria-label="Ir a la última página"
+                  >
+                    <ChevronsRight size={18} />
                   </button>
                 </nav>
               </div>
