@@ -29,10 +29,12 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           const formattedSections = news.sections.map((section: any) => ({
             images: (section.images || []).map((image: any) => ({
               ...image,
-              displayOptions: image.displayOptions || {
-                size: 'medium',
-                alignment: 'center',
-                cropMode: 'cover',
+              displayOptions: {
+                size: image.displayOptions?.size || 'medium',
+                alignment: image.displayOptions?.alignment || 'center',
+                cropMode: image.displayOptions?.cropMode || 'cover',
+                caption: image.displayOptions?.caption,
+                layout: image.displayOptions?.layout || 'horizontal', // Default to horizontal
               },
             })),
             text: section.text || '',
@@ -123,6 +125,9 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           size: 'medium',
           alignment: 'center',
           cropMode: 'cover',
+          layout: sections[sectionIndex].images.length > 0
+            ? sections[sectionIndex].images[0].displayOptions.layout || 'horizontal'
+            : 'horizontal', // Inherit layout from existing images or default to horizontal
         },
       };
 
@@ -190,6 +195,22 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                     }
                   : image
               ),
+            }
+          : section
+      )
+    );
+  };
+
+  const handleLayoutChange = (sectionIndex: number, layout: 'horizontal' | 'vertical') => {
+    setSections((prevSections) =>
+      prevSections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              images: section.images.map((image) => ({
+                ...image,
+                displayOptions: { ...image.displayOptions, layout },
+              })),
             }
           : section
       )
@@ -268,6 +289,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 onSettingsChange={(imageIndex, setting, value) =>
                   handleImageSettingsChange(index, imageIndex, setting, value)
                 }
+                onLayoutChange={(layout) => handleLayoutChange(index, layout)} // Pass layout change handler
                 uploadProgress={uploadingImages[index]}
               />
 

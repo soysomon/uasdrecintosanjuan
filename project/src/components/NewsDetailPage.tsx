@@ -1,3 +1,4 @@
+// src/NewsDetailPage.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -9,6 +10,7 @@ interface ImageDisplayOptions {
   alignment: 'left' | 'center' | 'right';
   caption?: string;
   cropMode: 'cover' | 'contain' | 'none';
+  layout?: 'horizontal' | 'vertical';
 }
 
 interface NewsImage {
@@ -59,11 +61,10 @@ const NewsDetailPage: React.FC = () => {
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
     
-    // Lista de expresiones regulares para diferentes formatos de URLs de YouTube
     const patterns = [
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i, // Estándar, embed, youtu.be
-      /youtube\.com\/shorts\/([^"?\/\s]{11})/i, // Shorts
-      /youtube\.com\/live\/([^"?\/\s]{11})/i, // Live
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
+      /youtube\.com\/shorts\/([^"?\/\s]{11})/i,
+      /youtube\.com\/live\/([^"?\/\s]{11})/i,
     ];
 
     for (const pattern of patterns) {
@@ -73,14 +74,12 @@ const NewsDetailPage: React.FC = () => {
       }
     }
 
-    // Fallback: si ya es una URL embebida, usarla directamente
     if (url.includes('/embed/')) {
       return url;
     }
 
-    // Registrar advertencia para URLs no reconocidas
     console.warn('No se pudo parsear la URL de YouTube:', url);
-    return url; // Devolver la URL original como fallback en lugar de cadena vacía
+    return url;
   };
 
   useEffect(() => {
@@ -114,7 +113,8 @@ const NewsDetailPage: React.FC = () => {
 
   const fetchRelatedNews = async (category: string, currentId: string, currentDate: string) => {
     try {
-      const prevNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
+      const prevNewsRes = await axios.get(API_ROUTES.NEWS, {
+        params: {
           limit: 4,
           date_lt: currentDate,
           sort: '-date',
@@ -127,7 +127,8 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
-      const categoryNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
+      const categoryNewsRes = await axios.get(API_ROUTES.NEWS, {
+        params: {
           category,
           limit: 4,
           _id_ne: currentId,
@@ -142,7 +143,8 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
-      const recentNewsRes = await axios.get(API_ROUTES.NEWS, {        params: {
+      const recentNewsRes = await axios.get(API_ROUTES.NEWS, {
+        params: {
           limit: 4,
           _id_ne: currentId,
           sort: '-date',
@@ -283,21 +285,22 @@ const NewsDetailPage: React.FC = () => {
     const displayOptions = image.displayOptions;
     const caption = displayOptions?.caption;
 
+    // Featured images (main section or single image in secondary sections)
     if (isFeatured) {
       return (
-        <figure className="my-10 -mx-5 md:mx-0 md:-mx-16 lg:-mx-24">
-          <div className="overflow-hidden">
+        <figure className="my-12 -mx-5 md:mx-0 md:-mx-20 lg:-mx-32">
+          <div className="overflow-hidden rounded-lg">
             <div className="relative">
               <img
                 src={image.url}
-                alt="Imagen principal de la noticia"
-                className="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                alt="Imagen destacada de la noticia"
+                className="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition-opacity max-h-[70vh]"
                 onClick={() => handleImageClick(image.url)}
               />
             </div>
           </div>
           {caption && (
-            <figcaption className="text-xs text-gray-500 mt-2 font-serif italic text-center px-5 md:px-0">
+            <figcaption className="text-sm text-gray-500 mt-3 font-serif italic text-center px-5 md:px-0">
               {caption}
             </figcaption>
           )}
@@ -305,6 +308,7 @@ const NewsDetailPage: React.FC = () => {
       );
     }
 
+    // Non-featured images (for horizontal grid or vertical layout)
     const containerClasses = `${
       displayOptions.alignment === 'left'
         ? 'mr-auto'
@@ -313,26 +317,26 @@ const NewsDetailPage: React.FC = () => {
         : 'mx-auto'
     } ${
       displayOptions.size === 'small'
-        ? 'max-w-xs'
+        ? 'max-w-sm'
         : displayOptions.size === 'medium'
-        ? 'max-w-md'
-        : displayOptions.size === 'large'
         ? 'max-w-lg'
+        : displayOptions.size === 'large'
+        ? 'max-w-xl'
         : 'w-full'
     }`;
 
     return (
       <figure className="my-10">
-        <div className={`overflow-hidden ${containerClasses}`}>
+        <div className={`overflow-hidden rounded-lg ${containerClasses}`}>
           <div className="relative">
             <img
               src={image.url}
               alt="Imagen de la noticia"
               className={`w-full cursor-pointer hover:opacity-95 transition-opacity ${
                 displayOptions.cropMode === 'cover'
-                  ? 'object-cover h-auto'
+                  ? 'object-cover h-64 md:h-80'
                   : displayOptions.cropMode === 'contain'
-                  ? 'object-contain h-auto'
+                  ? 'object-contain h-64 md:h-80'
                   : 'object-none'
               }`}
               onClick={() => handleImageClick(image.url)}
@@ -340,7 +344,7 @@ const NewsDetailPage: React.FC = () => {
           </div>
         </div>
         {caption && (
-          <figcaption className="text-xs text-gray-500 mt-2 font-serif italic text-center">
+          <figcaption className="text-sm text-gray-500 mt-3 font-serif italic text-center">
             {caption}
           </figcaption>
         )}
@@ -351,24 +355,35 @@ const NewsDetailPage: React.FC = () => {
   const renderSectionContent = (section: Section, index: number) => {
     return (
       <div key={index} className="mb-8">
-        {/* Renderizar todas las imágenes de la sección */}
+        {/* Renderizar imágenes de la sección */}
         {section.images && section.images.length > 0 && (
           <div className="my-12">
-            {section.images.length === 1 ? (
-              renderSectionImage(section.images[0], index === 0)
+            {section.images.length === 1 || index === 0 ? (
+              // Single image or main section: display as featured
+              renderSectionImage(section.images[0], true)
+            ) : section.images[0].displayOptions.layout === 'vertical' ? (
+              // Vertical layout: display each image as featured
+              <div className="space-y-12">
+                {section.images.map((image, idx) => (
+                  <div key={idx}>
+                    {renderSectionImage(image, true)}
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              // Horizontal layout: display in grid
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {section.images.map((image, idx) => (
                   <figure
                     key={idx}
-                    className="overflow-hidden cursor-pointer"
+                    className="overflow-hidden rounded-lg cursor-pointer"
                     onClick={() => handleImageClick(image.url)}
                   >
                     <div className="relative">
                       <img
                         src={image.url}
                         alt={`Imagen ${idx + 1} de la sección`}
-                        className={`w-full ${
+                        className={`w-full h-64 md:h-80 ${
                           image.displayOptions?.cropMode === 'cover'
                             ? 'object-cover'
                             : image.displayOptions?.cropMode === 'contain'
@@ -377,7 +392,7 @@ const NewsDetailPage: React.FC = () => {
                         }`}
                       />
                       {image.displayOptions?.caption && (
-                        <figcaption className="text-xs text-gray-500 mt-2 font-serif italic text-center">
+                        <figcaption className="text-sm text-gray-500 mt-3 font-serif italic text-center">
                           {image.displayOptions.caption}
                         </figcaption>
                       )}
@@ -391,13 +406,13 @@ const NewsDetailPage: React.FC = () => {
 
         {/* Renderizar imagen antigua si existe (compatibilidad) */}
         {section.imageUrl && (
-          <figure className="my-10">
-            <div className="overflow-hidden">
+          <figure className="my-12 -mx-5 md:mx-0 md:-mx-20 lg:-mx-32">
+            <div className="overflow-hidden rounded-lg">
               <div className="relative">
                 <img
                   src={section.imageUrl}
                   alt="Imagen de la noticia"
-                  className="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                  className="w-full h-auto object-cover cursor-pointer hover:opacity-95 transition-opacity max-h-[70vh]"
                   onClick={() => handleImageClick(section.imageUrl!)}
                 />
               </div>
@@ -407,8 +422,8 @@ const NewsDetailPage: React.FC = () => {
 
         {/* Renderizar video si existe */}
         {section.videoUrl && (
-          <figure className="my-10">
-            <div className="relative pt-[56.25%] max-w-3xl mx-auto">
+          <figure className="my-12">
+            <div className="relative pt-[56.25%] max-w-4xl mx-auto">
               <iframe
                 src={getYoutubeEmbedUrl(section.videoUrl)}
                 className="absolute top-0 left-0 w-full h-full rounded-lg"
