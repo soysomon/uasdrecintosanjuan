@@ -1,3 +1,27 @@
+/* Configuración del zoom global */
+:root {
+  --page-scale: 0.75; /* equivale a un zoom del 75% */
+}
+
+body {
+  transform: scale(var(--page-scale));
+  transform-origin: top left;
+  width: calc(100% / var(--page-scale));
+  height: calc(100% / var(--page-scale));
+  overflow-x: hidden;
+  /* Añadimos margin-bottom para compensar el escalado y evitar el corte */
+  margin-bottom: calc((1 - var(--page-scale)) * 100vh);
+}
+
+/* Soporte adicional para navegadores específicos */
+@supports (zoom: 0.75) {
+  body {
+    zoom: 0.75; /* Para Chrome y Safari */
+    -moz-transform: scale(0.75); /* Para Firefox */
+    -moz-transform-origin: 0 0;
+  }
+}
+
 /* Importar las fuentes Roboto desde public/fonts */
 @font-face {
   font-family: 'Roboto';
