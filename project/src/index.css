@@ -1,52 +1,40 @@
 /* Configuración del zoom global */
 :root {
-  --page-scale: 0.93; /* equivale a un zoom del 75% */
+  --page-scale: 0.93;
 }
 
 body {
   transform: scale(var(--page-scale));
   transform-origin: top left;
   width: calc(100% / var(--page-scale));
-  min-height: 100vh; /* Cambiado de height a min-height para evitar espacio extra */
-  overflow-x: hidden;
-  margin: 0; /* Asegura que no haya márgenes predeterminados */
+  margin: 0; /* Elimina márgenes predeterminados */
+  padding: 0; /* Elimina paddings predeterminados */
+  min-height: 100vh; /* Asegura que el body no cree espacio extra */
 }
 
-/* Estilos para el contenedor raíz de React */
+/* Contenedor raíz de React */
 #root {
-  min-height: 100vh; /* Asegura que el contenedor raíz ocupe al menos la altura completa */
-  display: flex;
-  flex-direction: column;
-  margin: 0; /* Evita márgenes no deseados */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Coincide con el body */
 }
 
-/* Estilos para el footer */
+/* Footer */
 footer {
   margin: 0;
   padding: 0;
   width: 100%;
   box-sizing: border-box;
-  flex-shrink: 0; /* Evita que el footer se comprima */
-  background-color: #fff; /* Coincide con bg-white en Footer.tsx */
-  border-top: 1px solid #f3f4f6; /* Coincide con border-t border-gray-100 */
 }
 
-/* Soporte adicional para navegadores específicos */
-@supports (zoom: 0.93) {
-  body {
-    -moz-transform: scale(0.93); /* Solo para Firefox */
-    -moz-transform-origin: 0 0;
-  }
-}
-
-/* Estilos para el icono del chatbot */
+/* Chatbot icon */
 .chatbot-icon {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000; /* Asegura que esté por encima de otros elementos, incluido el menú móvil */
-  transform: scale(calc(1 / var(--page-scale))); /* Contrarresta el escalado global */
-  transform-origin: center;
+  bottom: 16px; /* Equivalente a bottom-4 en Tailwind */
+  right: 16px; /* Equivalente a right-4 */
+  z-index: 1000; /* Más alto que el menú móvil (z-50) */
+  width: 56px; /* Tamaño fijo para evitar efectos del escalado */
+  height: 56px;
 }
 
 /* Importar las fuentes Roboto desde public/fonts */
