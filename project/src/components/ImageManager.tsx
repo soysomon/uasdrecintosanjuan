@@ -9,9 +9,10 @@ const ImageManager: React.FC<{
   onRemoveImage: (imageIndex: number) => void;
   onSettingsChange: (imageIndex: number, setting: keyof ImageDisplayOptions, value: any) => void;
   uploadProgress?: number;
-}> = ({ section, onUpload, onRemoveImage, onSettingsChange, uploadProgress }) => {
+  onLayoutChange: (layout: 'horizontal' | 'vertical') => void; // Add this line
+}> = ({ section, onUpload, onRemoveImage, onSettingsChange, uploadProgress, onLayoutChange }) => { // Add onLayoutChange here
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [failedImages, setFailedImages] = useState<Set<number>>(new Set()); // Cambiamos a índices
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set()); // Usamos índices
 
   const handleImageError = (imageIndex: number, imageUrl: string) => {
     console.error('Error al cargar la imagen:', imageUrl);
@@ -56,6 +57,37 @@ const ImageManager: React.FC<{
       </div>
       {section.images.length > 0 && (
         <div className="mt-4 grid grid-cols-1 gap-4">
+          {/* Add layout controls if there are multiple images */}
+          {section.images.length > 1 && (
+            <div className="mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Disposición de imágenes</h4>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => onLayoutChange('horizontal')}
+                  className={`flex-1 p-2 rounded text-xs flex items-center justify-center ${
+                    section.images[0]?.displayOptions.layout === 'horizontal'
+                      ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>Horizontal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLayoutChange('vertical')}
+                  className={`flex-1 p-2 rounded text-xs flex items-center justify-center ${
+                    section.images[0]?.displayOptions.layout === 'vertical'
+                      ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>Vertical</span>
+                </button>
+              </div>
+            </div>
+          )}
+          
           {section.images.map((image, index) => {
             const hasFailed = failedImages.has(index);
 
