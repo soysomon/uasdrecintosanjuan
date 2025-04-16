@@ -1,4 +1,3 @@
-// src/NewsDetailPage.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -361,18 +360,9 @@ const NewsDetailPage: React.FC = () => {
             {section.images.length === 1 || index === 0 ? (
               // Single image or main section: display as featured
               renderSectionImage(section.images[0], true)
-            ) : section.images[0].displayOptions.layout === 'vertical' ? (
-              // Vertical layout: display each image as featured
-              <div className="space-y-12">
-                {section.images.map((image, idx) => (
-                  <div key={idx}>
-                    {renderSectionImage(image, true)}
-                  </div>
-                ))}
-              </div>
-            ) : (
+            ) : section.images[0].displayOptions.layout === 'horizontal' ? (
               // Horizontal layout: display in grid
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {section.images.map((image, idx) => (
                   <figure
                     key={idx}
@@ -383,7 +373,7 @@ const NewsDetailPage: React.FC = () => {
                       <img
                         src={image.url}
                         alt={`Imagen ${idx + 1} de la sección`}
-                        className={`w-full h-64 md:h-80 ${
+                        className={`w-full h-64 sm:h-80 ${
                           image.displayOptions?.cropMode === 'cover'
                             ? 'object-cover'
                             : image.displayOptions?.cropMode === 'contain'
@@ -398,6 +388,15 @@ const NewsDetailPage: React.FC = () => {
                       )}
                     </div>
                   </figure>
+                ))}
+              </div>
+            ) : (
+              // Vertical layout (default): display each image as featured
+              <div className="space-y-12">
+                {section.images.map((image, idx) => (
+                  <div key={idx}>
+                    {renderSectionImage(image, true)}
+                  </div>
                 ))}
               </div>
             )}
