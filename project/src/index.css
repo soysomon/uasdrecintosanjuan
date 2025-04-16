@@ -10,7 +10,6 @@ body {
   height: calc(100% / var(--page-scale));
   overflow-x: hidden;
   /* Añadimos margin-bottom para compensar el escalado y evitar el corte */
-  margin-bottom: calc((1 - var(--page-scale)) * 100vh);
 }
 
 /* Soporte adicional para navegadores específicos */
