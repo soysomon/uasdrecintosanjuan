@@ -751,14 +751,13 @@ Recibe actualizaciones y más información en:
   };
 
   return (
-    <>
+    <div className="fixed bottom-16 right-4 z-50 w-full max-w-sm bg-white rounded-lg shadow-lg chatbot-panel">
       {/* Backdrop overlay when chat is open */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={() => setIsOpen(false)} />
       )}
+      
+      <div className="relative flex flex-col w-full h-[32rem] bg-white rounded-lg overflow-hidden">
 
       <div className="chatbot-icon">
         {/* Chat button */}
@@ -914,7 +913,9 @@ Recibe actualizaciones y más información en:
           )}
         </AnimatePresence>
       </div>
-    </>
+    </div>
+    </div>
+    
   );
 
 };
