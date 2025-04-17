@@ -5,27 +5,7 @@ import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
-
-interface ImageDisplayOptions {
-  size: 'small' | 'medium' | 'large' | 'full';
-  alignment: 'left' | 'center' | 'right';
-  caption?: string;
-  cropMode: 'cover' | 'contain' | 'none';
-}
-
-interface NewsImage {
-  id?: string;
-  url: string;
-  publicId?: string;
-  displayOptions: ImageDisplayOptions;
-}
-
-interface Section {
-  id: string;
-  images: NewsImage[];
-  text: string;
-  videoUrl?: string;
-}
+import { Section, NewsImage, ImageDisplayOptions } from '../../types/news'; // Importamos los tipos
 
 const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const [title, setTitle] = useState('');
@@ -77,7 +57,6 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   };
 
   const handleUploadImage = async (sectionId: string, file: File) => {
-    // Client-side validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast.error('Solo se permiten imágenes (JPEG, PNG, GIF, WEBP).');
@@ -90,7 +69,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       return;
     }
 
-    console.log('File size before upload:', file.size, 'bytes'); // Add logging
+    console.log('File size before upload:', file.size, 'bytes');
     console.log('File type:', file.type);
 
     setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
@@ -122,14 +101,15 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
         throw new Error(data.error || 'Error al subir la imagen');
       }
 
-      const newImage = {
+      const newImage: NewsImage = {
         id: Date.now().toString(),
         url: data.imageUrl,
         publicId: data.public_id,
         displayOptions: {
-          size: 'medium' as const,
-          alignment: 'center' as const,
-          cropMode: 'cover' as const,
+          size: 'medium',
+          alignment: 'center',
+          cropMode: 'cover',
+          caption: '',
         },
       };
 
@@ -213,7 +193,30 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
     }
     setSubmitting(true);
     try {
-      await NewsService.createNews({ title, sections, date, category });
+      const cleanedSections = sections.map(({ id, ...section }) => ({
+        text: section.text,
+        videoUrl: section.videoUrl || '',
+        images: section.images.map(({ id, ...image }) => ({
+          url: image.url,
+          publicId: image.publicId || '',
+          displayOptions: {
+            size: image.displayOptions.size || 'medium',
+            alignment: image.displayOptions.alignment || 'center',
+            cropMode: image.displayOptions.cropMode || 'cover',
+            caption: image.displayOptions.caption || '',
+          },
+        })),
+      }));
+
+      const newsData = {
+        title,
+        sections: cleanedSections,
+        date,
+        category,
+      };
+
+      console.log('Datos enviados al backend:', JSON.stringify(newsData, null, 2));
+      await NewsService.createNews(newsData);
       toast.success('Noticia publicada con éxito!');
       onSuccess();
       setTitle('');
