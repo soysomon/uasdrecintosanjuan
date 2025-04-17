@@ -41,7 +41,11 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
     setLoading(true);
     try {
       const data = await NewsService.fetchNews();
-      setNewsItems(data);
+      // Ordenar las noticias por fecha descendente
+      const sortedData = data.sort((a: any, b: any) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+      setNewsItems(sortedData);
       setCurrentPage(1); // Resetear a la primera página al recargar las noticias
     } catch (err) {
       toast.error('Error al cargar noticias.');
@@ -63,12 +67,17 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
   };
 
   // Filtrar por búsqueda y categoría
-  const filteredNews = newsItems.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'Todas' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredNews = newsItems
+    .filter((item) => {
+      const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === 'Todas' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    // Ordenar nuevamente después de filtrar para asegurar el orden
+    .sort((a: any, b: any) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
 
   // Paginación
   const totalPages = Math.ceil(filteredNews.length / NEWS_PER_PAGE);
