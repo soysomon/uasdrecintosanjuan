@@ -71,25 +71,25 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-const newsSchema = new mongoose.Schema({
-  title: String,
-  sections: [{
-    images: [{
-      url: String,
-      publicId: String,
-      displayOptions: {
-        size: { type: String, default: 'medium' },
-        alignment: { type: String, default: 'center' },
-        caption: String,
-        cropMode: { type: String, default: 'cover' }
-      }
+  const newsSchema = new mongoose.Schema({
+    title: String,
+    sections: [{
+      images: [{
+        url: String,
+        publicId: String,
+        displayOptions: {
+          size: { type: String, default: 'medium' },
+          alignment: { type: String, default: 'center' },
+          caption: String,
+          cropMode: { type: String, default: 'cover' }
+        }
+      }],
+      text: String,
+      videoUrl: { type: String, trim: true }
     }],
-    text: String,
-    videoUrl: { type: String, trim: true }
-  }],
-  date: String,
-  category: String,
-});
+    date: String,
+    category: String,
+  });
 const News = mongoose.model('News', newsSchema);
 
 const authController = require('./auth/authController');
