@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import logoUASD from '../img/logouasd.png';
-import API_ROUTES from '../config/api';
+import API_ROUTES from '../config/api'; // Importación con el nombre correcto (API_ROUTES)
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -85,6 +85,7 @@ const NewsDetailPage: React.FC = () => {
     const fetchNews = async () => {
       setIsLoading(true);
       try {
+        // Cambié Api_ROUTES a API_ROUTES para que coincida con la importación
         const res = await axios.get(API_ROUTES.NEWS_BY_ID(id!));
         const wordCount = res.data.sections.reduce(
           (count: number, section: Section) =>
@@ -112,6 +113,7 @@ const NewsDetailPage: React.FC = () => {
 
   const fetchRelatedNews = async (category: string, currentId: string, currentDate: string) => {
     try {
+      // Cambié Api_ROUTES a API_ROUTES para que coincida con la importación
       const prevNewsRes = await axios.get(API_ROUTES.NEWS, {
         params: {
           limit: 4,
@@ -126,6 +128,7 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
+      // Cambié Api_ROUTES a API_ROUTES para que coincida con la importación
       const categoryNewsRes = await axios.get(API_ROUTES.NEWS, {
         params: {
           category,
@@ -142,6 +145,7 @@ const NewsDetailPage: React.FC = () => {
         return;
       }
 
+      // Cambié Api_ROUTES a API_ROUTES para que coincida con la importación
       const recentNewsRes = await axios.get(API_ROUTES.NEWS, {
         params: {
           limit: 4,
@@ -422,12 +426,14 @@ const NewsDetailPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-DO', {
+    // Parseamos la fecha manteniendo el día exacto que viene de la base de datos
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    
+    // Creamos objeto Date con día específico en zona horaria local, fijando la hora a mediodía
+    return new Date(`${year}-${month}-${day}T12:00:00`).toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: 'America/Santo_Domingo'
     });
   };
 
