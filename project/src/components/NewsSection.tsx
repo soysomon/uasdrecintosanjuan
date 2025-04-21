@@ -89,16 +89,14 @@ const NewsSection: React.FC = () => {
 
   const featuredNews = currentItems.length > 0 ? currentItems[0] : null;
   const regularNews = currentItems.length > 1 ? currentItems.slice(1) : [];
-
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    // Ajustar manualmente a UTC-4 (America/Santo_Domingo no tiene horario de verano)
-    const offsetMinutes = -240; // UTC-4 en minutos
-    const adjustedDate = new Date(date.getTime() + offsetMinutes * 60 * 1000);
-    return adjustedDate.toLocaleDateString('es-DO', {
+    return date.toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'America/Santo_Domingo'
     });
   };
 
