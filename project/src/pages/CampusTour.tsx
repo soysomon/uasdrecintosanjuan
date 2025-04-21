@@ -13,6 +13,7 @@ import {
   Camera,
 } from 'lucide-react';
 import logouasd from '../img/logouasd.png';
+
 interface Photo {
   url: string;
   title: string;
@@ -38,14 +39,11 @@ const CampusTour = () => {
 
   const scrollRef = useRef(null);
 
-  // Lista de URLs para imágenes (sin cambios)
   const photoUrls = [
     "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-60.jpg",
-    // ...resto de URLs
     "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/Entrada+Principal_Recinto_Sanjuan.jpg"
   ];
 
-  // Array de rutas (sin cambios)
   const paths: Path[] = [
     { 
       id: 'herencia', 
@@ -74,7 +72,6 @@ const CampusTour = () => {
           title: "Entrada Histórica",
           description: "Un punto de referencia que data de los inicios del campus."
         },
-        
         {
           url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-15.jpg",
           title: "Fachada Lateral",
@@ -99,8 +96,6 @@ const CampusTour = () => {
           title: "Biblioteca Central",
           description: "Centro de recursos para la investigación y el estudio."
         },
-        // ...resto de fotos
-       
       ]
     },
     {
@@ -115,19 +110,16 @@ const CampusTour = () => {
           title: "",
           description: ""
         },
-        // ...resto de fotos
         {
           url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-42.jpg",
           title: "",
           description: ""
         },
-
         {
           url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/10.jpg",
           title: "",
           description: ""
         },
-
         {
           url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/2.jpg",
           title: "",
@@ -368,34 +360,10 @@ const CampusTour = () => {
           title: "",
           description: ""
         },
-        
       ]
     },
-     /*{
-      id: 'innovacion',
-      name: 'Innovación',
-      color: '#F4A261',
-      description: 'Instalaciones modernas y tecnología de vanguardia',
-      coverImage: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-31.jpg",
-      photos: [
-        {
-          url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-31.jpg",
-          title: "Centro de Tecnología",
-          description: "Equipado con las últimas herramientas digitales para el aprendizaje."
-        },
-        // ...resto de fotos
-        {
-          url: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/recinto-29.jpg",
-          title: "Centro de Datos",
-          description: "Infraestructura tecnológica para soporte académico."
-        
-      ]
-          
-    },
-    }*/
   ];
 
-  // Cerrar vista fullscreen con tecla ESC
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && showFullscreen) {
@@ -406,7 +374,6 @@ const CampusTour = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [showFullscreen]);
 
-  // Simulación de carga de recursos
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -441,7 +408,10 @@ const CampusTour = () => {
     }
   };
 
-  // Si aún se cargan recursos, se muestra una pantalla de loading.
+  const goToPhoto = (index: number) => {
+    setCurrentPhotoIndex(index);
+  };
+
   if (isLoading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-blue-900">
@@ -467,8 +437,6 @@ const CampusTour = () => {
 
   return (
     <div className={`w-full min-h-screen overflow-hidden ${isNightMode ? 'bg-gray-900' : 'bg-gray-50'} flex flex-col pt-28`}>
-
-      {/* Contenido principal */}
       <div className="relative z-10 flex-1 flex flex-col">
         {showIntro ? (
           <motion.div 
@@ -477,118 +445,101 @@ const CampusTour = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col flex-1 bg-white text-center px-4"
           >
-            {/* Header con logo */}
             <motion.div 
               initial={{ y: -20, opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
               transition={{ delay: 0.2, duration: 0.6 }}
               className="py-6 flex justify-center"
             >
-             <div className="h-16 w-34 rounded-lg overflow-hidden mr-4 bg-white p-1">
+              <div className="h-16 w-34 rounded-lg overflow-hidden mr-4 bg-white p-1">
                 <img
                   src={logouasd}
                   alt="Logo UASD"
                   className="w-full h-full object-contain"
                 />
               </div>
-
-                <div className="text-left">
-                  <h2 className="text-blue-900 font-bold text-xl">Universidad Autónoma</h2>
-                  <p className="text-gray-500 text-sm">de Santo Domingo • Recinto San Juan</p>
-                </div>
+              <div className="text-left">
+                <h2 className="text-blue-900 font-bold text-xl">Universidad Autónoma</h2>
+                <p className="text-gray-500 text-sm">de Santo Domingo • Recinto San Juan</p>
+              </div>
             </motion.div>
             
-           {/* Sección Hero editorial profesional con orientación centrada */}
-<motion.div
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 0.8 }}
-  className="max-w-6xl mx-auto mt-12 mb-24 flex flex-col items-center text-center px-4"
->
-  <h1 className="text-5xl md:text-6xl font-serif font-light text-gray-900 tracking-tight mb-6 leading-tight">
-    Explora Nuestro <span className="text-blue-900 font-bold">Campus</span>
-  </h1>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="max-w-6xl mx-auto mt-12 mb-24 flex flex-col items-center text-center px-4"
+            >
+              <h1 className="text-5xl md:text-6xl font-serif font-light text-gray-900 tracking-tight mb-6 leading-tight">
+                Explora Nuestro <span className="text-blue-900 font-bold">Campus</span>
+              </h1>
+              <div className="w-24 h-1 bg-blue-900 mb-8"></div>
+              <p className="text-gray-700 max-w-2xl text-lg leading-relaxed font-light mb-12">
+                Descubre los espacios que forman la experiencia educativa en la UASD Recinto San Juan, a través de un recorrido virtual inmersivo por su historia, arquitectura y vida universitaria.
+              </p>
+              <div className="relative w-full max-w-4xl h-[500px] overflow-hidden rounded-xl shadow-lg border border-gray-200 mb-10">
+                <img
+                  src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/Entrada+Principal_Recinto_Sanjuan.jpg"
+                  alt="Recinto San Juan"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <button
+                onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
+                className="inline-flex items-center px-6 py-3 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
+              >
+                Comenzar recorrido
+                <ChevronRight size={18} className="ml-2" />
+              </button>
+            </motion.div>
 
-  <div className="w-24 h-1 bg-blue-900 mb-8"></div>
+            <motion.div 
+              initial={{ y: 30, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.7 }}
+              className="max-w-6xl mx-auto px-4"
+            >
+              <h3 className="text-left text-3xl text-gray-900 font-semibold mb-16 border-b pb-4 border-gray-200">
+                Descubre nuestros recorridos guiados
+              </h3>
+              <div className="space-y-28">
+                {paths.map((path, index) => (
+                  <motion.div
+                    key={path.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
+                    className={`flex flex-col lg:flex-row items-start gap-10 ${
+                      index % 2 !== 0 ? 'lg:flex-row-reverse' : ''
+                    }`}
+                  >
+                    <div className="w-full lg:w-1/2 h-[550px] overflow-hidden rounded-lg shadow-sm border border-gray-200">
+                      <img 
+                        src={path.coverImage}
+                        alt={path.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="w-full lg:w-1/2 flex flex-col justify-center">
+                      <h4 className="text-2xl font-serif text-gray-900 mb-4 tracking-tight">
+                        {path.name}
+                      </h4>
+                      <p className="text-gray-700 text-base leading-relaxed mb-6 font-light">
+                        {path.description}
+                      </p>
+                      <button
+                        onClick={() => handlePathSelect(path.id)}
+                        className="inline-flex items-center px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
+                      >
+                        Iniciar recorrido
+                        <ChevronRight size={16} className="ml-2" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
 
-  <p className="text-gray-700 max-w-2xl text-lg leading-relaxed font-light mb-12">
-    Descubre los espacios que forman la experiencia educativa en la UASD Recinto San Juan, a través de un recorrido virtual inmersivo por su historia, arquitectura y vida universitaria.
-  </p>
-
-  <div className="relative w-full max-w-4xl h-[500px] overflow-hidden rounded-xl shadow-lg border border-gray-200 mb-10">
-    <img
-      src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/Entrada+Principal_Recinto_Sanjuan.jpg"
-      alt="Recinto San Juan"
-      className="w-full h-full object-cover"
-    />
-    
-  </div>
-
-  <button
-    onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
-    className="inline-flex items-center px-6 py-3 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-  >
-    Comenzar recorrido
-    <ChevronRight size={18} className="ml-2" />
-  </button>
-</motion.div>
-
-
-           {/* Sección editorial institucional moderna */}
-<motion.div 
-  initial={{ y: 30, opacity: 0 }} 
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ delay: 0.8, duration: 0.7 }}
-  className="max-w-6xl mx-auto px-4"
->
-  <h3 className="text-left text-3xl text-gray-900 font-semibold mb-16 border-b pb-4 border-gray-200">
-    Descubre nuestros recorridos guiados
-  </h3>
-
-  <div className="space-y-28">
-    {paths.map((path, index) => (
-      <motion.div
-        key={path.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
-        className={`flex flex-col lg:flex-row items-start gap-10 ${
-          index % 2 !== 0 ? 'lg:flex-row-reverse' : ''
-        }`}
-      >
-        {/* Imagen vertical sobria */}
-        <div className="w-full lg:w-1/2 h-[550px] overflow-hidden rounded-lg shadow-sm border border-gray-200">
-          <img 
-            src={path.coverImage}
-            alt={path.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Contenido textual sobrio y jerárquico */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center">
-          <h4 className="text-2xl font-serif text-gray-900 mb-4 tracking-tight">
-            {path.name}
-          </h4>
-          <p className="text-gray-700 text-base leading-relaxed mb-6 font-light">
-            {path.description}
-          </p>
-
-          <button
-            onClick={() => handlePathSelect(path.id)}
-            className="inline-flex items-center px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-          >
-            Iniciar recorrido
-            <ChevronRight size={16} className="ml-2" />
-          </button>
-        </div>
-      </motion.div>
-    ))}
-  </div>
-</motion.div>
-
-            
-            {/* Footer colocado al final (usa mt-auto para prevenir superposición) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -602,9 +553,8 @@ const CampusTour = () => {
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
-            className="w-full h-full flex flex-1"
+            className="w-full h-full flex flex-1 flex-col"
           >
-            {/* Vista del recorrido */}
             <div className="flex-1 relative overflow-hidden">
               <div className="w-full h-full relative">
                 <AnimatePresence mode="wait">
@@ -624,7 +574,6 @@ const CampusTour = () => {
                   </motion.div>
                 </AnimatePresence>
                 
-                {/* Flechas de navegación */}
                 <button 
                   onClick={prevPhoto}
                   className="absolute top-1/2 left-6 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-colors"
@@ -639,7 +588,6 @@ const CampusTour = () => {
                   <ArrowRight size={24} />
                 </button>
                 
-                {/* Botón para fullscreen */}
                 <button 
                   onClick={() => setShowFullscreen(true)}
                   className="absolute top-20 right-6 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-colors"
@@ -647,7 +595,6 @@ const CampusTour = () => {
                   <Camera size={20} />
                 </button>
                 
-                {/* Botón para volver al inicio */}
                 <button 
                   onClick={() => setShowIntro(true)}
                   className="absolute top-24 left-6 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-colors flex items-center"
@@ -656,7 +603,6 @@ const CampusTour = () => {
                   <span>Volver</span>
                 </button>
                 
-                {/* Hotspot interactivo */}
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -669,7 +615,6 @@ const CampusTour = () => {
                   </div>
                 </motion.div>
                 
-                {/* Capa de información */}
                 <motion.div 
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -680,7 +625,6 @@ const CampusTour = () => {
                   <p className="text-lg max-w-2xl">
                     {currentPath.photos[currentPhotoIndex].description}
                   </p>
-                  {/* Progreso del recorrido */}
                   <div className="mt-6 flex items-center">
                     <div className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
                       <div 
@@ -696,45 +640,44 @@ const CampusTour = () => {
               </div>
             </div>
             
-            {/* Navegación lateral: se muestra en pantallas medianas en adelante */}
+            {/* Apple-style preview section for upcoming images */}
             <motion.div 
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className={`hidden md:flex flex-col items-center py-8 ${isNightMode ? 'bg-gray-800' : 'bg-white/90'} w-20`}
+              className={`w-full py-4 ${isNightMode ? 'bg-gray-800' : 'bg-white/90'}`}
             >
-              <button 
-                onClick={toggleNightMode}
-                className={`p-3 rounded-full mb-8 ${isNightMode ? 'bg-gray-700 text-yellow-300' : 'bg-gray-100 text-gray-800'}`}
-              >
-                {isNightMode ? <Moon size={22} /> : <Sun size={22} />}
-              </button>
-              
-              <button className={`p-3 rounded-full mb-8 ${isNightMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-800'}`}>
-                <Map size={22} />
-              </button>
-              
-              <button className={`p-3 rounded-full mb-8 ${isNightMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-800'}`}>
-                <Volume2 size={22} />
-              </button>
-              
-              <div className="mt-auto flex flex-col items-center space-y-6">
-                {paths.map((path) => (
-                  <button 
-                    key={path.id}
-                    onClick={() => handlePathSelect(path.id)}
-                    className={`w-10 h-10 rounded-full transition-all duration-300`}
-                    style={{ 
-                      backgroundColor: path.color,
-                      transform: path.id === currentPath.id ? 'scale(1.15)' : 'scale(1)'
-                    }}
+              <div className="flex items-center justify-between px-4 mb-4">
+                <h3 className={`text-lg font-semibold ${isNightMode ? 'text-white' : 'text-gray-800'}`}>
+                  Próximas Imágenes
+                </h3>
+                <button 
+                  onClick={toggleNightMode}
+                  className={`p-2 rounded-full ${isNightMode ? 'bg-gray-700 text-yellow-300' : 'bg-gray-100 text-gray-800'}`}
+                >
+                  {isNightMode ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
+              </div>
+              <div className="flex overflow-x-auto space-x-4 px-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                {currentPath.photos.slice(currentPhotoIndex + 1).map((photo, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden shadow-md cursor-pointer border-2 ${
+                      isNightMode ? 'border-gray-700' : 'border-gray-200'
+                    } transition-all duration-300 hover:shadow-lg`}
+                    onClick={() => goToPhoto(currentPhotoIndex + 1 + index)}
                   >
-                    {path.id === currentPath.id && (
-                      <div className="absolute -right-3 whitespace-nowrap bg-black/80 text-white text-xs py-1 px-2 rounded">
-                        {path.name}
-                      </div>
-                    )}
-                  </button>
+                    <img 
+                      src={photo.url} 
+                      alt={photo.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className={`absolute inset-0 bg-black/20 flex items-end p-2 opacity-0 hover:opacity-100 transition-opacity duration-300`}>
+                      <p className="text-white text-xs font-medium truncate">{photo.title || 'Sin título'}</p>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -742,7 +685,6 @@ const CampusTour = () => {
         ) : null}
       </div>
 
-      {/* Modal de vista fullscreen */}
       {showFullscreen && currentPath && (
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
