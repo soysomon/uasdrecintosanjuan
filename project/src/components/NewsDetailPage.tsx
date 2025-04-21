@@ -59,7 +59,7 @@ const NewsDetailPage: React.FC = () => {
 
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
-    
+
     const patterns = [
       /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
       /youtube\.com\/shorts\/([^"?\/\s]{11})/i,
@@ -162,11 +162,6 @@ const NewsDetailPage: React.FC = () => {
 
       const element = contentRef.current;
       const windowHeight = window.innerHeight;
-      const docHeight = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight,
-        element.scrollHeight
-      );
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const articleTop = element.getBoundingClientRect().top + scrollTop;
       const articleHeight = element.offsetHeight;
@@ -201,20 +196,6 @@ const NewsDetailPage: React.FC = () => {
       return section.images[0].url;
     } else if (section.imageUrl) {
       return section.imageUrl;
-    }
-    return undefined;
-  };
-
-  const getImageCaption = (section: Section): string | undefined => {
-    if (section.images && section.images.length > 0 && section.images[0].displayOptions) {
-      return section.images[0].displayOptions.caption || undefined;
-    }
-    return undefined;
-  };
-
-  const getImageDisplayOptions = (section: Section): ImageDisplayOptions | undefined => {
-    if (section.images && section.images.length > 0) {
-      return section.images[0].displayOptions;
     }
     return undefined;
   };
@@ -284,7 +265,6 @@ const NewsDetailPage: React.FC = () => {
     const displayOptions = image.displayOptions;
     const caption = displayOptions?.caption;
 
-    // Featured images (main section or single image in secondary sections)
     if (isFeatured) {
       return (
         <figure className="my-12 -mx-5 md:mx-0 md:-mx-20 lg:-mx-32">
@@ -307,7 +287,6 @@ const NewsDetailPage: React.FC = () => {
       );
     }
 
-    // Non-featured images (for horizontal grid or vertical layout)
     const containerClasses = `${
       displayOptions.alignment === 'left'
         ? 'mr-auto'
@@ -354,14 +333,11 @@ const NewsDetailPage: React.FC = () => {
   const renderSectionContent = (section: Section, index: number) => {
     return (
       <div key={index} className="mb-8">
-        {/* Renderizar imágenes de la sección */}
         {section.images && section.images.length > 0 && (
           <div className="my-12">
             {section.images.length === 1 || index === 0 ? (
-              // Single image or main section: display as featured
               renderSectionImage(section.images[0], true)
             ) : section.images[0].displayOptions.layout === 'horizontal' ? (
-              // Horizontal layout: display in grid
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {section.images.map((image, idx) => (
                   <figure
@@ -391,7 +367,6 @@ const NewsDetailPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              // Vertical layout (default): display each image as featured
               <div className="space-y-12">
                 {section.images.map((image, idx) => (
                   <div key={idx}>
@@ -403,7 +378,6 @@ const NewsDetailPage: React.FC = () => {
           </div>
         )}
 
-        {/* Renderizar imagen antigua si existe (compatibilidad) */}
         {section.imageUrl && (
           <figure className="my-12 -mx-5 md:mx-0 md:-mx-20 lg:-mx-32">
             <div className="overflow-hidden rounded-lg">
@@ -419,7 +393,6 @@ const NewsDetailPage: React.FC = () => {
           </figure>
         )}
 
-        {/* Renderizar video si existe */}
         {section.videoUrl && (
           <figure className="my-12">
             <div className="relative pt-[56.25%] max-w-4xl mx-auto">
@@ -435,7 +408,6 @@ const NewsDetailPage: React.FC = () => {
           </figure>
         )}
 
-        {/* Renderizar texto */}
         {section.text && (
           <div className="text-gray-800 leading-relaxed">
             {section.text.split('\n').map((paragraph, pIndex) => (
@@ -450,12 +422,15 @@ const NewsDetailPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
+    const date = new Date(dateString);
+    // Ajustar manualmente a UTC-4 (America/Santo_Domingo no tiene horario de verano)
+    const offsetMinutes = -240; // UTC-4 en minutos
+    const adjustedDate = new Date(date.getTime() + offsetMinutes * 60 * 1000);
+    return adjustedDate.toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    };
-    return new Date(dateString).toLocaleDateString('es-DO', options);
+    });
   };
 
   return (
