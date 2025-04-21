@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, ArrowRight, Clock, Tag, ChevronLeft, ChevronRight, ChevronsRight, ChevronsLeft } from 'lucide-react';
+import { Search, ArrowRight, ChevronsRight, ChevronsLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import API_ROUTES from '../config/api';
@@ -22,7 +22,7 @@ interface NewsImage {
 interface Section {
   images: NewsImage[];
   text: string;
-  imageUrl?: string; // Mantenemos para compatibilidad con el formato antiguo
+  imageUrl?: string;
 }
 
 interface NewsItem {
@@ -46,7 +46,6 @@ const NewsSection: React.FC = () => {
     fetchNews();
   }, []);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, activeCategory]);
@@ -55,11 +54,9 @@ const NewsSection: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await axios.get(API_ROUTES.NEWS);
-      // Ordenar noticias por fecha (de más reciente a más antigua)
       const sortedNews = [...res.data].sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
-
       setNewsItems(sortedNews);
     } catch (error) {
       console.error('Error fetching news:', error);
@@ -68,51 +65,43 @@ const NewsSection: React.FC = () => {
     }
   };
 
-  // Helper function to get image URL (compatible with both old and new formats)
   const getImageUrl = (section: Section): string | undefined => {
-    // First try new format
     if (section.images && section.images.length > 0) {
       return section.images[0].url;
-    }
-    // Fall back to old format
-    else if (section.imageUrl) {
+    } else if (section.imageUrl) {
       return section.imageUrl;
     }
     return undefined;
   };
 
-  // Extract unique categories
   const categories = ['Todas', ...Array.from(new Set(newsItems.map(item => item.category)))];
 
-  // Filter news by search term and category
   const filteredNews = newsItems.filter(n => {
     const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'Todas' || n.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredNews.length / ITEMS_PER_PAGE);
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = filteredNews.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Featured news (first item) from current page
   const featuredNews = currentItems.length > 0 ? currentItems[0] : null;
-  // Regular news (remaining items) from current page
   const regularNews = currentItems.length > 1 ? currentItems.slice(1) : [];
 
-  // Format date function with more elegant styling
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
+    const date = new Date(dateString);
+    // Ajustar manualmente a UTC-4 (America/Santo_Domingo no tiene horario de verano)
+    const offsetMinutes = -240; // UTC-4 en minutos
+    const adjustedDate = new Date(date.getTime() + offsetMinutes * 60 * 1000);
+    return adjustedDate.toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    };
-    return new Date(dateString).toLocaleDateString('es-ES', options);
+      day: 'numeric',
+    });
   };
 
-  // Get first paragraph of news content
   const getExcerpt = (sections: Section[]) => {
     const contentSection = sections.find(s => s.text);
     if (contentSection) {
@@ -122,7 +111,6 @@ const NewsSection: React.FC = () => {
     return '';
   };
 
-  // Pagination handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -142,7 +130,6 @@ const NewsSection: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Navigate to first or last page
   const goToFirstPage = () => {
     if (currentPage !== 1) {
       setCurrentPage(1);
@@ -157,31 +144,27 @@ const NewsSection: React.FC = () => {
     }
   };
 
-  // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
-      // Less than max pages, show all
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // More than max pages, show selected range
       let startPage = Math.max(1, currentPage - 2);
       let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-      
-      // Adjust if we're near the end
+
       if (endPage - startPage < maxPagesToShow - 1) {
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   };
 
@@ -211,7 +194,6 @@ const NewsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Category filters - más elegantes y minimalistas */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -234,7 +216,6 @@ const NewsSection: React.FC = () => {
         </motion.div>
 
         {isLoading ? (
-          /* Skeleton loader with refined styling */
           <div className="space-y-16">
             <div className="w-full h-96 bg-gray-100 animate-pulse"></div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -250,7 +231,6 @@ const NewsSection: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Featured news - diseño destacado */}
             {featuredNews && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -293,12 +273,10 @@ const NewsSection: React.FC = () => {
               </motion.div>
             )}
 
-            {/* Divider after featured news */}
             {regularNews.length > 0 && (
               <div className="border-t border-gray-100 mb-16"></div>
             )}
 
-            {/* Regular news grid - estilo minimalista y elegante */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
               {regularNews.map((news, i) => (
                 <motion.article
@@ -342,11 +320,9 @@ const NewsSection: React.FC = () => {
               ))}
             </div>
 
-            {/* Pagination controls with first/last page buttons */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-16">
                 <nav className="inline-flex items-center">
-                  {/* First page button */}
                   <button
                     onClick={goToFirstPage}
                     disabled={currentPage === 1}
@@ -359,8 +335,7 @@ const NewsSection: React.FC = () => {
                   >
                     <ChevronsLeft size={18} />
                   </button>
-                  
-                  {/* Previous page button */}
+
                   <button
                     onClick={goToPrevPage}
                     disabled={currentPage === 1}
@@ -373,8 +348,7 @@ const NewsSection: React.FC = () => {
                   >
                     <ChevronLeft size={20} />
                   </button>
-                  
-                  {/* Page numbers */}
+
                   {getPageNumbers().map(number => (
                     <button
                       key={number}
@@ -390,8 +364,7 @@ const NewsSection: React.FC = () => {
                       {number}
                     </button>
                   ))}
-                  
-                  {/* Next page button */}
+
                   <button
                     onClick={goToNextPage}
                     disabled={currentPage === totalPages}
@@ -404,8 +377,7 @@ const NewsSection: React.FC = () => {
                   >
                     <ChevronRight size={20} />
                   </button>
-                  
-                  {/* Last page button - exactly what you requested */}
+
                   <button
                     onClick={goToLastPage}
                     disabled={currentPage === totalPages}
