@@ -89,14 +89,16 @@ const NewsSection: React.FC = () => {
 
   const featuredNews = currentItems.length > 0 ? currentItems[0] : null;
   const regularNews = currentItems.length > 1 ? currentItems.slice(1) : [];
-  
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-DO', {
+    // Parseamos la fecha manteniendo el día exacto que viene de la base de datos
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    
+    // Creamos objeto Date con día específico en zona horaria local, fijando la hora a mediodía
+    return new Date(`${year}-${month}-${day}T12:00:00`).toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: 'America/Santo_Domingo'
     });
   };
 
