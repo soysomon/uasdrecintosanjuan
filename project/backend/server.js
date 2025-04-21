@@ -71,25 +71,25 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-  const newsSchema = new mongoose.Schema({
-    title: String,
-    sections: [{
-      images: [{
-        url: String,
-        publicId: String,
-        displayOptions: {
-          size: { type: String, default: 'medium' },
-          alignment: { type: String, default: 'center' },
-          caption: String,
-          cropMode: { type: String, default: 'cover' }
-        }
-      }],
-      text: String,
-      videoUrl: { type: String, trim: true }
+const newsSchema = new mongoose.Schema({
+  title: String,
+  sections: [{
+    images: [{
+      url: String,
+      publicId: String,
+      displayOptions: {
+        size: { type: String, default: 'medium' },
+        alignment: { type: String, default: 'center' },
+        caption: String,
+        cropMode: { type: String, default: 'cover' }
+      }
     }],
-    date: String,
-    category: String,
-  });
+    text: String,
+    videoUrl: { type: String, trim: true }
+  }],
+  date: Date, // Cambiado de String a Date
+  category: String,
+});
 const News = mongoose.model('News', newsSchema);
 
 const authController = require('./auth/authController');
@@ -108,7 +108,12 @@ app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), aut
 // News Routes
 app.post('/api/news', async (req, res) => {
   try {
-    const news = new News(req.body);
+    const { date, ...rest } = req.body;
+    const newsData = {
+      ...rest,
+      date: new Date(`${date}T00:00:00Z`), // Forzar UTC
+    };
+    const news = new News(newsData);
     await news.save();
     res.status(201).json(news);
   } catch (err) {
@@ -140,12 +145,13 @@ app.get('/api/news/:id', async (req, res) => {
 
 app.put('/api/news/:id', async (req, res) => {
   try {
-    // Eliminar el campo "id" de las secciones, ya que el esquema no lo espera
+    const { date, ...rest } = req.body;
     const updateData = {
-      ...req.body,
+      ...rest,
+      date: new Date(`${date}T00:00:00Z`), // Forzar UTC
       sections: req.body.sections.map(section => {
-        const { id, ...rest } = section; // Elimina el campo "id"
-        return rest;
+        const { id, ...sectionRest } = section; // Elimina el campo "id"
+        return sectionRest;
       })
     };
     const news = await News.findByIdAndUpdate(

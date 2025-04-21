@@ -188,6 +188,7 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
+                        timeZone: 'UTC', // Forzar que se muestre en UTC
                       })}
                     </span>
                     <span className="mx-2">•</span>

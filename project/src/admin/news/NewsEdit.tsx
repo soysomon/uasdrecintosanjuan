@@ -33,7 +33,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 alignment: image.displayOptions?.alignment || 'center',
                 cropMode: image.displayOptions?.cropMode || 'cover',
                 caption: image.displayOptions?.caption,
-                layout: image.displayOptions?.layout || 'vertical', // Default to vertical
+                layout: image.displayOptions?.layout || 'vertical',
               },
             })),
             text: section.text || '',
@@ -41,7 +41,9 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           }));
           setSections(formattedSections);
           console.log('Secciones cargadas:', formattedSections);
-          const formattedDate = new Date(news.date).toISOString().split('T')[0];
+          // Asegura que la fecha se formatee como YYYY-MM-DD en UTC
+          const dateObj = new Date(news.date);
+          const formattedDate = dateObj.toISOString().split('T')[0];
           setDate(formattedDate);
           setCategory(news.category);
         }
@@ -124,7 +126,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           size: 'medium',
           alignment: 'center',
           cropMode: 'cover',
-          layout: sections[sectionIndex].images.length > 0 ? 'vertical' : 'vertical', // Default to vertical
+          layout: sections[sectionIndex].images.length > 0 ? 'vertical' : 'vertical',
         },
       };
 
