@@ -1,4 +1,3 @@
-// src/components/RecentNews.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -45,7 +44,7 @@ const RecentNews: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await axios.get(API_ROUTES.NEWS);
-            const sortedNews = [...res.data].sort((a, b) => {
+      const sortedNews = [...res.data].sort((a, b) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
       setNewsItems(sortedNews.slice(0, 4));
@@ -66,29 +65,24 @@ const RecentNews: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
+    // Parseamos la fecha manteniendo el día exacto que viene de la base de datos
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    
+    // Creamos objeto Date con día específico en zona horaria local, fijando la hora a mediodía
+    return new Date(`${year}-${month}-${day}T12:00:00`).toLocaleDateString('es-DO', {
       year: 'numeric',
-    };
-    const timeOptions: Intl.DateTimeFormatOptions = {
-      hour: '2-digit',
-      minute: '2-digit',
-    };
-    const formattedDate = date.toLocaleDateString('es-ES', dateOptions).replace(',', '');
-    const formattedTime = date.toLocaleTimeString('es-ES', timeOptions);
-    return `${formattedDate}, ${formattedTime}`;
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
   return (
     <section className="recent-news bg-white py-10">
       <div className="max-w-4xl mx-auto px-5">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 inline-block">
-  NOTICIAS RECIENTES
-  <span className="block h-1 bg-blue-600 animate-underline w-full"></span>
-</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 inline-block">
+          NOTICIAS RECIENTES
+          <span className="block h-1 bg-blue-600 animate-underline w-full"></span>
+        </h2>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map((i) => (
