@@ -5,7 +5,7 @@ import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
-import { Section, NewsImage, ImageDisplayOptions } from '../../types/news'; // Importamos los tipos
+import { Section, NewsImage, ImageDisplayOptions } from '../../types/news';
 
 const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const [title, setTitle] = useState('');
