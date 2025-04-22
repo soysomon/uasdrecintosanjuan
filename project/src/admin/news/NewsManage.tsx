@@ -20,7 +20,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
   }, []);
 
   useEffect(() => {
-    // Animar la entrada de las noticias con GSAP
     if (newsListRef.current) {
       const items = newsListRef.current.children;
       gsap.fromTo(
@@ -41,12 +40,11 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
     setLoading(true);
     try {
       const data = await NewsService.fetchNews();
-      // Ordenar las noticias por fecha descendente
       const sortedData = data.sort((a: any, b: any) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
       setNewsItems(sortedData);
-      setCurrentPage(1); // Resetear a la primera página al recargar las noticias
+      setCurrentPage(1);
     } catch (err) {
       toast.error('Error al cargar noticias.');
     } finally {
@@ -66,7 +64,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
     }
   };
 
-  // Filtrar por búsqueda y categoría
   const filteredNews = newsItems
     .filter((item) => {
       const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -74,12 +71,10 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
         selectedCategory === 'Todas' || item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     })
-    // Ordenar nuevamente después de filtrar para asegurar el orden
     .sort((a: any, b: any) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
-  // Paginación
   const totalPages = Math.ceil(filteredNews.length / NEWS_PER_PAGE);
   const paginatedNews = filteredNews.slice(
     (currentPage - 1) * NEWS_PER_PAGE,
@@ -91,21 +86,17 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Función para generar el array de páginas visibles
   const getVisiblePages = () => {
-    const delta = 1; // Número de páginas adicionales a mostrar a cada lado de la página actual
+    const delta = 1;
     const pages = [];
     
-    // Siempre mostrar la primera página
     if (currentPage > 2 + delta) {
       pages.push(1);
-      // Agregar puntos suspensivos si es necesario
       if (currentPage > 3 + delta) {
         pages.push('...');
       }
     }
 
-    // Páginas alrededor de la página actual
     const rangeStart = Math.max(1, currentPage - delta);
     const rangeEnd = Math.min(totalPages, currentPage + delta);
 
@@ -113,9 +104,7 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
       pages.push(i);
     }
 
-    // Siempre mostrar la última página
     if (currentPage < totalPages - 1 - delta) {
-      // Agregar puntos suspensivos si es necesario
       if (currentPage < totalPages - 2 - delta) {
         pages.push('...');
       }
@@ -131,9 +120,7 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
         Administrar Noticias
       </h2>
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6">
-        {/* Campo de búsqueda */}
         <div className="relative flex-1">
           <input
             type="text"
@@ -145,13 +132,12 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
-        {/* Selector de categoría */}
         <div className="mt-4 sm:mt-0">
           <select
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value);
-              setCurrentPage(1); // Resetear a la primera página al cambiar la categoría
+              setCurrentPage(1);
             }}
             className="py-2 px-4 bg-gray-100 rounded-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 font-sans"
           >
@@ -163,7 +149,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
         </div>
       </div>
 
-      {/* Lista de noticias */}
       {loading ? (
         <div className="text-center text-gray-600 font-sans">Cargando...</div>
       ) : filteredNews.length === 0 ? (
@@ -188,7 +173,7 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
-                        timeZone: 'UTC', // Forzar que se muestre en UTC
+                        timeZone: 'UTC',
                       })}
                     </span>
                     <span className="mx-2">•</span>
@@ -215,10 +200,8 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
             ))}
           </div>
 
-          {/* Paginación Mejorada */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center mt-6 space-x-1">
-              {/* Botón para ir a la primera página */}
               <button
                 onClick={() => handlePageChange(1)}
                 disabled={currentPage === 1}
@@ -232,7 +215,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                 <ChevronsLeft size={16} />
               </button>
 
-              {/* Botón para página anterior */}
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -246,8 +228,7 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                 <ChevronLeft size={16} />
               </button>
 
-              {/* Números de página */}
-              {getVisiblePages().map((page, index) => (
+              {getVisiblePages().map((page, index) =>
                 page === '...' ? (
                   <span key={`ellipsis-${index}`} className="px-2 text-gray-500">...</span>
                 ) : (
@@ -263,9 +244,8 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                     {page}
                   </button>
                 )
-              ))}
+              )}
 
-              {/* Botón para página siguiente */}
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -279,7 +259,6 @@ const NewsManage: React.FC<{ onEdit: (id: string) => void }> = ({ onEdit }) => {
                 <ChevronRight size={16} />
               </button>
 
-              {/* Botón para ir a la última página */}
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}

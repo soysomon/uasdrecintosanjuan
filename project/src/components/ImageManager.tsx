@@ -285,7 +285,7 @@ const ImageManager: React.FC<{
                           type="text"
                           value={image.displayOptions.caption || ''}
                           onChange={(e) => onSettingsChange(image.id, 'caption', e.target.value)}
-                          placeholder="Añadir una leyenda para esta imagen..."
+                          placeholder="Añadir una leyenda para esta imagen...."
                           className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>

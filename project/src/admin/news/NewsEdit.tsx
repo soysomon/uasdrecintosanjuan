@@ -25,9 +25,11 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         const news = data.find((item: any) => item._id === newsId);
         if (news) {
           setTitle(news.title);
-          const formattedSections = news.sections.map((section: any) => ({
-            images: (section.images || []).map((image: any) => ({
+          const formattedSections = news.sections.map((section: any, sectionIndex: number) => ({
+            id: section.id || `section-${sectionIndex}-${Date.now()}`, // Asegurar que la sección tenga un id
+            images: (section.images || []).map((image: any, imgIndex: number) => ({
               ...image,
+              id: image.id || `image-${sectionIndex}-${imgIndex}-${Date.now()}`, // Generar un id si no existe
               displayOptions: {
                 size: image.displayOptions?.size || 'medium',
                 alignment: image.displayOptions?.alignment || 'center',
@@ -41,7 +43,6 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
           }));
           setSections(formattedSections);
           console.log('Secciones cargadas:', formattedSections);
-          // Asegura que la fecha se formatee como YYYY-MM-DD en UTC
           const dateObj = new Date(news.date);
           const formattedDate = dateObj.toISOString().split('T')[0];
           setDate(formattedDate);
@@ -62,6 +63,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     setSections([
       ...sections,
       {
+        id: Date.now().toString(),
         images: [],
         text: '',
         videoUrl: '',
@@ -120,6 +122,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
       }
 
       const newImage: NewsImage = {
+        id: Date.now().toString(), // Asegurar que la nueva imagen tenga un id
         url: data.imageUrl,
         publicId: data.public_id,
         displayOptions: {
@@ -162,13 +165,13 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     }
   };
 
-  const handleRemoveImage = (sectionIndex: number, imageIndex: number) => {
+  const handleRemoveImage = (sectionIndex: number, imageId: string) => {
     setSections((prevSections) =>
       prevSections.map((section, index) =>
         index === sectionIndex
           ? {
               ...section,
-              images: section.images.filter((_, imgIndex) => imgIndex !== imageIndex),
+              images: section.images.filter((image) => image.id !== imageId), // Usar id para filtrar
             }
           : section
       )
@@ -177,7 +180,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
 
   const handleImageSettingsChange = (
     sectionIndex: number,
-    imageIndex: number,
+    imageId: string,
     setting: keyof ImageDisplayOptions,
     value: any
   ) => {
@@ -186,8 +189,8 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         index === sectionIndex
           ? {
               ...section,
-              images: section.images.map((image, imgIndex) =>
-                imgIndex === imageIndex
+              images: section.images.map((image) =>
+                image.id === imageId
                   ? {
                       ...image,
                       displayOptions: { ...image.displayOptions, [setting]: value },
@@ -267,7 +270,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         <div ref={formRef}>
           {sections.map((section, index) => (
             <div
-              key={index}
+              key={section.id}
               className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
             >
               <h3 className="text-lg font-medium text-gray-800 mb-4">Sección {index + 1}</h3>
@@ -284,9 +287,9 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
               <ImageManager
                 section={section}
                 onUpload={(file) => handleUploadImage(index, file)}
-                onRemoveImage={(imageIndex) => handleRemoveImage(index, imageIndex)}
-                onSettingsChange={(imageIndex, setting, value) =>
-                  handleImageSettingsChange(index, imageIndex, setting, value)
+                onRemoveImage={(imageId) => handleRemoveImage(index, imageId)} // Pasar el id de la imagen
+                onSettingsChange={(imageId, setting, value) =>
+                  handleImageSettingsChange(index, imageId, setting, value)
                 }
                 onLayoutChange={(layout) => handleLayoutChange(index, layout)}
                 uploadProgress={uploadingImages[index]}
