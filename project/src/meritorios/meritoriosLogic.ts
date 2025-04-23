@@ -1,136 +1,87 @@
-interface EstudianteResponse {
-    encontrado: boolean;
-    nombre?: string;
-    indice?: string;
-    facultad?: string;
-    error?: string;
-  }
+export const buscarEstudianteLogic = async () => {
+    const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
+    const resultadoDiv = document.getElementById('resultado') as HTMLDivElement;
+    const downloadButton = document.getElementById('downloadButton') as HTMLButtonElement;
+    const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
   
-  export function setupMeritoriosLogic(): void {
-    const buscar = async (): Promise<void> => {
-      const matriculaInput = document.getElementById('matricula') as HTMLInputElement | null;
-      const matricula: string | undefined = matriculaInput?.value.trim();
+    if (!matriculaInput || !resultadoDiv || !downloadButton || !downloadLink) {
+      console.error('Elementos del DOM no encontrados');
+      return;
+    }
   
-      if (!matricula) {
-        mostrarError('Por favor, ingresa una matrícula válida.');
+    const matricula = matriculaInput.value.trim();
+  
+    if (!matricula) {
+      resultadoDiv.innerHTML = '<p class="error">Por favor, ingrese una matrícula válida.</p>';
+      return;
+    }
+  
+    resultadoDiv.innerHTML = '<p>Buscando...</p>';
+  
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbw3HM79Drrcgmt7C0iPMhvDTluFTnNrRq82KhpdmpUMhcAlfzgv_tUK4uCmmxfN99ap/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'buscar', matricula })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error en la solicitud: ${response.status}`);
+      }
+  
+      const data: { encontrado: boolean; nombre?: string; indice?: string; facultad?: string; error?: string } = await response.json();
+  
+      if (data.error) {
+        resultadoDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
         return;
       }
   
-      const loadingDiv = document.getElementById('loading') as HTMLDivElement | null;
-      const buscarBtn = document.getElementById('buscarBtn') as HTMLButtonElement | null;
-      const formInputs = document.querySelectorAll('#consultaForm input, #consultaForm button') as NodeListOf<
-        HTMLInputElement | HTMLButtonElement
-      >;
-  
-      if (loadingDiv) loadingDiv.style.display = 'block';
-      if (buscarBtn) buscarBtn.disabled = true;
-      formInputs.forEach((input) => (input.disabled = true));
-  
-      const resultadoDiv = document.getElementById('resultado') as HTMLDivElement | null;
-      if (resultadoDiv) resultadoDiv.style.display = 'none';
-  
-      try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbyHPkMh7M8jmmVR8VKPDXFnkMSq5S0oaU8R4uhQ4uf5rSlVYN9sgPxYUabfgocQhUT7/exec', {
-          method: 'POST',
-          body: JSON.stringify({ matricula }),
-          headers: { 'Content-Type': 'application/json' },
-        });
-  
-        const result: EstudianteResponse = await response.json();
-  
-        if (loadingDiv) loadingDiv.style.display = 'none';
-        if (buscarBtn) buscarBtn.disabled = false;
-        formInputs.forEach((input) => (input.disabled = false));
-  
-        if (result.encontrado) {
-          mostrarExito(result);
-        } else {
-          mostrarNoEncontrado(matricula);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        if (loadingDiv) loadingDiv.style.display = 'none';
-        if (buscarBtn) buscarBtn.disabled = false;
-        formInputs.forEach((input) => (input.disabled = false));
-        mostrarError(`Error al procesar la solicitud: ${(error as Error).message}`);
-      }
-    };
-  
-    const mostrarExito = (data: EstudianteResponse): void => {
-      const resultadoDiv = document.getElementById('resultado') as HTMLDivElement | null;
-      if (resultadoDiv) {
-        resultadoDiv.className = 'resultado exito';
+      if (data.encontrado) {
         resultadoDiv.innerHTML = `
-          <h3>¡Felicidades! Eres estudiante meritorio</h3>
-          <p><strong>Nombre:</strong> ${data.nombre || 'No especificado'}</p>
-          <p><strong>Índice:</strong> ${data.indice || 'No especificado'}</p>
-          <p><strong>Facultad:</strong> ${data.facultad || 'No especificada'}</p>
-          <a id="certificadoLink" class="download-btn" href="#" target="_blank">Descargar Certificado</a>
+          <p class="success">¡Felicidades! Eres estudiante meritorio</p>
+          <p>Nombre: ${data.nombre}</p>
+          <p>Índice: ${data.indice}</p>
+          <p>Facultad: ${data.facultad}</p>
         `;
-        resultadoDiv.style.display = 'block';
-        generarCertificado(data.nombre || '', data.indice || '', data.facultad || '');
+        downloadButton.style.display = 'block';
+        downloadButton.onclick = async () => {
+          try {
+            const certResponse = await fetch('https://script.google.com/macros/s/AKfycbw3HM79Drrcgmt7C0iPMhvDTluFTnNrRq82KhpdmpUMhcAlfzgv_tUK4uCmmxfN99ap/exec', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'generarCertificado', nombre: data.nombre, indice: data.indice, facultad: data.facultad })
+            });
+  
+            if (!certResponse.ok) {
+              throw new Error(`Error generando certificado: ${certResponse.status}`);
+            }
+  
+            const certData: { pdfUrl?: string; error?: string } = await certResponse.json();
+  
+            if (certData.error) {
+              resultadoDiv.innerHTML = `<p class="error">Error generando certificado: ${certData.error}</p>`;
+              return;
+            }
+  
+            if (certData.pdfUrl) {
+              downloadLink.href = certData.pdfUrl;
+              downloadLink.style.display = 'block';
+              downloadLink.click();
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            resultadoDiv.innerHTML = `<p class="error">Error generando certificado: ${errorMessage}</p>`;
+          }
+        };
+      } else {
+        resultadoDiv.innerHTML = '<p class="error">Estudiante no encontrado</p>';
+        downloadButton.style.display = 'none';
+        downloadLink.style.display = 'none';
       }
-    };
-  
-    const mostrarNoEncontrado = (matricula: string): void => {
-      const resultadoDiv = document.getElementById('resultado') as HTMLDivElement | null;
-      if (resultadoDiv) {
-        resultadoDiv.className = 'resultado error';
-        resultadoDiv.innerHTML = `
-          <h3>Estudiante no encontrado</h3>
-          <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista de estudiantes meritorios.</p>
-          <p>Si crees que esto es un error, por favor contacta a la oficina de registro.</p>
-        `;
-        resultadoDiv.style.display = 'block';
-      }
-    };
-  
-    const mostrarError = (mensaje: string): void => {
-      const resultadoDiv = document.getElementById('resultado') as HTMLDivElement | null;
-      if (resultadoDiv) {
-        resultadoDiv.className = 'resultado error';
-        resultadoDiv.innerHTML = `
-          <h3>Error</h3>
-          <p>${mensaje}</p>
-        `;
-        resultadoDiv.style.display = 'block';
-      }
-    };
-  
-    const generarCertificado = async (nombre: string, indice: string, facultad: string): Promise<void> => {
-      const loadingDiv = document.getElementById('loading') as HTMLDivElement | null;
-      const certificadoLink = document.getElementById('certificadoLink') as HTMLAnchorElement | null;
-  
-      if (loadingDiv) loadingDiv.style.display = 'block';
-      if (certificadoLink) certificadoLink.style.pointerEvents = 'none';
-  
-      try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbyHPkMh7M8jmmVR8VKPDXFnkMSq5S0oaU8R4uhQ4uf5rSlVYN9sgPxYUabfgocQhUT7/exec', {
-          method: 'POST',
-          body: JSON.stringify({ nombre, indice, facultad }),
-          headers: { 'Content-Type': 'application/json' },
-        });
-  
-        const url: string = await response.text();
-  
-        if (loadingDiv) loadingDiv.style.display = 'none';
-        if (certificadoLink) {
-          certificadoLink.style.pointerEvents = 'auto';
-          certificadoLink.href = url;
-        }
-      } catch (error) {
-        if (loadingDiv) loadingDiv.style.display = 'none';
-        if (certificadoLink) certificadoLink.style.pointerEvents = 'auto';
-        mostrarError(`Error generando el certificado: ${(error as Error).message}`);
-      }
-    };
-  
-    const buscarBtn = document.getElementById('buscarBtn');
-    const consultaForm = document.getElementById('consultaForm');
-  
-    buscarBtn?.addEventListener('click', buscar);
-    consultaForm?.addEventListener('submit', (e: Event) => {
-      e.preventDefault();
-      buscar();
-    });
-  }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      resultadoDiv.innerHTML = `<p class="error">Error: ${errorMessage}</p>`;
+      downloadButton.style.display = 'none';
+      downloadLink.style.display = 'none';
+    }
+  };
