@@ -10,19 +10,27 @@ export const buscarEstudianteLogic = () => {
       return;
     }
   
+    // Ocultar el mensaje de validación al inicio
+    // Solo mostrar cuando se hace clic en el botón Consultar
+    resultadoDiv.style.display = 'none';
+  
     const matricula = matriculaInput.value.trim();
   
     if (!matricula) {
-      resultadoDiv.innerHTML = '<p class="error">Por favor, ingrese una matrícula válida.</p>';
-      resultadoDiv.style.display = 'block'; // Mostrar el contenedor de resultado
-      resultadoDiv.className = 'resultado error'; // Aplicar la clase correcta
+      resultadoDiv.innerHTML = `
+        <div class="error">
+          <h3>Por favor, ingrese una matrícula</h3>
+          <p>Necesitamos tu número de matrícula para verificar si eres estudiante meritorio.</p>
+        </div>
+      `;
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.className = 'resultado error';
       return;
     }
   
     // Mostrar animación de carga
     loadingDiv.style.display = 'flex';
-    resultadoDiv.innerHTML = '';
-    resultadoDiv.style.display = 'none'; // Ocultar resultados mientras se carga
+    resultadoDiv.style.display = 'none';
     downloadButton.style.display = 'none';
     downloadLink.style.display = 'none';
   
@@ -45,7 +53,12 @@ export const buscarEstudianteLogic = () => {
         delete (window as any)[callbackName];
         document.body.removeChild(script);
         loadingDiv.style.display = 'none';
-        resultadoDiv.innerHTML = '<p class="error">Error al conectar con el servidor</p>';
+        resultadoDiv.innerHTML = `
+          <div class="error">
+            <h3>Error de conexión</h3>
+            <p>No pudimos conectar con el servidor. Por favor, intenta nuevamente más tarde.</p>
+          </div>
+        `;
         resultadoDiv.style.display = 'block';
         resultadoDiv.className = 'resultado error';
       };
@@ -63,26 +76,40 @@ export const buscarEstudianteLogic = () => {
       resultadoDiv.style.display = 'block';
   
       if (data.error) {
-        resultadoDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+        resultadoDiv.innerHTML = `
+          <div class="error">
+            <h3>Error en la consulta</h3>
+            <p>${data.error}</p>
+            <p>Si el problema persiste, contacta a la oficina de registro.</p>
+          </div>
+        `;
         resultadoDiv.className = 'resultado error';
         return;
       }
   
       if (data.encontrado) {
-        resultadoDiv.className = 'resultado exito'; // Usar la clase 'exito' que está en el CSS
+        resultadoDiv.className = 'resultado exito';
         resultadoDiv.innerHTML = `
-          <h3>¡Felicidades! Eres estudiante meritorio</h3>
-          <p><strong>Nombre:</strong> ${data.nombre}</p>
-          <p><strong>Índice:</strong> ${data.indice}</p>
-          <p><strong>Facultad:</strong> ${data.facultad}</p>
+          <div class="success">
+            <h3>¡Felicidades! Eres estudiante meritorio</h3>
+            <p><strong>Nombre:</strong> ${data.nombre}</p>
+            <p><strong>Índice:</strong> ${data.indice}</p>
+            <p><strong>Facultad:</strong> ${data.facultad}</p>
+          </div>
         `;
         downloadButton.style.display = 'block';
+        downloadButton.innerText = 'Descargar Certificado';
+        downloadButton.className = 'download-btn';
         
         // Manejar la generación del certificado
         downloadButton.onclick = () => {
+          // Mostrar feedback visual en el botón
+          downloadButton.disabled = true;
+          downloadButton.innerText = 'Preparando tu certificado...';
+          downloadButton.style.background = '#e53935'; // Rojo durante la generación
+          
           // Mostrar animación de carga para el certificado
           loadingDiv.style.display = 'flex';
-          resultadoDiv.innerHTML += '<p>Generando certificado...</p>';
           
           // Generar certificado mediante JSONP
           jsonp(
@@ -92,27 +119,63 @@ export const buscarEstudianteLogic = () => {
               loadingDiv.style.display = 'none';
   
               if (certData.error) {
-                resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${certData.error}</p>`;
+                // Restaurar estado del botón
+                downloadButton.disabled = false;
+                downloadButton.innerText = 'Reintentar Descarga';
+                downloadButton.style.background = '';
+                
+                resultadoDiv.innerHTML += `
+                  <div class="error">
+                    <p>Error generando certificado: ${certData.error}</p>
+                    <p>Por favor, intenta nuevamente.</p>
+                  </div>
+                `;
                 return;
               }
   
               if (certData.pdfUrl) {
-                // Configurar y mostrar el enlace de descarga
+                // Actualizar botón con feedback visual de éxito
+                downloadButton.style.background = '#43a047'; // Verde al finalizar con éxito
+                downloadButton.innerText = '¡Certificado listo!';
+                
+                // Abrir el PDF en una nueva pestaña
+                window.open(certData.pdfUrl, '_blank');
+                
+                // También configurar el enlace por si acaso
                 downloadLink.href = certData.pdfUrl;
-                downloadLink.textContent = 'Descargar Certificado';
-                downloadLink.className = 'download-btn';
                 downloadLink.style.display = 'block';
-                downloadLink.target = '_blank'; // Abrir en nueva pestaña
-                // No hacer click automático para mejor experiencia de usuario
+                downloadLink.className = 'download-btn';
+                downloadLink.innerText = 'Descargar nuevamente';
+                
+                // Habilitar botón después de 2 segundos
+                setTimeout(() => {
+                  downloadButton.disabled = false;
+                  downloadButton.innerText = 'Descargar Certificado';
+                  downloadButton.style.background = '';
+                }, 2000);
               }
             }
           );
         };
       } else {
         resultadoDiv.className = 'resultado error';
-        resultadoDiv.innerHTML = '<h3>Lo sentimos</h3><p>No formas parte de la lista de estudiantes meritorios para el período actual.</p>';
+        resultadoDiv.innerHTML = `
+          <div class="error">
+            <h3>Estudiante no encontrado</h3>
+            <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista de estudiantes meritorios.</p>
+            <p>Si crees que esto es un error, por favor contacta a la oficina de registro.</p>
+          </div>
+        `;
         downloadButton.style.display = 'none';
         downloadLink.style.display = 'none';
       }
     });
   };
+  
+  // Inicializar ocultando el mensaje de error al cargar la página
+  document.addEventListener('DOMContentLoaded', () => {
+    const resultadoDiv = document.getElementById('resultado');
+    if (resultadoDiv) {
+      resultadoDiv.style.display = 'none';
+    }
+  });
