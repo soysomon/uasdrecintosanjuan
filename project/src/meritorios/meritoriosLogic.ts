@@ -14,12 +14,15 @@ export const buscarEstudianteLogic = () => {
   
     if (!matricula) {
       resultadoDiv.innerHTML = '<p class="error">Por favor, ingrese una matrícula válida.</p>';
+      resultadoDiv.style.display = 'block'; // Mostrar el contenedor de resultado
+      resultadoDiv.className = 'resultado error'; // Aplicar la clase correcta
       return;
     }
   
     // Mostrar animación de carga
     loadingDiv.style.display = 'flex';
     resultadoDiv.innerHTML = '';
+    resultadoDiv.style.display = 'none'; // Ocultar resultados mientras se carga
     downloadButton.style.display = 'none';
     downloadLink.style.display = 'none';
   
@@ -43,6 +46,8 @@ export const buscarEstudianteLogic = () => {
         document.body.removeChild(script);
         loadingDiv.style.display = 'none';
         resultadoDiv.innerHTML = '<p class="error">Error al conectar con el servidor</p>';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.className = 'resultado error';
       };
     };
   
@@ -54,17 +59,22 @@ export const buscarEstudianteLogic = () => {
       // Ocultar animación de carga
       loadingDiv.style.display = 'none';
   
+      // Asegurarnos de que el div de resultado sea visible
+      resultadoDiv.style.display = 'block';
+  
       if (data.error) {
         resultadoDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+        resultadoDiv.className = 'resultado error';
         return;
       }
   
       if (data.encontrado) {
+        resultadoDiv.className = 'resultado exito'; // Usar la clase 'exito' que está en el CSS
         resultadoDiv.innerHTML = `
-          <p class="success">¡Felicidades! Eres estudiante meritorio</p>
-          <p>Nombre: ${data.nombre}</p>
-          <p>Índice: ${data.indice}</p>
-          <p>Facultad: ${data.facultad}</p>
+          <h3>¡Felicidades! Eres estudiante meritorio</h3>
+          <p><strong>Nombre:</strong> ${data.nombre}</p>
+          <p><strong>Índice:</strong> ${data.indice}</p>
+          <p><strong>Facultad:</strong> ${data.facultad}</p>
         `;
         downloadButton.style.display = 'block';
         
@@ -87,15 +97,20 @@ export const buscarEstudianteLogic = () => {
               }
   
               if (certData.pdfUrl) {
+                // Configurar y mostrar el enlace de descarga
                 downloadLink.href = certData.pdfUrl;
+                downloadLink.textContent = 'Descargar Certificado';
+                downloadLink.className = 'download-btn';
                 downloadLink.style.display = 'block';
-                downloadLink.click();
+                downloadLink.target = '_blank'; // Abrir en nueva pestaña
+                // No hacer click automático para mejor experiencia de usuario
               }
             }
           );
         };
       } else {
-        resultadoDiv.innerHTML = '<p class="error">Estudiante no encontrado</p>';
+        resultadoDiv.className = 'resultado error';
+        resultadoDiv.innerHTML = '<h3>Lo sentimos</h3><p>No formas parte de la lista de estudiantes meritorios para el período actual.</p>';
         downloadButton.style.display = 'none';
         downloadLink.style.display = 'none';
       }
