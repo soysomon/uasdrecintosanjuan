@@ -1,4 +1,4 @@
-export const buscarEstudianteLogic = async () => {
+export const buscarEstudianteLogic = () => {
     const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
     const resultadoDiv = document.getElementById('resultado') as HTMLDivElement;
     const loadingDiv = document.getElementById('loading') as HTMLDivElement;
@@ -23,25 +23,34 @@ export const buscarEstudianteLogic = async () => {
     downloadButton.style.display = 'none';
     downloadLink.style.display = 'none';
   
-    try {
-      const API_URL = 'https://script.google.com/macros/s/AKfycbzMxE6E_AmVKoi5leK9DJIiebLxYTPSdSdu8c6eT4s770HLjPSmdXYpTjPu8FwNj1-e/exec';
-      
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'buscar', 
-          matricula,
-          origin: window.location.origin 
-        })
-      });
+    // Función para hacer llamadas JSONP
+    const jsonp = (url: string, callback: (data: any) => void) => {
+      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+      (window as any)[callbackName] = (data: any) => {
+        delete (window as any)[callbackName];
+        document.body.removeChild(script);
+        callback(data);
+      };
   
-      if (!response.ok) {
-        throw new Error(`Error en la solicitud: ${response.status}`);
-      }
+      const script = document.createElement('script');
+      url += (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+      script.src = url;
+      document.body.appendChild(script);
   
-      const data: { encontrado: boolean; nombre?: string; indice?: string; facultad?: string; error?: string } = await response.json();
+      // Manejador de error
+      script.onerror = () => {
+        delete (window as any)[callbackName];
+        document.body.removeChild(script);
+        loadingDiv.style.display = 'none';
+        resultadoDiv.innerHTML = '<p class="error">Error al conectar con el servidor</p>';
+      };
+    };
   
+    // URL del script de Google Apps
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxmNKuso8DfeaCZsHqIGAwhivppukwoxtQe0zjNpDo4U46fcmjPaqAxhCpRIlJ_MNM3/exec';
+    
+    // Búsqueda del estudiante mediante JSONP
+    jsonp(`${API_URL}?action=buscar&matricula=${encodeURIComponent(matricula)}`, (data) => {
       // Ocultar animación de carga
       loadingDiv.style.display = 'none';
   
@@ -58,60 +67,37 @@ export const buscarEstudianteLogic = async () => {
           <p>Facultad: ${data.facultad}</p>
         `;
         downloadButton.style.display = 'block';
-        downloadButton.onclick = async () => {
-          try {
-            // Mostrar animación de carga para el certificado
-            loadingDiv.style.display = 'flex';
-            resultadoDiv.innerHTML += '<p>Generando certificado...</p>';
-            
-            const certResponse = await fetch(API_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                action: 'generarCertificado', 
-                nombre: data.nombre, 
-                indice: data.indice, 
-                facultad: data.facultad,
-                origin: window.location.origin 
-              })
-            });
+        
+        // Manejar la generación del certificado
+        downloadButton.onclick = () => {
+          // Mostrar animación de carga para el certificado
+          loadingDiv.style.display = 'flex';
+          resultadoDiv.innerHTML += '<p>Generando certificado...</p>';
+          
+          // Generar certificado mediante JSONP
+          jsonp(
+            `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
+            (certData) => {
+              // Ocultar animación de carga
+              loadingDiv.style.display = 'none';
   
-            // Ocultar animación de carga
-            loadingDiv.style.display = 'none';
+              if (certData.error) {
+                resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${certData.error}</p>`;
+                return;
+              }
   
-            if (!certResponse.ok) {
-              throw new Error(`Error generando certificado: ${certResponse.status}`);
+              if (certData.pdfUrl) {
+                downloadLink.href = certData.pdfUrl;
+                downloadLink.style.display = 'block';
+                downloadLink.click();
+              }
             }
-  
-            const certData: { pdfUrl?: string; error?: string } = await certResponse.json();
-  
-            if (certData.error) {
-              resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${certData.error}</p>`;
-              return;
-            }
-  
-            if (certData.pdfUrl) {
-              downloadLink.href = certData.pdfUrl;
-              downloadLink.style.display = 'block';
-              downloadLink.click();
-            }
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-            resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${errorMessage}</p>`;
-          }
+          );
         };
       } else {
         resultadoDiv.innerHTML = '<p class="error">Estudiante no encontrado</p>';
         downloadButton.style.display = 'none';
         downloadLink.style.display = 'none';
       }
-    } catch (error) {
-      // Ocultar animación de carga
-      loadingDiv.style.display = 'none';
-      
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      resultadoDiv.innerHTML = `<p class="error">Error: ${errorMessage}</p>`;
-      downloadButton.style.display = 'none';
-      downloadLink.style.display = 'none';
-    }
+    });
   };
