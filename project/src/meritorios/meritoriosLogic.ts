@@ -46,7 +46,7 @@ export const buscarEstudianteLogic = async () => {
         downloadButton.style.display = 'block';
         downloadButton.onclick = async () => {
           try {
-            const certResponse = await fetch('https://script.google.com/macros/s/AKfycbw3HM79Drrcgmt7C0iPMhvDTluFTnNrRq82KhpdmpUMhcAlfzgv_tUK4uCmmxfN99ap/exec', {
+            const certResponse = await fetch('https://script.google.com/macros/s/AKfycbzQ-JXpv1dp2ykgcujcBtm7CYIwfTGZu6JDWH6KY0ymkvJYNM8DHZtp53y4dHMEY6_d/exec', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'generarCertificado', nombre: data.nombre, indice: data.indice, facultad: data.facultad })
