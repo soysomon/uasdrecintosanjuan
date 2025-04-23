@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { setupMeritoriosLogic } from './meritoriosLogic'; // Updated import path
+import { buscarEstudianteLogic } from './meritoriosLogic';
+import './meritorios.css'; // Import the CSS file
 
 export default function MeritoriosPage() {
   useEffect(() => {
-    setupMeritoriosLogic();
+    buscarEstudianteLogic(); // Initialize the logic on page load
   }, []);
 
   return (
@@ -36,7 +37,7 @@ export default function MeritoriosPage() {
               placeholder="Ej: 100123456"
               required
             />
-            <button type="button" id="buscarBtn">
+            <button type="button" id="buscarBtn" onClick={buscarEstudianteLogic}>
               Consultar
             </button>
             <div id="loading" className="loading">
@@ -44,6 +45,12 @@ export default function MeritoriosPage() {
               <p>Consultando datos...</p>
             </div>
             <div id="resultado" className="resultado"></div>
+            <button id="downloadButton" style={{ display: 'none' }}>
+              Descargar Certificado
+            </button>
+            <a id="downloadLink" style={{ display: 'none' }} download>
+              Descargar
+            </a>
           </form>
         </section>
         <aside className="hero-image-panel">
