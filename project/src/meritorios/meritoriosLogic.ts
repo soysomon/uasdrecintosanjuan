@@ -1,10 +1,11 @@
 export const buscarEstudianteLogic = async () => {
     const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
     const resultadoDiv = document.getElementById('resultado') as HTMLDivElement;
+    const loadingDiv = document.getElementById('loading') as HTMLDivElement;
     const downloadButton = document.getElementById('downloadButton') as HTMLButtonElement;
     const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
   
-    if (!matriculaInput || !resultadoDiv || !downloadButton || !downloadLink) {
+    if (!matriculaInput || !resultadoDiv || !loadingDiv || !downloadButton || !downloadLink) {
       console.error('Elementos del DOM no encontrados');
       return;
     }
@@ -16,13 +17,23 @@ export const buscarEstudianteLogic = async () => {
       return;
     }
   
-    resultadoDiv.innerHTML = '<p>Buscando...</p>';
+    // Mostrar animación de carga
+    loadingDiv.style.display = 'flex';
+    resultadoDiv.innerHTML = '';
+    downloadButton.style.display = 'none';
+    downloadLink.style.display = 'none';
   
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbycUBevt0P0mfvSzijkV6jALUblvsKkxzGEssLePWE5u397ES-Z1QwpBnje9woE87tR/exec', {
+      const API_URL = 'https://script.google.com/macros/s/AKfycbzMxE6E_AmVKoi5leK9DJIiebLxYTPSdSdu8c6eT4s770HLjPSmdXYpTjPu8FwNj1-e/exec';
+      
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'buscar', matricula })
+        body: JSON.stringify({ 
+          action: 'buscar', 
+          matricula,
+          origin: window.location.origin 
+        })
       });
   
       if (!response.ok) {
@@ -30,6 +41,9 @@ export const buscarEstudianteLogic = async () => {
       }
   
       const data: { encontrado: boolean; nombre?: string; indice?: string; facultad?: string; error?: string } = await response.json();
+  
+      // Ocultar animación de carga
+      loadingDiv.style.display = 'none';
   
       if (data.error) {
         resultadoDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
@@ -46,11 +60,24 @@ export const buscarEstudianteLogic = async () => {
         downloadButton.style.display = 'block';
         downloadButton.onclick = async () => {
           try {
-            const certResponse = await fetch('https://script.google.com/macros/s/AKfycbycUBevt0P0mfvSzijkV6jALUblvsKkxzGEssLePWE5u397ES-Z1QwpBnje9woE87tR/exec', {
+            // Mostrar animación de carga para el certificado
+            loadingDiv.style.display = 'flex';
+            resultadoDiv.innerHTML += '<p>Generando certificado...</p>';
+            
+            const certResponse = await fetch(API_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'generarCertificado', nombre: data.nombre, indice: data.indice, facultad: data.facultad })
+              body: JSON.stringify({ 
+                action: 'generarCertificado', 
+                nombre: data.nombre, 
+                indice: data.indice, 
+                facultad: data.facultad,
+                origin: window.location.origin 
+              })
             });
+  
+            // Ocultar animación de carga
+            loadingDiv.style.display = 'none';
   
             if (!certResponse.ok) {
               throw new Error(`Error generando certificado: ${certResponse.status}`);
@@ -59,7 +86,7 @@ export const buscarEstudianteLogic = async () => {
             const certData: { pdfUrl?: string; error?: string } = await certResponse.json();
   
             if (certData.error) {
-              resultadoDiv.innerHTML = `<p class="error">Error generando certificado: ${certData.error}</p>`;
+              resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${certData.error}</p>`;
               return;
             }
   
@@ -70,7 +97,7 @@ export const buscarEstudianteLogic = async () => {
             }
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-            resultadoDiv.innerHTML = `<p class="error">Error generando certificado: ${errorMessage}</p>`;
+            resultadoDiv.innerHTML += `<p class="error">Error generando certificado: ${errorMessage}</p>`;
           }
         };
       } else {
@@ -79,6 +106,9 @@ export const buscarEstudianteLogic = async () => {
         downloadLink.style.display = 'none';
       }
     } catch (error) {
+      // Ocultar animación de carga
+      loadingDiv.style.display = 'none';
+      
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       resultadoDiv.innerHTML = `<p class="error">Error: ${errorMessage}</p>`;
       downloadButton.style.display = 'none';
