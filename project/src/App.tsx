@@ -1,7 +1,6 @@
-// App.tsx
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import MainLayout from './components/MainLayout'; // Import the new MainLayout
+import MainLayout from './components/MainLayout';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import NewsDetailPage from './components/NewsDetailPage';
@@ -36,7 +35,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import InnovacionesEducativas from './components/Innovations';
 import Frequentquestions from './components/frequentquestions';
 import { ContactosPage } from './components/Contact';
-// Importar componentes de autenticación
+import MeritoriosPage from './meritorios/MeritoriosPage'; // Updated import path
 import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
@@ -78,6 +77,7 @@ function App() {
             <Route path="/innovaciones" element={<InnovacionesEducativas />} />
             <Route path="/preguntas-frecuentes" element={<Frequentquestions />} />
             <Route path="/contacto" element={<ContactosPage />} />
+            <Route path="/meritorios" element={<MeritoriosPage />} />
             <Route path="*" element={<NotFoundPage />} />
 
             {/* Rutas protegidas para admin */}
