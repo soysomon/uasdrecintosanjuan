@@ -8,7 +8,8 @@ export default function MeritoriosPage() {
   }, []);
 
   return (
-    <div className="body">
+    // Añadido style con marginTop para crear espacio bajo la barra de navegación
+    <div className="body" style={{ marginTop: '80px' }}>
       <div className="header">
         <img
           className="header-logo"
