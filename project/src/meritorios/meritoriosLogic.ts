@@ -17,7 +17,17 @@ export const buscarEstudianteLogic = () => {
     const matricula = matriculaInput.value.trim();
 
     if (!matricula) {
-        toast.warning("Por favor, ingresa una matrícula válida.");
+        toast.warning(
+            "Estimado estudiante UASD, ingrese su matrícula para consultar su estatus de mérito estudiantil.", 
+            {
+                toastId: "matricula-required",  // Evito duplicados
+                position: "top-right",          // Posición estándar
+                autoClose: 5000,                // 5 segundos para cerrarse
+                closeOnClick: true,             // Cerrar al hacer clic
+                pauseOnHover: true,             // Pausa al pasar el mouse
+                draggable: false                // No arrastrable
+            }
+        );
         return;
     }
 
