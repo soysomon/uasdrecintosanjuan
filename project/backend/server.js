@@ -71,116 +71,120 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-const newsSchema = new mongoose.Schema({
-  title: String,
-  sections: [{
-    images: [{
-      url: String,
-      publicId: String,
-      displayOptions: {
-        size: { type: String, default: 'medium' },
-        alignment: { type: String, default: 'center' },
-        caption: String,
-        cropMode: { type: String, default: 'cover' }
+  const newsSchema = new mongoose.Schema({
+    title: String,
+    sections: [{
+      images: [{
+        url: String,
+        publicId: String,
+        displayOptions: {
+          size: { type: String, default: 'medium' },
+          alignment: { type: String, default: 'center' },
+          caption: String,
+          cropMode: { type: String, default: 'cover' }
+        }
+      }],
+      text: String,
+      videoUrl: { type: String, trim: true },
+      pdf: {
+        url: { type: String, trim: true },
+        publicId: { type: String, trim: true }
       }
     }],
-    text: String,
-    videoUrl: { type: String, trim: true }
-  }],
-  date: Date, // Cambiado de String a Date
-  category: String,
-});
-const News = mongoose.model('News', newsSchema);
-
-const authController = require('./auth/authController');
-const { authMiddleware } = require('./auth/authMiddleware');
-const { roleMiddleware } = require('./auth/roleMiddleware');
-
-app.post('/api/auth/change-password', authMiddleware, authController.changePassword);
-app.post('/api/auth/login', authController.login);
-app.get('/api/auth/me', authMiddleware, authController.getCurrentUser);
-app.get('/api/auth/blocked-ips', authMiddleware, roleMiddleware(['superadmin']), authController.getBlockedIps);
-app.get('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.getUsers);
-app.post('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.createUser);
-app.put('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.updateUser);
-app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.deleteUser);
-
-// News Routes
-app.post('/api/news', async (req, res) => {
-  try {
-    const { date, ...rest } = req.body;
-    const newsData = {
-      ...rest,
-      date: new Date(`${date}T00:00:00Z`), // Forzar UTC
-    };
-    const news = new News(newsData);
-    await news.save();
-    res.status(201).json(news);
-  } catch (err) {
-    console.error('Error al crear noticia:', err);
-    res.status(400).json({ message: 'Error al crear la noticia', error: err.message });
-  }
-});
-
-app.get('/api/news', async (req, res) => {
-  try {
-    const news = await News.find();
-    res.json(news);
-  } catch (err) {
-    console.error('Error al obtener noticias:', err);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-app.get('/api/news/:id', async (req, res) => {
-  try {
-    const news = await News.findById(req.params.id);
-    if (!news) return res.status(404).json({ message: 'Noticia no encontrada' });
-    res.json(news);
-  } catch (err) {
-    console.error('Error al obtener noticia:', err);
-    res.status(500).json({ message: 'Error al obtener la noticia' });
-  }
-});
-
-app.put('/api/news/:id', async (req, res) => {
-  try {
-    const { date, ...rest } = req.body;
-    const updateData = {
-      ...rest,
-      date: new Date(`${date}T00:00:00Z`), // Forzar UTC
-      sections: req.body.sections.map(section => {
-        const { id, ...sectionRest } = section; // Elimina el campo "id"
-        return sectionRest;
-      })
-    };
-    const news = await News.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-    if (!news) {
-      return res.status(404).json({ message: 'Noticia no encontrada' });
+    date: Date,
+    category: String,
+  });
+  const News = mongoose.model('News', newsSchema);
+  
+  const authController = require('./auth/authController');
+  const { authMiddleware } = require('./auth/authMiddleware');
+  const { roleMiddleware } = require('./auth/roleMiddleware');
+  
+  app.post('/api/auth/change-password', authMiddleware, authController.changePassword);
+  app.post('/api/auth/login', authController.login);
+  app.get('/api/auth/me', authMiddleware, authController.getCurrentUser);
+  app.get('/api/auth/blocked-ips', authMiddleware, roleMiddleware(['superadmin']), authController.getBlockedIps);
+  app.get('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.getUsers);
+  app.post('/api/users', authMiddleware, roleMiddleware(['superadmin']), authController.createUser);
+  app.put('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.updateUser);
+  app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.deleteUser);
+  
+  // News Routes
+  app.post('/api/news', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+    try {
+      const { date, ...rest } = req.body;
+      const newsData = {
+        ...rest,
+        date: new Date(`${date}T00:00:00Z`), // Forzar UTC
+      };
+      const news = new News(newsData);
+      await news.save();
+      res.status(201).json(news);
+    } catch (err) {
+      console.error('Error al crear noticia:', err);
+      res.status(400).json({ message: 'Error al crear la noticia', error: err.message });
     }
-    res.json(news);
-  } catch (err) {
-    console.error('Error al actualizar noticia:', err);
-    res.status(400).json({ message: 'Error al actualizar la noticia', error: err.message });
-  }
-});
-
-app.delete('/api/news/:id', async (req, res) => {
-  try {
-    const news = await News.findByIdAndDelete(req.params.id);
-    if (!news) {
-      return res.status(404).json({ message: 'Noticia no encontrada' });
+  });
+  
+  app.get('/api/news', async (req, res) => {
+    try {
+      const news = await News.find();
+      res.json(news);
+    } catch (err) {
+      console.error('Error al obtener noticias:', err);
+      res.status(500).json({ message: 'Error interno del servidor' });
     }
-    res.json({ message: 'Eliminado' });
-  } catch (err) {
-    console.error('Error al eliminar noticia:', err);
-    res.status(500).json({ message: 'Error al eliminar la noticia' });
-  }
-});
+  });
+  
+  app.get('/api/news/:id', async (req, res) => {
+    try {
+      const news = await News.findById(req.params.id);
+      if (!news) return res.status(404).json({ message: 'Noticia no encontrada' });
+      res.json(news);
+    } catch (err) {
+      console.error('Error al obtener noticia:', err);
+      res.status(500).json({ message: 'Error al obtener la noticia' });
+    }
+  });
+  
+  app.put('/api/news/:id', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+    try {
+      const { date, ...rest } = req.body;
+      const updateData = {
+        ...rest,
+        date: new Date(`${date}T00:00:00Z`), // Forzar UTC
+        sections: req.body.sections.map(section => {
+          const { id, ...sectionRest } = section; // Elimina el campo "id"
+          return sectionRest;
+        })
+      };
+      const news = await News.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+      if (!news) {
+        return res.status(404).json({ message: 'Noticia no encontrada' });
+      }
+      res.json(news);
+    } catch (err) {
+      console.error('Error al actualizar noticia:', err);
+      res.status(400).json({ message: 'Error al actualizar la noticia', error: err.message });
+    }
+  });
+  
+  app.delete('/api/news/:id', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+    try {
+      const news = await News.findByIdAndDelete(req.params.id);
+      if (!news) {
+        return res.status(404).json({ message: 'Noticia no encontrada' });
+      }
+      res.json({ message: 'Eliminado' });
+    } catch (err) {
+      console.error('Error al eliminar noticia:', err);
+      res.status(500).json({ message: 'Error al eliminar la noticia' });
+    }
+  });
 
 // Multer Configuration
 const tempStorage = multer.diskStorage({
