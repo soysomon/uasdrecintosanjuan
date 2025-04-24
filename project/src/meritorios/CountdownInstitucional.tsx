@@ -51,23 +51,23 @@ export default function CountdownInstitucional() {
 
   return (
     <section className="w-full max-w-2xl mx-auto flex flex-col items-center mb-8">
-      <div className="relative w-full bg-white/80 rounded-2xl shadow-xl px-6 py-8 flex flex-col items-center border border-blue-100 backdrop-blur-lg">
-        <div className="text-lg font-extrabold text-blue-800 mb-4 uppercase tracking-widest">
+      <div className="relative w-full bg-white rounded-2xl shadow-md px-6 py-8 flex flex-col items-center border border-gray-200">
+        <div className="text-lg font-extrabold text-gray-800 mb-4 uppercase tracking-widest">
           Entrega oficial de certificados en:
         </div>
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-3xl text-blue-400 font-semibold">Faltan</span>
+          <span className="text-3xl text-gray-600 font-semibold">Faltan</span>
           <div
             ref={digitRef}
-            className="bg-gradient-to-br from-yellow-400 via-blue-400 to-blue-600 text-white text-6xl lg:text-7xl font-black px-7 py-3 rounded-2xl shadow-2xl flex items-center justify-center border-4 border-blue-200"
+            className="bg-gradient-to-br from-orange-400 via-yellow-400 to-yellow-500 text-white text-6xl lg:text-7xl font-black px-7 py-3 rounded-2xl shadow-lg flex items-center justify-center border-4 border-orange-200"
             style={{ minWidth: "100px", minHeight: "74px", letterSpacing: "0.07em" }}
           >
             {String(timeLeft.days).padStart(2, "0")}
           </div>
-          <span className="text-blue-700 ml-2 font-bold text-2xl">días</span>
+          <span className="text-gray-700 ml-2 font-bold text-2xl">días</span>
         </div>
-        {/* Barra de días */}
-        <div className="flex justify-center gap-3 mt-2">
+        {/* Barra de días - Rediseño moderno con gradientes cálidos */}
+        <div className="flex justify-center gap-2 mt-2">
           {daysRow.map((d, i) => {
             const isTarget =
               d.getDate() === deadline.getDate() &&
@@ -75,25 +75,15 @@ export default function CountdownInstitucional() {
             return (
               <div
                 key={i}
-                className={`flex flex-col items-center transition-all duration-300 ${
-                  isTarget
-                    ? "scale-110 bg-yellow-400/90 shadow-lg"
-                    : "bg-blue-50"
-                } rounded-xl px-3 py-2 border ${
-                  isTarget ? "border-yellow-600" : "border-blue-100"
-                }`}
+                className={`flex flex-col items-center transition-all duration-300 rounded-lg px-3 py-3 border ${isTarget ? "scale-110 bg-gradient-to-br from-orange-500 to-yellow-400 shadow-lg border-orange-600" : "bg-gradient-to-br from-orange-100 to-yellow-100 border-orange-200"}`}
               >
                 <span
-                  className={`font-bold text-xl ${
-                    isTarget ? "text-white drop-shadow" : "text-blue-800"
-                  }`}
+                  className={`font-bold text-xl ${isTarget ? "text-white drop-shadow" : "text-orange-800"}`}
                 >
                   {d.getDate()}
                 </span>
                 <span
-                  className={`text-xs mt-1 font-semibold ${
-                    isTarget ? "text-yellow-900" : "text-blue-400"
-                  }`}
+                  className={`text-xs mt-1 font-semibold ${isTarget ? "text-yellow-900" : "text-orange-600"}`}
                 >
                   {isTarget ? "Entrega" : d.toLocaleDateString("es-ES", { weekday: "short" })}
                 </span>
@@ -101,9 +91,9 @@ export default function CountdownInstitucional() {
             );
           })}
         </div>
-        <p className="mt-7 text-center text-blue-700 font-medium">
+        <p className="mt-7 text-center text-gray-700 font-medium">
           <span className="inline-flex items-center gap-2">
-            <svg width={22} fill="currentColor" className="text-blue-700 inline" viewBox="0 0 24 24"><path d="M16 2v2h5v2H3V4h5V2h2v2h6V2h2zm2 7v11a2 2 0 01-2 2H8a2 2 0 01-2-2V9h12zm-2 2H8v9h8v-9z"/></svg>
+            <svg width={22} fill="currentColor" className="text-gray-700 inline" viewBox="0 0 24 24"><path d="M16 2v2h5v2H3V4h5V2h2v2h6V2h2zm2 7v11a2 2 0 01-2 2H8a2 2 0 01-2-2V9h12zm-2 2H8v9h8v-9z"/></svg>
             Ceremonia:&nbsp;
           </span>
           Viernes 2 de mayo, Auditorio Ing. Senecio Ramírez · 10:00 AM
