@@ -96,7 +96,7 @@ export default function CountdownInstitucional() {
             <svg width={22} fill="currentColor" className="text-gray-700 inline" viewBox="0 0 24 24"><path d="M16 2v2h5v2H3V4h5V2h2v2h6V2h2zm2 7v11a2 2 0 01-2 2H8a2 2 0 01-2-2V9h12zm-2 2H8v9h8v-9z"/></svg>
             Ceremonia:&nbsp;
           </span>
-          Viernes 2 de mayo, Auditorio Ing. Senecio Ramírez · 10:00 AM
+          Viernes 2 de mayo, Auditorio Ing. Sinecio Ramírez · 10:00 AM
         </p>
       </div>
     </section>
