@@ -110,7 +110,8 @@ mongoose.connect(process.env.MONGODB_URI)
   app.delete('/api/users/:id', authMiddleware, roleMiddleware(['superadmin']), authController.deleteUser);
   
   // News Routes
-  app.post('/api/news', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+  app.post('/api/news', authMiddleware, roleMiddleware(['superadmin', 'admin']), async (req, res) => {
+
     try {
       const { date, ...rest } = req.body;
       const newsData = {
@@ -147,7 +148,8 @@ mongoose.connect(process.env.MONGODB_URI)
     }
   });
   
-  app.put('/api/news/:id', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+  app.put('/api/news/:id', authMiddleware, roleMiddleware(['superadmin', 'admin']), async (req, res) => {
+
     try {
       const { date, ...rest } = req.body;
       const updateData = {
@@ -173,7 +175,8 @@ mongoose.connect(process.env.MONGODB_URI)
     }
   });
   
-  app.delete('/api/news/:id', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {
+  app.delete('/api/news/:id', authMiddleware, roleMiddleware(['superadmin', 'admin']), async (req, res) => {
+
     try {
       const news = await News.findByIdAndDelete(req.params.id);
       if (!news) {
