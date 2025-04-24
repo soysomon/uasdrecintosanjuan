@@ -114,10 +114,10 @@ export default function MeritoriosPage() {
               Consultar
             </button>
             
-            {/* Loader animado */}
-            <div id="loading" className="flex-col justify-center items-center mt-4 hidden">
-              <div className="w-12 h-12 border-4 border-yellow-200 border-l-blue-600 animate-spin rounded-full mb-2"></div>
-              <p className="font-bold text-blue-700 text-sm text-center">Consultando datos...</p>
+            {/* Loader animado moderno */}
+            <div id="loading" className="flex flex-col justify-center items-center mt-6 hidden">
+            <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 animate-spin rounded-full mb-3 shadow-md"></div>
+            <p className="font-semibold text-blue-700 text-base text-center">Revisando clasificación...</p>
             </div>
             
             {/* Contenedor para resultados animados */}
