@@ -116,8 +116,8 @@ export default function MeritoriosPage() {
 
                         {/* Loader animado más pequeño y centrado */}
                         <div id="loading" className="hidden flex-col items-center justify-center w-full mt-4">
-                            <div className="w-10 h-10 border-3 border-blue-100 border-t-blue-600 animate-spin rounded-full mb-2 shadow-sm"></div>
-                            <p className="font-medium text-blue-600 text-sm text-center">Consultando Estudiante...</p>
+                        <div className="w-16 h-16 border-[6px] border-blue-100 border-t-blue-800 border-r-blue-600 animate-spin rounded-full mb-3 shadow-xl"></div>
+                        <p className="font-bold text-blue-600 text-lg animate-pulse">Consultando Estudiante...</p>
                         </div>
 
                         {/* Contenedor para resultados animados */}
