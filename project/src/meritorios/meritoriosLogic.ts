@@ -20,7 +20,9 @@ export const buscarEstudianteLogic = () => {
     return;
   }
 
+  // Mostrar solo la carga de consulta
   loadingDiv.classList.remove("hidden");
+  loadingDiv.querySelector("p")!.textContent = "Consultando datos...";
   resultadoDiv.classList.add("hidden");
   downloadButton.classList.add("hidden");
   downloadLink.classList.add("hidden");
@@ -56,8 +58,8 @@ export const buscarEstudianteLogic = () => {
     if (data.error) {
       resultadoDiv.className = "resultado error";
       resultadoDiv.innerHTML = `
-        <div class="error">
-          <h3>Error en la consulta</h3>
+        <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-lg shadow-sm">
+          <h3 class="text-lg font-bold mb-1">Error en la consulta</h3>
           <p>${data.error}</p>
         </div>
       `;
@@ -68,8 +70,8 @@ export const buscarEstudianteLogic = () => {
     if (data.encontrado) {
       resultadoDiv.className = "resultado exito";
       resultadoDiv.innerHTML = `
-        <div class="success">
-          <h3>¡Felicidades! Eres estudiante meritorio</h3>
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-900 p-4 rounded-xl shadow-md space-y-2">
+          <h3 class="text-lg font-extrabold">¡Felicidades! Eres estudiante meritorio</h3>
           <p><strong>Nombre:</strong> ${data.nombre}</p>
           <p><strong>Índice:</strong> ${data.indice}</p>
           <p><strong>Facultad:</strong> ${data.facultad}</p>
@@ -80,35 +82,32 @@ export const buscarEstudianteLogic = () => {
 
       downloadButton.classList.remove("hidden");
       downloadButton.innerHTML = "Descargar Certificado";
-      downloadButton.style.background = "";
+      downloadButton.className = "w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md transition-all duration-300";
       downloadButton.disabled = false;
 
       downloadButton.onclick = () => {
         downloadButton.disabled = true;
+        downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-xl shadow-md flex items-center justify-center gap-2";
         downloadButton.innerHTML = `
-          <div class="flex items-center justify-center gap-2">
-            <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
-            <span>Preparando tu certificado...</span>
-          </div>
+          <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
+          <span>Preparando tu certificado...</span>
         `;
-        downloadButton.style.background = "#e53935";
-        loadingDiv.classList.remove("hidden");
+
+        loadingDiv.classList.add("hidden"); // Ya no es "Consultando datos…"
 
         jsonp(
           `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
           (certData) => {
-            loadingDiv.classList.add("hidden");
-
             if (certData.error) {
               downloadButton.disabled = false;
               downloadButton.innerText = "Reintentar Descarga";
-              downloadButton.style.background = "";
+              downloadButton.className = "w-full mt-4 bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md";
               toast.error("Error al generar el certificado.");
               return;
             }
 
             if (certData.pdfUrl) {
-              downloadButton.style.background = "#43a047";
+              downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md";
               downloadButton.innerText = "¡Certificado listo!";
               toast.success("Certificado generado exitosamente.");
               window.open(certData.pdfUrl, "_blank");
@@ -119,8 +118,8 @@ export const buscarEstudianteLogic = () => {
 
               setTimeout(() => {
                 downloadButton.disabled = false;
-                downloadButton.innerText = "Descargar Certificado";
-                downloadButton.style.background = "";
+                downloadButton.innerHTML = "Descargar Certificado";
+                downloadButton.className = "w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md";
               }, 2000);
             }
           }
@@ -129,8 +128,8 @@ export const buscarEstudianteLogic = () => {
     } else {
       resultadoDiv.className = "resultado error";
       resultadoDiv.innerHTML = `
-        <div class="error">
-          <h3>Estudiante no encontrado</h3>
+        <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-lg shadow-sm">
+          <h3 class="text-lg font-bold mb-1">Estudiante no encontrado</h3>
           <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista.</p>
         </div>
       `;
