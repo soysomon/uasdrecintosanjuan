@@ -1,40 +1,97 @@
+import { gsap } from 'gsap';
+
 export const buscarEstudianteLogic = () => {
-    const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
-    const resultadoDiv = document.getElementById('resultado') as HTMLDivElement;
-    const loadingDiv = document.getElementById('loading') as HTMLDivElement;
-    const downloadButton = document.getElementById('downloadButton') as HTMLButtonElement;
-    const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
+  const matriculaInput = document.getElementById('matricula') as HTMLInputElement;
+  const resultadoDiv = document.getElementById('resultado') as HTMLDivElement;
+  const loadingDiv = document.getElementById('loading') as HTMLDivElement;
+  const certificateLoadingDiv = document.getElementById('certificateLoading') as HTMLDivElement;
+  const downloadButton = document.getElementById('downloadButton') as HTMLButtonElement;
+  const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
+
+  if (!matriculaInput || !resultadoDiv || !loadingDiv || !certificateLoadingDiv || !downloadButton || !downloadLink) {
+    console.error('Elementos del DOM no encontrados');
+    return;
+  }
+
+  // Initialize GSAP animations
+const animateMessage = (element: HTMLElement, isError: boolean = false) => {
+    gsap.to(element, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      onStart: () => {
+        if (isError) {
+          gsap.to(element, {
+            keyframes: [
+              { x: -10 },
+              { x: 10 },
+              { x: -5 },
+              { x: 5 },
+              { x: 0 },
+            ],
+            duration: 0.3,
+            ease: 'power1.inOut',
+          });
+        }
+      },
+    });
+  };
   
-    if (!matriculaInput || !resultadoDiv || !loadingDiv || !downloadButton || !downloadLink) {
-      console.error('Elementos del DOM no encontrados');
-      return;
-    }
+
+  const animateLoading = (element: HTMLElement, show: boolean) => {
+    gsap.to(element, {
+      opacity: show ? 1 : 0,
+      duration: 0.5,
+      ease: 'power3.out',
+      onStart: () => {
+        element.style.display = show ? 'flex' : 'none';
+      },
+    });
+  };
+
+  const animateCertificateSpinner = () => {
+    gsap.to('.certificate-spinner', {
+      keyframes: [
+        { scale: 0.8 },
+        { scale: 1.2 },
+        { scale: 1 },
+      ],
+      opacity: 1,
+      duration: 1,
+      ease: 'elastic.out(1, 0.5)',
+    });
+  };
   
-    // Ocultar el mensaje de validación al inicio
-    // Solo mostrar cuando se hace clic en el botón Consultar
-    resultadoDiv.style.display = 'none';
-  
+
+  // Hide messages and buttons initially
+  resultadoDiv.style.display = 'none';
+  downloadButton.style.display = 'none';
+  downloadLink.style.display = 'none';
+
+  // Handle form submission
+  downloadButton.onclick = null; // Reset any previous listeners
+  const handleSearch = () => {
     const matricula = matriculaInput.value.trim();
-  
+
     if (!matricula) {
       resultadoDiv.innerHTML = `
-        <div class="error">
-          <h3>Por favor, ingrese una matrícula</h3>
-          <p>Necesitamos tu número de matrícula para verificar si eres estudiante meritorio.</p>
-        </div>
+        <h3>Oops, falta algo</h3>
+        <p>Por favor, ingresa tu número de matrícula para continuar.</p>
       `;
-      resultadoDiv.style.display = 'block';
       resultadoDiv.className = 'resultado error';
+      resultadoDiv.style.display = 'block';
+      animateMessage(resultadoDiv, true);
       return;
     }
-  
-    // Mostrar animación de carga
-    loadingDiv.style.display = 'flex';
+
+    // Show searching animation
+    animateLoading(loadingDiv, true);
     resultadoDiv.style.display = 'none';
     downloadButton.style.display = 'none';
     downloadLink.style.display = 'none';
-  
-    // Función para hacer llamadas JSONP
+
+    // JSONP request for searching student
     const jsonp = (url: string, callback: (data: any) => void) => {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
       (window as any)[callbackName] = (data: any) => {
@@ -42,116 +99,98 @@ export const buscarEstudianteLogic = () => {
         document.body.removeChild(script);
         callback(data);
       };
-  
+
       const script = document.createElement('script');
       url += (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
       script.src = url;
       document.body.appendChild(script);
-  
-      // Manejador de error
+
       script.onerror = () => {
         delete (window as any)[callbackName];
         document.body.removeChild(script);
-        loadingDiv.style.display = 'none';
+        animateLoading(loadingDiv, false);
         resultadoDiv.innerHTML = `
-          <div class="error">
-            <h3>Error de conexión</h3>
-            <p>No pudimos conectar con el servidor. Por favor, intenta nuevamente más tarde.</p>
-          </div>
+          <h3>Error de conexión</h3>
+          <p>No pudimos conectar con el servidor. Intenta de nuevo más tarde.</p>
         `;
-        resultadoDiv.style.display = 'block';
         resultadoDiv.className = 'resultado error';
+        resultadoDiv.style.display = 'block';
+        animateMessage(resultadoDiv, true);
       };
     };
-  
-    // URL del script de Google Apps
+
     const API_URL = 'https://script.google.com/macros/s/AKfycbxmNKuso8DfeaCZsHqIGAwhivppukwoxtQe0zjNpDo4U46fcmjPaqAxhCpRIlJ_MNM3/exec';
-    
-    // Búsqueda del estudiante mediante JSONP
+
     jsonp(`${API_URL}?action=buscar&matricula=${encodeURIComponent(matricula)}`, (data) => {
-      // Ocultar animación de carga
-      loadingDiv.style.display = 'none';
-  
-      // Asegurarnos de que el div de resultado sea visible
+      animateLoading(loadingDiv, false);
       resultadoDiv.style.display = 'block';
-  
+
       if (data.error) {
         resultadoDiv.innerHTML = `
-          <div class="error">
-            <h3>Error en la consulta</h3>
-            <p>${data.error}</p>
-            <p>Si el problema persiste, contacta a la oficina de registro.</p>
-          </div>
+          <h3>Error en la consulta</h3>
+          <p>${data.error}</p>
+          <p>Contacta a la oficina de registro si el problema persiste.</p>
         `;
         resultadoDiv.className = 'resultado error';
+        animateMessage(resultadoDiv, true);
         return;
       }
-  
+
       if (data.encontrado) {
         resultadoDiv.className = 'resultado exito';
         resultadoDiv.innerHTML = `
-          <div class="success">
-            <h3>¡Felicidades! Eres estudiante meritorio</h3>
-            <p><strong>Nombre:</strong> ${data.nombre}</p>
-            <p><strong>Índice:</strong> ${data.indice}</p>
-            <p><strong>Facultad:</strong> ${data.facultad}</p>
-          </div>
+          <h3>¡Felicidades, ${data.nombre}!</h3>
+          <p>Eres estudiante meritorio de la UASD.</p>
+          <p><strong>Índice:</strong> ${data.indice}</p>
+          <p><strong>Facultad:</strong> ${data.facultad}</p>
         `;
+        animateMessage(resultadoDiv);
+
+        // Show download button with animation
         downloadButton.style.display = 'block';
-        downloadButton.innerText = 'Descargar Certificado';
-        downloadButton.className = 'download-btn';
-        
-        // Manejar la generación del certificado
+        gsap.fromTo(
+          downloadButton,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }
+        );
+
+        // Handle certificate generation
         downloadButton.onclick = () => {
-          // Mostrar feedback visual en el botón
           downloadButton.disabled = true;
-          downloadButton.innerText = 'Preparando tu certificado...';
-          downloadButton.style.background = '#e53935'; // Rojo durante la generación
-          
-          // Mostrar animación de carga para el certificado
-          loadingDiv.style.display = 'flex';
-          
-          // Generar certificado mediante JSONP
+          downloadButton.innerText = 'Preparando...';
+          animateLoading(certificateLoadingDiv, true);
+          animateCertificateSpinner();
+
           jsonp(
             `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
             (certData) => {
-              // Ocultar animación de carga
-              loadingDiv.style.display = 'none';
-  
+              animateLoading(certificateLoadingDiv, false);
+
               if (certData.error) {
-                // Restaurar estado del botón
                 downloadButton.disabled = false;
-                downloadButton.innerText = 'Reintentar Descarga';
-                downloadButton.style.background = '';
-                
+                downloadButton.innerText = 'Reintentar';
                 resultadoDiv.innerHTML += `
-                  <div class="error">
-                    <p>Error generando certificado: ${certData.error}</p>
-                    <p>Por favor, intenta nuevamente.</p>
-                  </div>
+                  <p>Error generando certificado: ${certData.error}</p>
+                  <p>Por favor, intenta nuevamente.</p>
                 `;
+                animateMessage(resultadoDiv, true);
                 return;
               }
-  
+
               if (certData.pdfUrl) {
-                // Actualizar botón con feedback visual de éxito
-                downloadButton.style.background = '#43a047'; // Verde al finalizar con éxito
-                downloadButton.innerText = '¡Certificado listo!';
-                
-                // Abrir el PDF en una nueva pestaña
+                downloadButton.innerText = '¡Listo!';
                 window.open(certData.pdfUrl, '_blank');
-                
-                // También configurar el enlace por si acaso
                 downloadLink.href = certData.pdfUrl;
                 downloadLink.style.display = 'block';
-                downloadLink.className = 'download-btn';
-                downloadLink.innerText = 'Descargar nuevamente';
-                
-                // Habilitar botón después de 2 segundos
+                gsap.fromTo(
+                  downloadLink,
+                  { opacity: 0, y: 20 },
+                  { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }
+                );
+
                 setTimeout(() => {
                   downloadButton.disabled = false;
                   downloadButton.innerText = 'Descargar Certificado';
-                  downloadButton.style.background = '';
                 }, 2000);
               }
             }
@@ -160,22 +199,23 @@ export const buscarEstudianteLogic = () => {
       } else {
         resultadoDiv.className = 'resultado error';
         resultadoDiv.innerHTML = `
-          <div class="error">
-            <h3>Estudiante no encontrado</h3>
-            <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista de estudiantes meritorios.</p>
-            <p>Si crees que esto es un error, por favor contacta a la oficina de registro.</p>
-          </div>
+          <h3>Matrícula no encontrada</h3>
+          <p>La matrícula <strong>${matricula}</strong> no está en la lista de estudiantes meritorios.</p>
+          <p>Contacta a la oficina de registro si crees que es un error.</p>
         `;
-        downloadButton.style.display = 'none';
-        downloadLink.style.display = 'none';
+        animateMessage(resultadoDiv, true);
       }
     });
   };
-  
-  // Inicializar ocultando el mensaje de error al cargar la página
+
+  // Attach search handler to button
+  const buscarBtn = document.getElementById('buscarBtn') as HTMLButtonElement;
+  if (buscarBtn) {
+    buscarBtn.onclick = handleSearch;
+  }
+
+  // Hide result on page load
   document.addEventListener('DOMContentLoaded', () => {
-    const resultadoDiv = document.getElementById('resultado');
-    if (resultadoDiv) {
-      resultadoDiv.style.display = 'none';
-    }
+    resultadoDiv.style.display = 'none';
   });
+};
