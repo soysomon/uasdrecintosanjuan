@@ -277,3 +277,7 @@ footer {
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   /* Ajustes para pantallas retina */
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
