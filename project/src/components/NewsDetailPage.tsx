@@ -294,21 +294,19 @@ const NewsDetailPage: React.FC = () => {
       );
     }
 
-    const containerClasses = `${
-      displayOptions.alignment === 'left'
+    const containerClasses = `${displayOptions.alignment === 'left'
         ? 'mr-auto'
         : displayOptions.alignment === 'right'
-        ? 'ml-auto'
-        : 'mx-auto'
-    } ${
-      displayOptions.size === 'small'
+          ? 'ml-auto'
+          : 'mx-auto'
+      } ${displayOptions.size === 'small'
         ? 'max-w-sm'
         : displayOptions.size === 'medium'
-        ? 'max-w-lg'
-        : displayOptions.size === 'large'
-        ? 'max-w-xl'
-        : 'w-full'
-    }`;
+          ? 'max-w-lg'
+          : displayOptions.size === 'large'
+            ? 'max-w-xl'
+            : 'w-full'
+      }`;
 
     return (
       <figure className="my-10">
@@ -317,13 +315,12 @@ const NewsDetailPage: React.FC = () => {
             <img
               src={image.url}
               alt="Imagen de la noticia"
-              className={`w-full cursor-pointer hover:opacity-95 transition-opacity ${
-                displayOptions.cropMode === 'cover'
+              className={`w-full cursor-pointer hover:opacity-95 transition-opacity ${displayOptions.cropMode === 'cover'
                   ? 'object-cover h-64 md:h-80'
                   : displayOptions.cropMode === 'contain'
-                  ? 'object-contain h-64 md:h-80'
-                  : 'object-none'
-              }`}
+                    ? 'object-contain h-64 md:h-80'
+                    : 'object-none'
+                }`}
               onClick={() => handleImageClick(image.url)}
             />
           </div>
@@ -356,13 +353,12 @@ const NewsDetailPage: React.FC = () => {
                       <img
                         src={image.url}
                         alt={`Imagen ${idx + 1} de la sección`}
-                        className={`w-full h-64 sm:h-80 ${
-                          image.displayOptions?.cropMode === 'cover'
+                        className={`w-full h-64 sm:h-80 ${image.displayOptions?.cropMode === 'cover'
                             ? 'object-cover'
                             : image.displayOptions?.cropMode === 'contain'
-                            ? 'object-contain'
-                            : 'object-none'
-                        }`}
+                              ? 'object-contain'
+                              : 'object-none'
+                          }`}
                       />
                       {image.displayOptions?.caption && (
                         <figcaption className="text-sm text-gray-500 mt-3 font-serif italic text-center">
@@ -417,17 +413,45 @@ const NewsDetailPage: React.FC = () => {
 
         {section.pdf && (
           <figure className="my-12 max-w-4xl mx-auto">
-            <a
-              href={section.pdf.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <FileText className="text-blue-600 mr-3" size={24} />
-              <span className="text-blue-600 font-serif text-lg hover:underline">
-                Ver documento PDF
-              </span>
-            </a>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="bg-gray-50 p-4 flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-800">Documento PDF</h3>
+              </div>
+              <div className="h-[600px] w-full">
+                <object
+                  data={section.pdf.url}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                  className="w-full h-full border-0"
+                >
+                  <div className="p-10 text-center">
+                    <p className="mb-4">Su navegador no puede mostrar PDFs directamente.</p>
+                    <a
+                      href={section.pdf.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition"
+                    >
+                      Abrir PDF
+                    </a>
+                  </div>
+                </object>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <a
+                href={section.pdf.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <FileText className="text-blue-600 mr-3" size={24} />
+                <span className="text-blue-600 font-serif text-lg hover:underline">
+                  Ver documento PDF
+                </span>
+              </a>
+            </div>
           </figure>
         )}
 
@@ -589,7 +613,7 @@ const NewsDetailPage: React.FC = () => {
                 onClick={() =>
                   window.open(
                     'https://www.facebook.com/sharer/sharer.php?u=' +
-                      encodeURIComponent(window.location.href),
+                    encodeURIComponent(window.location.href),
                     '_blank'
                   )
                 }
@@ -610,7 +634,7 @@ const NewsDetailPage: React.FC = () => {
                 onClick={() =>
                   window.open(
                     'https://x.com/intent/tweet?url=' +
-                      encodeURIComponent(window.location.href),
+                    encodeURIComponent(window.location.href),
                     '_blank'
                   )
                 }
@@ -631,7 +655,7 @@ const NewsDetailPage: React.FC = () => {
                 onClick={() =>
                   window.open(
                     'https://api.whatsapp.com/send?text=' +
-                      encodeURIComponent(window.location.href),
+                    encodeURIComponent(window.location.href),
                     '_blank'
                   )
                 }
