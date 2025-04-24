@@ -9,13 +9,9 @@ export default function MeritoriosPage() {
 
   return (
     // Añadido style con marginTop para crear espacio bajo la barra de navegación
-    <div className="body" style={{ marginTop: '95px' }}>
+    <div className="body" style={{ marginTop: '99px' }}>
       <div className="header">
-        <img
-          className="header-logo"
-          src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
-          alt="UASD Logo"
-        />
+        
         <div className="header-title">UASD • Consulta de Meritorios</div>
       </div>
       <main className="hero">
