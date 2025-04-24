@@ -22,8 +22,8 @@ export const buscarEstudianteLogic = () => {
   }
 
   // Mostrar solo la carga de consulta
-  loadingDiv.style.display = "block"; // Usamos style.display en lugar de classList
-  loadingDiv.querySelector("p")!.textContent = "Consultando clasificación...";
+  loadingDiv.style.display = "flex"; // Cambiado a flex para centrar mejor
+  loadingDiv.querySelector("p")!.textContent = "Consultando Estudiante...";
   downloadButton.style.display = "none";
   downloadLink.style.display = "none";
 
@@ -58,11 +58,11 @@ export const buscarEstudianteLogic = () => {
 
     if (data.error) {
       // Aplicar estilos de error
-      resultadoDiv.className = "resultado error";
+      resultadoDiv.className = "resultado error p-4 bg-red-50 border-l-4 border-red-500 rounded-md";
       resultadoDiv.innerHTML = `
         <div>
-          <h3 class="text-lg font-bold mb-1">Error en la consulta</h3>
-          <p>${data.error}</p>
+          <h3 class="text-lg font-bold mb-1 text-red-700">Error en la consulta</h3>
+          <p class="text-red-600">${data.error}</p>
         </div>
       `;
       toast.error("Error en la consulta. Verifica la matrícula.");
@@ -70,14 +70,14 @@ export const buscarEstudianteLogic = () => {
     }
 
     if (data.encontrado) {
-      // Aplicar estilos de éxito
-      resultadoDiv.className = "resultado exito";
+      // Aplicar estilos de éxito similar a la imagen 3
+      resultadoDiv.className = "resultado exito p-4 bg-green-50 border-l-4 border-green-500 rounded-md";
       resultadoDiv.innerHTML = `
         <div>
-          <h3 class="text-lg font-extrabold">¡Felicidades! Eres estudiante meritorio</h3>
-          <p><strong>Nombre:</strong> ${data.nombre}</p>
-          <p><strong>Índice:</strong> ${data.indice}</p>
-          <p><strong>Facultad:</strong> ${data.facultad}</p>
+          <h3 class="text-xl font-extrabold text-green-700">¡Felicidades! Eres estudiante meritorio</h3>
+          <p class="mt-2"><strong class="text-green-700">Nombre:</strong> <span class="text-gray-700">${data.nombre}</span></p>
+          <p><strong class="text-green-700">Índice:</strong> <span class="text-gray-700">${data.indice}</span></p>
+          <p><strong class="text-green-700">Facultad:</strong> <span class="text-gray-700">${data.facultad}</span></p>
         </div>
       `;
 
@@ -85,12 +85,12 @@ export const buscarEstudianteLogic = () => {
 
       downloadButton.style.display = "block";
       downloadButton.innerHTML = "Descargar Certificado";
-      downloadButton.className = "w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md transition-all duration-300";
+      downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-300";
       downloadButton.disabled = false;
 
       downloadButton.onclick = () => {
         downloadButton.disabled = true;
-        downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-xl shadow-md flex items-center justify-center gap-2";
+        downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center gap-2";
         downloadButton.innerHTML = `
           <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
           <span>Preparando tu certificado...</span>
@@ -104,13 +104,13 @@ export const buscarEstudianteLogic = () => {
             if (certData.error) {
               downloadButton.disabled = false;
               downloadButton.innerText = "Reintentar Descarga";
-              downloadButton.className = "w-full mt-4 bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md";
+              downloadButton.className = "w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-md shadow-md";
               toast.error("Error al generar el certificado.");
               return;
             }
 
             if (certData.pdfUrl) {
-              downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md";
+              downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-md shadow-md";
               downloadButton.innerText = "¡Certificado listo!";
               toast.success("Certificado entregado exitosamente.");
               window.open(certData.pdfUrl, "_blank");
@@ -122,7 +122,7 @@ export const buscarEstudianteLogic = () => {
               setTimeout(() => {
                 downloadButton.disabled = false;
                 downloadButton.innerHTML = "Descargar Certificado";
-                downloadButton.className = "w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md";
+                downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md";
               }, 2000);
             }
           }
@@ -130,13 +130,12 @@ export const buscarEstudianteLogic = () => {
       };
     } else {
       // Aplicar estilos de error para estudiante no encontrado
-      resultadoDiv.className = "resultado error";
+      resultadoDiv.className = "resultado error p-4 bg-red-50 border-l-4 border-red-500 rounded-md";
       resultadoDiv.innerHTML = `
         <div>
-          <h3 class="text-lg font-bold mb-1">Estudiante no encontrado</h3>
-          <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista de estudiantes meritorios.</p>
-          <br>
-          <p>Si crees que esto es un error, por favor contacta a la oficina de bienestar estudiantil.</p>
+          <h3 class="text-lg font-bold mb-1 text-red-700">Estudiante no encontrado</h3>
+          <p class="text-red-600">La matrícula <strong>${matricula}</strong> no aparece en nuestra lista de estudiantes meritorios.</p>
+          <p class="text-red-600 mt-2">Si crees que esto es un error, por favor contacta a la oficina de bienestar estudiantil.</p>
         </div>
       `;
       toast.error("Estudiante no encontrado.");
