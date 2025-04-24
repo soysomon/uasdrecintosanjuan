@@ -22,7 +22,7 @@ export const buscarEstudianteLogic = () => {
             {
                 toastId: "matricula-required",  // Evito duplicados
                 position: "top-right",          // Posición estándar
-                autoClose: 5000,                // 5 segundos para cerrarse
+                autoClose: 8000,                // 8 segundos para cerrarse
                 closeOnClick: true,             // Cerrar al hacer clic
                 pauseOnHover: true,             // Pausa al pasar el mouse
                 draggable: false                // No arrastrable
