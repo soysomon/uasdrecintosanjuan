@@ -84,9 +84,11 @@ export const buscarEstudianteLogic = () => {
     "https://script.google.com/macros/s/AKfycbxmNKuso8DfeaCZsHqIGAwhivppukwoxtQe0zjNpDo4U46fcmjPaqAxhCpRIlJ_MNM3/exec";
 
   // Búsqueda del estudiante mediante JSONP
+  console.log("Consultando estudiante con matrícula:", matricula);
   jsonp(
     `${API_URL}?action=buscar&matricula=${encodeURIComponent(matricula)}`,
     (data) => {
+      console.log("Respuesta de la API:", data);
       // Ocultar animación de carga
       loadingDiv.style.display = "none";
 
@@ -125,11 +127,13 @@ export const buscarEstudianteLogic = () => {
           // Mostrar feedback visual en el botón
           downloadButton.disabled = true;
           downloadButton.innerText = "Preparando tu certificado...";
+          downloadButton.className = "w-full mt-3 bg-red-500 text-white font-semibold py-2.5 rounded-lg shadow-lg transition-all";
 
           // Mostrar animación de carga para el certificado
           loadingDiv.style.display = "flex";
 
           // Generar certificado mediante JSONP
+          console.log("Generando certificado para:", data.nombre);
           jsonp(
             `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(
               data.nombre
@@ -137,6 +141,7 @@ export const buscarEstudianteLogic = () => {
               data.indice
             )}&facultad=${encodeURIComponent(data.facultad)}`,
             (certData) => {
+              console.log("Respuesta de generación de certificado:", certData);
               // Ocultar animación de carga
               loadingDiv.style.display = "none";
 
@@ -144,6 +149,7 @@ export const buscarEstudianteLogic = () => {
                 // Restaurar estado del botón
                 downloadButton.disabled = false;
                 downloadButton.innerText = "Reintentar Descarga";
+                downloadButton.className = "w-full mt-3 bg-gradient-to-r from-orange-500 to-yellow-400 text-white font-semibold py-2.5 rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95";
 
                 errorAlert.innerHTML = `
                   <p class="font-bold">Error</p>
@@ -162,6 +168,7 @@ export const buscarEstudianteLogic = () => {
               if (certData.pdfUrl) {
                 // Actualizar botón con feedback visual de éxito
                 downloadButton.innerText = "¡Certificado listo!";
+                downloadButton.className = "w-full mt-3 bg-green-500 text-white font-semibold py-2.5 rounded-lg shadow-lg transition-all";
 
                 // Abrir el PDF en una nueva pestaña
                 window.open(certData.pdfUrl, "_blank");
@@ -174,6 +181,7 @@ export const buscarEstudianteLogic = () => {
                 setTimeout(() => {
                   downloadButton.disabled = false;
                   downloadButton.innerText = "Descargar Certificado";
+                  downloadButton.className = "w-full mt-3 bg-gradient-to-r from-orange-500 to-yellow-400 text-white font-semibold py-2.5 rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95";
                 }, 2000);
               }
             }
