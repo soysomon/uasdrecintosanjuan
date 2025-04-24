@@ -45,7 +45,7 @@ export default function MeritoriosPage() {
     >
       <div className="flex flex-col mb-2">
         <motion.h1
-          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-blue-800 leading-tight"
+          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-blue-800 leading-tight"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
@@ -53,7 +53,7 @@ export default function MeritoriosPage() {
           ¡Descubre si eres
         </motion.h1>
         <motion.span
-          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-yellow-400 drop-shadow"
+          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold text-yellow-400 drop-shadow"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
@@ -68,7 +68,7 @@ export default function MeritoriosPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6, duration: 0.5 }}
       >
-        <span className="text-6xl sm:text-7xl lg:text-8xl font-extrabold text-red-500 leading-none">2024-20</span>
+        <span className="text-6xl sm:text-7xl lg:text-6xl font-extrabold text-red-500 leading-none">2024-20</span>
       </motion.div>
 
       <motion.p
