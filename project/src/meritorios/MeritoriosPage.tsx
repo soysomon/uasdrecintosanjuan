@@ -12,7 +12,7 @@ export default function MeritoriosPage() {
     <div className="body" style={{ marginTop: '99px' }}>
       <div className="header">
         
-        <div className="header-title">UASD • Consulta de Meritorios</div>
+        <div className="header-title">UASD • RECINTO • SAN JUAN </div>
       </div>
       <main className="hero">
         <section className="hero-info">
