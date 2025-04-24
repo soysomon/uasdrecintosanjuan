@@ -90,11 +90,12 @@ export const buscarEstudianteLogic = () => {
 
             downloadButton.onclick = () => {
                 downloadButton.disabled = true;
-                downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center gap-2";
+                downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center gap-3";
                 downloadButton.innerHTML = `
-          <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
-          <span>Preparando tu certificado...</span>
-        `;
+                  <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin flex-shrink-0"></div>
+                  <span>Preparando tu certificado...</span>
+                `;
+              
 
                 loadingDiv.style.display = "none";
 
