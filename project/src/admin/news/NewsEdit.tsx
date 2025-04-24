@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
+import EstadosFinancierosPdfUploader from '../../components/EstadosFinancierosPdfUploader';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
 import { ImageDisplayOptions, NewsImage, Section } from '../../types/news';
@@ -26,32 +27,30 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         if (news) {
           setTitle(news.title);
           const formattedSections = news.sections.map((section: any, sectionIndex: number) => ({
-            id: section.id || `section-${sectionIndex}-${Date.now()}`, // Asegurar que la sección tenga un id
+            id: section.id || `section-${sectionIndex}-${Date.now()}`,
             images: (section.images || []).map((image: any, imgIndex: number) => ({
               ...image,
-              id: image.id || `image-${sectionIndex}-${imgIndex}-${Date.now()}`, // Generar un id si no existe
+              id: image.id || `image-${sectionIndex}-${imgIndex}-${Date.now()}`,
               displayOptions: {
                 size: image.displayOptions?.size || 'medium',
                 alignment: image.displayOptions?.alignment || 'center',
                 cropMode: image.displayOptions?.cropMode || 'cover',
                 caption: image.displayOptions?.caption,
-                layout: image.displayOptions?.layout || 'vertical',
               },
             })),
             text: section.text || '',
             videoUrl: section.videoUrl || '',
+            pdf: section.pdf ? { url: section.pdf.url, publicId: section.pdf.publicId } : undefined,
           }));
           setSections(formattedSections);
-          console.log('Secciones cargadas:', formattedSections);
           const dateObj = new Date(news.date);
           const formattedDate = dateObj.toISOString().split('T')[0];
           setDate(formattedDate);
           setCategory(news.category);
         }
       } catch (err) {
-        const error = err as Error;
         toast.error('Error al cargar la noticia.');
-        console.error('Error en fetchNews:', error);
+        console.error('Error en fetchNews:', err);
       } finally {
         setLoading(false);
       }
@@ -67,12 +66,11 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         images: [],
         text: '',
         videoUrl: '',
+        pdf: undefined,
       },
     ]);
     setTimeout(() => {
-      if (formRef.current) {
-        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 100);
   };
 
@@ -85,83 +83,91 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
   };
 
   const handleSectionChange = (sectionIndex: number, field: keyof Section, value: any) => {
-    setSections(
-      sections.map((section, index) =>
+    setSections((prevSections) =>
+      prevSections.map((section, index) =>
         index === sectionIndex ? { ...section, [field]: value } : section
       )
     );
   };
 
   const handleUploadImage = async (sectionIndex: number, file: File) => {
-    setUploadingImages((prev) => ({ ...prev, [sectionIndex]: 0 }));
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    const id = Date.now().toString();
+    const blobUrl = URL.createObjectURL(file);
 
-      const response = await fetch(API_ROUTES.UPLOAD_IMAGE, {
+    setSections((prevSections) =>
+      prevSections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              images: [
+                ...section.images,
+                {
+                  id,
+                  url: blobUrl,
+                  publicId: '',
+                  displayOptions: {
+                    size: 'medium',
+                    alignment: 'center',
+                    cropMode: 'cover',
+                    caption: '',
+                  },
+                },
+              ],
+            }
+          : section
+      )
+    );
+
+    setUploadingImages((prev) => ({ ...prev, [sectionIndex]: 0 }));
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(API_ROUTES.UPLOAD_IMAGE, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        let errorMessage = 'Error al subir la imagen a AWS S3';
-        try {
-          const parsedError = JSON.parse(errorData);
-          errorMessage = parsedError.error || errorMessage;
-        } catch (jsonError) {
-          console.error('Respuesta del servidor no es JSON:', errorData);
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
+      const data = await res.json();
+      if (!res.ok) {
         throw new Error(data.error || 'Error al subir la imagen');
       }
-
-      const newImage: NewsImage = {
-        id: Date.now().toString(), // Asegurar que la nueva imagen tenga un id
-        url: data.imageUrl,
-        publicId: data.public_id,
-        displayOptions: {
-          size: 'medium',
-          alignment: 'center',
-          cropMode: 'cover',
-          layout: sections[sectionIndex].images.length > 0 ? 'vertical' : 'vertical',
-        },
-      };
 
       setSections((prevSections) =>
         prevSections.map((section, index) =>
           index === sectionIndex
             ? {
                 ...section,
-                images: [...section.images, newImage],
+                images: section.images.map((image) =>
+                  image.id === id
+                    ? {
+                        ...image,
+                        url: data.imageUrl,
+                        publicId: data.public_id,
+                      }
+                    : image
+                ),
               }
             : section
         )
       );
-
-      console.log('Imagen subida:', newImage.url);
-
-      const fakeProgress = setInterval(() => {
-        setUploadingImages((prev) => {
-          const currentProgress = prev[sectionIndex] || 0;
-          if (currentProgress >= 100) {
-            clearInterval(fakeProgress);
-            return { ...prev, [sectionIndex]: undefined };
-          }
-          return { ...prev, [sectionIndex]: currentProgress + 10 };
-        });
-      }, 200);
     } catch (err) {
-      const error = err as Error;
-      toast.error(error.message || 'Error al subir la imagen.');
-      console.error('Error en handleUploadImage:', error);
+      console.error('Error en handleUploadImage:', err);
+      setSections((prevSections) =>
+        prevSections.map((section, index) =>
+          index === sectionIndex
+            ? {
+                ...section,
+                images: section.images.filter((image) => image.id !== id),
+              }
+            : section
+        )
+      );
+      toast.error('Error al subir la imagen.');
     } finally {
       setUploadingImages((prev) => ({ ...prev, [sectionIndex]: undefined }));
+      URL.revokeObjectURL(blobUrl);
     }
   };
 
@@ -171,7 +177,7 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
         index === sectionIndex
           ? {
               ...section,
-              images: section.images.filter((image) => image.id !== imageId), // Usar id para filtrar
+              images: section.images.filter((image) => image.id !== imageId),
             }
           : section
       )
@@ -193,7 +199,10 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                 image.id === imageId
                   ? {
                       ...image,
-                      displayOptions: { ...image.displayOptions, [setting]: value },
+                      displayOptions: {
+                        ...image.displayOptions,
+                        [setting]: value,
+                      },
                     }
                   : image
               ),
@@ -203,17 +212,11 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     );
   };
 
-  const handleLayoutChange = (sectionIndex: number, layout: 'horizontal' | 'vertical') => {
+  const handlePdfUploaded = (sectionIndex: number, url: string, publicId: string) => {
     setSections((prevSections) =>
       prevSections.map((section, index) =>
         index === sectionIndex
-          ? {
-              ...section,
-              images: section.images.map((image) => ({
-                ...image,
-                displayOptions: { ...image.displayOptions, layout },
-              })),
-            }
+          ? { ...section, pdf: url ? { url, publicId } : undefined }
           : section
       )
     );
@@ -226,18 +229,32 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
       return;
     }
     if (sections.some((section) => section.images.some((image) => image.url.startsWith('blob:')))) {
-      toast.error('Algunas imágenes no se han subido correctamente. Por favor, intenta subirlas nuevamente.');
+      toast.error('Algunas imágenes no se han subido correctamente.');
       return;
     }
     setSubmitting(true);
     try {
-      await NewsService.updateNews(newsId, { title, sections, date, category });
+      const cleanedSections = sections.map((section) => ({
+        text: section.text,
+        videoUrl: section.videoUrl || '',
+        images: section.images.map(({ id, ...image }) => ({
+          url: image.url,
+          publicId: image.publicId || '',
+          displayOptions: {
+            size: image.displayOptions.size || 'medium',
+            alignment: image.displayOptions.alignment || 'center',
+            cropMode: image.displayOptions.cropMode || 'cover',
+            caption: image.displayOptions.caption || '',
+          },
+        })),
+        pdf: section.pdf ? { url: section.pdf.url, publicId: section.pdf.publicId } : undefined,
+      }));
+      await NewsService.updateNews(newsId, { title, sections: cleanedSections, date, category });
       toast.success('Noticia actualizada con éxito!');
       onSuccess();
     } catch (err) {
-      const error = err as Error;
       toast.error('Error al actualizar la noticia.');
-      console.error('Error en handleUpdateNews:', error);
+      console.error('Error en handleUpdateNews:', err);
     } finally {
       setSubmitting(false);
     }
@@ -266,35 +283,39 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             required
           />
         </div>
-
         <div ref={formRef}>
           {sections.map((section, index) => (
             <div
               key={section.id}
               className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
             >
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Sección {index + 1}</h3>
-              {sections.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSection(index)}
-                  className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                >
-                  <X size={20} />
-                </button>
-              )}
-
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-800">Sección {index + 1}</h3>
+                {sections.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSection(index)}
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Eliminar sección"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
               <ImageManager
                 section={section}
                 onUpload={(file) => handleUploadImage(index, file)}
-                onRemoveImage={(imageId) => handleRemoveImage(index, imageId)} // Pasar el id de la imagen
+                onRemoveImage={(imageId) => handleRemoveImage(index, imageId)}
                 onSettingsChange={(imageId, setting, value) =>
                   handleImageSettingsChange(index, imageId, setting, value)
                 }
-                onLayoutChange={(layout) => handleLayoutChange(index, layout)}
                 uploadProgress={uploadingImages[index]}
               />
-
+              <EstadosFinancierosPdfUploader
+                onPdfUploaded={(url, publicId) => handlePdfUploaded(index, url, publicId)}
+                currentPdfUrl={section.pdf?.url}
+                title="Documento PDF (Opcional)"
+              />
               <div className="mt-6">
                 <label className="block text-gray-700 text-sm font-medium mb-2">Texto</label>
                 <textarea
@@ -305,11 +326,12 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
                   required
                 />
               </div>
-
               <div className="mt-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Video URL (Opcional)</label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  URL de Video (Opcional)
+                </label>
                 <input
-                  type="url"
+                  type="text"
                   value={section.videoUrl || ''}
                   onChange={(e) => handleSectionChange(index, 'videoUrl', e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
@@ -319,16 +341,16 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             </div>
           ))}
         </div>
-
-        <button
-          type="button"
-          onClick={handleAddSection}
-          className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-        >
-          <Plus size={18} className="mr-1" />
-          Agregar otra sección
-        </button>
-
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={handleAddSection}
+            className="flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <Plus size={20} className="mr-2" />
+            Agregar Sección
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">Fecha</label>
@@ -349,22 +371,23 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
             >
               <option value="General">General</option>
               <option value="Académico">Académico</option>
-              <option value="Cultural">Cultural</option>
+              <option value="Cultura">Cultura</option>
+              <option value="Deportes">Deportes</option>
+              <option value="Eventos">Eventos</option>
             </select>
           </div>
         </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`w-full py-3 rounded-lg font-medium transition-all ${
-            submitting
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          {submitting ? 'Actualizando...' : 'Actualizar Noticia'}
-        </button>
+        <div className="flex justify-end space-x-4">
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`px-6 py-3 rounded-lg text-white font-medium transition-colors ${
+              submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {submitting ? 'Actualizando...' : 'Actualizar Noticia'}
+          </button>
+        </div>
       </form>
     </motion.div>
   );

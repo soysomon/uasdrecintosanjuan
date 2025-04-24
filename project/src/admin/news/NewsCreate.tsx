@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
+import EstadosFinancierosPdfUploader from '../../components/EstadosFinancierosPdfUploader';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
 import { Section, NewsImage, ImageDisplayOptions } from '../../types/news';
@@ -15,6 +16,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       images: [],
       text: '',
       videoUrl: '',
+      pdf: undefined,
     },
   ]);
   const [date, setDate] = useState('');
@@ -31,12 +33,11 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
         images: [],
         text: '',
         videoUrl: '',
+        pdf: undefined,
       },
     ]);
     setTimeout(() => {
-      if (formRef.current) {
-        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 100);
   };
 
@@ -49,97 +50,91 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   };
 
   const handleSectionChange = (sectionId: string, field: keyof Section, value: any) => {
-    setSections(
-      sections.map((section) =>
+    setSections((prevSections) =>
+      prevSections.map((section) =>
         section.id === sectionId ? { ...section, [field]: value } : section
       )
     );
   };
 
   const handleUploadImage = async (sectionId: string, file: File) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Solo se permiten imágenes (JPEG, PNG, GIF, WEBP).');
-      return;
-    }
+    const id = Date.now().toString();
+    const blobUrl = URL.createObjectURL(file);
 
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    if (file.size > maxSize) {
-      toast.error('La imagen es demasiado grande. El tamaño máximo es 20MB.');
-      return;
-    }
-
-    console.log('File size before upload:', file.size, 'bytes');
-    console.log('File type:', file.type);
+    setSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              images: [
+                ...section.images,
+                {
+                  id,
+                  url: blobUrl,
+                  publicId: '',
+                  displayOptions: {
+                    size: 'medium',
+                    alignment: 'center',
+                    cropMode: 'cover',
+                    caption: '',
+                  },
+                },
+              ],
+            }
+          : section
+      )
+    );
 
     setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
 
-      const response = await fetch(API_ROUTES.UPLOAD_IMAGE, {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(API_ROUTES.UPLOAD_IMAGE, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        let errorMessage = 'Error al subir la imagen a AWS S3';
-        try {
-          const parsedError = JSON.parse(errorData);
-          errorMessage = parsedError.error || errorMessage;
-        } catch (jsonError) {
-          console.error('Respuesta del servidor no es JSON:', errorData);
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      console.log('Upload successful. S3 URL:', data.imageUrl);
-
-      if (!data.success) {
+      const data = await res.json();
+      if (!res.ok) {
         throw new Error(data.error || 'Error al subir la imagen');
       }
-
-      const newImage: NewsImage = {
-        id: Date.now().toString(),
-        url: data.imageUrl,
-        publicId: data.public_id,
-        displayOptions: {
-          size: 'medium',
-          alignment: 'center',
-          cropMode: 'cover',
-          caption: '',
-        },
-      };
 
       setSections((prevSections) =>
         prevSections.map((section) =>
           section.id === sectionId
             ? {
                 ...section,
-                images: [...section.images, newImage],
+                images: section.images.map((image) =>
+                  image.id === id
+                    ? {
+                        ...image,
+                        url: data.imageUrl,
+                        publicId: data.public_id,
+                      }
+                    : image
+                ),
               }
             : section
         )
       );
-
-      const fakeProgress = setInterval(() => {
-        setUploadingImages((prev) => {
-          const currentProgress = prev[sectionId] || 0;
-          if (currentProgress >= 100) {
-            clearInterval(fakeProgress);
-            return { ...prev, [sectionId]: undefined };
-          }
-          return { ...prev, [sectionId]: currentProgress + 10 };
-        });
-      }, 200);
     } catch (err) {
-      const error = err as Error;
-      toast.error(error.message || 'Error al subir la imagen.');
-      console.error('Error en handleUploadImage:', error);
+      console.error('Error en handleUploadImage:', err);
+      setSections((prevSections) =>
+        prevSections.map((section) =>
+          section.id === sectionId
+            ? {
+                ...section,
+                images: section.images.filter((image) => image.id !== id),
+              }
+            : section
+        )
+      );
+      toast.error('Error al subir la imagen.');
     } finally {
       setUploadingImages((prev) => ({ ...prev, [sectionId]: undefined }));
+      URL.revokeObjectURL(blobUrl);
     }
   };
 
@@ -171,11 +166,24 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
                 image.id === imageId
                   ? {
                       ...image,
-                      displayOptions: { ...image.displayOptions, [setting]: value },
+                      displayOptions: {
+                        ...image.displayOptions,
+                        [setting]: value,
+                      },
                     }
                   : image
               ),
             }
+          : section
+      )
+    );
+  };
+
+  const handlePdfUploaded = (sectionId: string, url: string, publicId: string) => {
+    setSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? { ...section, pdf: url ? { url, publicId } : undefined }
           : section
       )
     );
@@ -188,7 +196,7 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       return;
     }
     if (sections.some((section) => section.images.some((image) => image.url.startsWith('blob:')))) {
-      toast.error('Algunas imágenes no se han subido correctamente. Por favor, intenta subirlas nuevamente.');
+      toast.error('Algunas imágenes no se han subido correctamente.');
       return;
     }
     setSubmitting(true);
@@ -206,27 +214,20 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
             caption: image.displayOptions.caption || '',
           },
         })),
+        pdf: section.pdf ? { url: section.pdf.url, publicId: section.pdf.publicId } : undefined,
       }));
 
-      const newsData = {
-        title,
-        sections: cleanedSections,
-        date,
-        category,
-      };
-
-      console.log('Datos enviados al backend:', JSON.stringify(newsData, null, 2));
+      const newsData = { title, sections: cleanedSections, date, category };
       await NewsService.createNews(newsData);
       toast.success('Noticia publicada con éxito!');
       onSuccess();
       setTitle('');
-      setSections([{ id: Date.now().toString(), images: [], text: '', videoUrl: '' }]);
+      setSections([{ id: Date.now().toString(), images: [], text: '', videoUrl: '', pdf: undefined }]);
       setDate('');
       setCategory('General');
     } catch (err) {
-      const error = err as Error;
       toast.error('Error al publicar la noticia.');
-      console.error('Error en handleAddNews:', error);
+      console.error('Error en handleAddNews:', err);
     } finally {
       setSubmitting(false);
     }
@@ -253,24 +254,25 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
             required
           />
         </div>
-
         <div ref={formRef}>
           {sections.map((section) => (
             <div
               key={section.id}
               className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
             >
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Sección</h3>
-              {sections.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSection(section.id)}
-                  className="absolute top-4 right-4 text-red-500 hover:text-red-700"
-                >
-                  <X size={20} />
-                </button>
-              )}
-
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-800">Sección</h3>
+                {sections.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSection(section.id)}
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Eliminar sección"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
               <ImageManager
                 section={section}
                 onUpload={(file) => handleUploadImage(section.id, file)}
@@ -280,7 +282,11 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
                 }
                 uploadProgress={uploadingImages[section.id]}
               />
-
+              <EstadosFinancierosPdfUploader
+                onPdfUploaded={(url, publicId) => handlePdfUploaded(section.id, url, publicId)}
+                currentPdfUrl={section.pdf?.url}
+                title="Documento PDF (Opcional)"
+              />
               <div className="mt-6">
                 <label className="block text-gray-700 text-sm font-medium mb-2">Texto</label>
                 <textarea
@@ -291,11 +297,12 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
                   required
                 />
               </div>
-
               <div className="mt-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Video URL (Opcional)</label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  URL de Video (Opcional)
+                </label>
                 <input
-                  type="url"
+                  type="text"
                   value={section.videoUrl || ''}
                   onChange={(e) => handleSectionChange(section.id, 'videoUrl', e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
@@ -305,16 +312,16 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
             </div>
           ))}
         </div>
-
-        <button
-          type="button"
-          onClick={handleAddSection}
-          className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-        >
-          <Plus size={18} className="mr-1" />
-          Agregar otra sección
-        </button>
-
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={handleAddSection}
+            className="flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <Plus size={20} className="mr-2" />
+            Agregar Sección
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">Fecha</label>
@@ -335,22 +342,23 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
             >
               <option value="General">General</option>
               <option value="Académico">Académico</option>
-              <option value="Cultural">Cultural</option>
+              <option value="Cultura">Cultura</option>
+              <option value="Deportes">Deportes</option>
+              <option value="Eventos">Eventos</option>
             </select>
           </div>
         </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`w-full py-3 rounded-lg font-medium transition-all ${
-            submitting
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          {submitting ? 'Publicando...' : 'Publicar Noticia'}
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`px-6 py-3 rounded-lg text-white font-medium transition-colors ${
+              submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {submitting ? 'Publicando...' : 'Publicar Noticia'}
+          </button>
+        </div>
       </form>
     </motion.div>
   );
