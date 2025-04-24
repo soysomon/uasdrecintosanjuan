@@ -82,23 +82,23 @@ export const buscarEstudianteLogic = () => {
       `;
 
             toast.success("Consulta exitosa. ¡Eres estudiante meritorio!");
-
             downloadButton.style.display = "block";
             downloadButton.innerHTML = "Descargar Certificado";
             downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-300";
             downloadButton.disabled = false;
-
+            
             downloadButton.onclick = () => {
                 downloadButton.disabled = true;
-                downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center gap-3";
+                downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center";
                 downloadButton.innerHTML = `
-                  <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin flex-shrink-0"></div>
-                  <span>Preparando tu certificado...</span>
+                    <div class="flex items-center justify-center gap-2 w-full">
+                        <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
+                        <span>Preparando tu certificado...</span>
+                    </div>
                 `;
-              
-
+                
                 loadingDiv.style.display = "none";
-
+            
                 jsonp(
                     `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
                     (certData) => {
