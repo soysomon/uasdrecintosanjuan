@@ -136,9 +136,10 @@ export default function MeritoriosPage() {
                         </button>
 
                         {/* Loader animado más pequeño y centrado */}
+
                         <div id="loading" className="hidden flex-col items-center justify-center w-full mt-4">
-                            <div className="w-12 h-12 border-[6px] border-blue-100 border-t-blue-800 border-r-blue-600 animate-spin rounded-full mb-3 shadow-xl"></div>
-                            <p className="text-blue-900 text-lg animate-pulse">Consultando datos...</p>  
+                            <div className="w-10 h-10 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-2"></div>
+                            <p className="text-blue-900 text-lg animate-pulse">Consultando Datos...</p>  
                         </div>
 
                         {/* Contenedor para resultados animados */}
