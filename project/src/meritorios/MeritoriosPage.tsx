@@ -45,7 +45,8 @@ export default function MeritoriosPage() {
     >
       <div className="flex flex-col mb-2">
         <motion.h1
-          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-blue-800 leading-tight"
+          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
+          style={{ color: "#234880" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
@@ -53,7 +54,7 @@ export default function MeritoriosPage() {
           ¡Descubre si eres
         </motion.h1>
         <motion.span
-          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold text-yellow-400 drop-shadow"
+          className="text-4xl sm:text-4xl lg:text-5xl font-extrabold text-yellow-400 leading-tight "
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
