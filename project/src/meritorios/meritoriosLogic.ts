@@ -112,19 +112,32 @@ export const buscarEstudianteLogic = () => {
 
                         if (certData.pdfUrl) {
                             downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-md shadow-md";
-                            downloadButton.innerText = "¡Certificado listo!";
+                            downloadButton.innerText = "¡Certificado listo! Abriendo en 3...";
                             toast.success("Certificado entregado exitosamente.");
-                            window.open(certData.pdfUrl, "_blank");
-
+                            
+                            // Cuenta regresiva 3, 2, 1 antes de abrir el certificado
+                            let countdown = 3;
+                            
+                            const countdownInterval = setInterval(() => {
+                                countdown -= 1;
+                                if (countdown > 0) {
+                                    downloadButton.innerText = `¡Certificado listo! Abriendo en ${countdown}...`;
+                                } else {
+                                    clearInterval(countdownInterval);
+                                    downloadButton.innerText = "¡Abriendo certificado!";
+                                    window.open(certData.pdfUrl, "_blank");
+                                }
+                            }, 1000);
+                        
                             downloadLink.href = certData.pdfUrl;
                             downloadLink.style.display = "block";
                             downloadLink.innerText = "Descargar nuevamente";
-
+                        
                             setTimeout(() => {
                                 downloadButton.disabled = false;
                                 downloadButton.innerHTML = "Descargar Certificado";
                                 downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md";
-                            }, 2000);
+                            }, 4000); // Aumentado a 4 segundos para dar tiempo a la cuenta regresiva
                         }
                     }
                 );
