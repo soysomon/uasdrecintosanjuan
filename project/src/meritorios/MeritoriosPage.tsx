@@ -38,47 +38,47 @@ export default function MeritoriosPage() {
             <section className="main-content w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center pb-9">
                 {/* Info & Consulta */}
                 <motion.div
-                    className="flex-1 flex flex-col items-start justify-center px-4 lg:px-2 py-5"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className="flex flex-col mb-2">
-                        <motion.h1
-                            className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-blue-800 leading-tight"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2, duration: 0.8 }}
-                        >
-                            ¡Descubre si eres
-                        </motion.h1>
-                        <motion.span
-                            className="text-3xl sm:text-4xl lg:text-5xl font-black text-yellow-400 drop-shadow"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4, duration: 0.8 }}
-                        >
-                            Estudiante Meritorio
-                        </motion.span>
-                    </div>
+      className="flex-1 flex flex-col items-start justify-center px-4 lg:px-2 py-5"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="flex flex-col mb-2">
+        <motion.h1
+          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-blue-800 leading-tight"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+        >
+          ¡Descubre si eres
+        </motion.h1>
+        <motion.span
+          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-yellow-400 drop-shadow"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+        >
+          Estudiante Meritorio
+        </motion.span>
+      </div>
 
-                    <motion.div
-                        className="flex gap-2 items-end mb-3"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                    >
-                        <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-red-500 leading-none">2024-20</span>
-                    </motion.div>
+      <motion.div
+        className="flex gap-2 items-end mb-3"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <span className="text-6xl sm:text-7xl lg:text-8xl font-extrabold text-red-500 leading-none">2024-20</span>
+      </motion.div>
 
-                    <motion.p
-                        className="text-blue-500 mb-6 font-medium max-w-lg"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.7, duration: 0.8 }}
-                    >
-                        Ingresa tu matrícula y conoce si formas parte de la lista de excelencia académica <b>UASD</b>.
-                    </motion.p>
+      <motion.p
+        className="text-blue-500 mb-6 font-medium max-w-lg text-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.8 }}
+      >
+        Ingresa tu matrícula y conoce si formas parte de la lista de excelencia académica <b>UASD</b>.
+      </motion.p>
 
                     {/* Formulario consulta */}
                     <motion.form
@@ -116,8 +116,8 @@ export default function MeritoriosPage() {
 
                         {/* Loader animado más pequeño y centrado */}
                         <div id="loading" className="hidden flex-col items-center justify-center w-full mt-4">
-                        <div className="w-16 h-16 border-[6px] border-blue-100 border-t-blue-800 border-r-blue-600 animate-spin rounded-full mb-3 shadow-xl"></div>
-                        <p className="font-bold text-blue-600 text-lg animate-pulse">Consultando Estudiante...</p>
+                        <div className="w-12 h-12 border-[6px] border-blue-100 border-t-blue-800 border-r-blue-600 animate-spin rounded-full mb-3 shadow-xl"></div>
+                        <p className="text-blue-900 text-lg animate-pulse">Consultando datos...</p>  
                         </div>
 
                         {/* Contenedor para resultados animados */}
