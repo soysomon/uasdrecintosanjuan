@@ -70,12 +70,13 @@ export const buscarEstudianteLogic = () => {
     if (data.encontrado) {
       resultadoDiv.className = "resultado exito";
       resultadoDiv.innerHTML = `
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-900 p-4 rounded-xl shadow-md space-y-2">
-          <h3 class="text-lg font-extrabold">¡Felicidades! Eres estudiante meritorio</h3>
-          <p><strong>Nombre:</strong> ${data.nombre}</p>
-          <p><strong>Índice:</strong> ${data.indice}</p>
-          <p><strong>Facultad:</strong> ${data.facultad}</p>
+       <div class="bg-green-100 border-l-4 border-green-500 text-green-900 p-4 rounded-xl shadow-md space-y-2">
+        <h3 class="text-lg font-extrabold">¡Felicidades! Eres estudiante meritorio</h3>
+        <p><strong>Nombre:</strong> ${data.nombre}</p>
+        <p><strong>Índice:</strong> ${data.indice}</p>
+        <p><strong>Facultad:</strong> ${data.facultad}</p>
         </div>
+
       `;
 
       toast.success("Consulta exitosa. ¡Eres estudiante meritorio!");
@@ -109,7 +110,7 @@ export const buscarEstudianteLogic = () => {
             if (certData.pdfUrl) {
               downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md";
               downloadButton.innerText = "¡Certificado listo!";
-              toast.success("Certificado generado exitosamente.");
+              toast.success("Certificado entregado exitosamente.");
               window.open(certData.pdfUrl, "_blank");
 
               downloadLink.href = certData.pdfUrl;
@@ -128,9 +129,9 @@ export const buscarEstudianteLogic = () => {
     } else {
       resultadoDiv.className = "resultado error";
       resultadoDiv.innerHTML = `
-        <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-lg shadow-sm">
-          <h3 class="text-lg font-bold mb-1">Estudiante no encontrado</h3>
-          <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista.</p>
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-sm" style="color: #8B0000;">
+        <h3 class="text-lg font-bold mb-1">Estudiante no encontrado</h3>
+        <p>La matrícula <strong>${matricula}</strong> no aparece en nuestra lista.</p>
         </div>
       `;
       toast.error("Estudiante no encontrado.");
