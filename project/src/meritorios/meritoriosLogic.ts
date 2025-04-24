@@ -17,7 +17,7 @@ export const buscarEstudianteLogic = () => {
     const matricula = matriculaInput.value.trim();
 
     if (!matricula) {
-        toast.info("Por favor, ingresa una matrícula válida.");
+        toast.warning("Por favor, ingresa una matrícula válida.");
         return;
     }
 
@@ -73,21 +73,12 @@ export const buscarEstudianteLogic = () => {
             // Aplicar estilos de éxito similar a la imagen 3
             resultadoDiv.className = "resultado exito p-4 bg-green-50 border-l-4 border-green-500 rounded-md";
             resultadoDiv.innerHTML = `
-          <div>
-        <h3 className="text-xl font-extrabold text-green-700">¡Felicidades! Eres estudiante meritorio</h3>
-        <p className="mt-2">
-          <strong className="text-green-700">Nombre:</strong>{" "}
-          <span className="text-green-700">{data.nombre}</span>
-        </p>
-        <p>
-          <strong className="text-green-700">Índice:</strong>{" "}
-          <span className="text-green-700">{data.indice}</span>
-        </p>
-        <p>
-          <strong className="text-green-700">Facultad:</strong>{" "}
-          <span className="text-green-700">{data.facultad}</span>
-        </p>
-      </div>
+         <div>
+                <h3 class="text-xl font-extrabold text-green-700">¡Felicidades! Eres estudiante meritorio</h3>
+                <p class="mt-2"><strong class="text-green-700">Nombre:</strong> <span class="text-green-700">${data.nombre}</span></p>
+                <p><strong class="text-green-700">Índice:</strong> <span class="text-green-700">${data.indice}</span></p>
+                <p><strong class="text-green-700">Facultad:</strong> <span class="text-green-700">${data.facultad}</span></p>
+            </div>
       `;
 
             toast.success("Consulta exitosa. ¡Eres estudiante meritorio!");
