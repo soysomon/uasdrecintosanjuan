@@ -91,66 +91,85 @@ export const buscarEstudianteLogic = () => {
             </div>
       `;
 
-            toast.success("Consulta exitosa. ¡Eres estudiante meritorio!");
-            downloadButton.style.display = "block";
-            downloadButton.innerHTML = "Descargar Certificado";
-            downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-300";
-            downloadButton.disabled = false;
-            
-            downloadButton.onclick = () => {
-                downloadButton.disabled = true;
-                downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center";
-                downloadButton.innerHTML = `
-                    <div class="flex items-center justify-center gap-2 w-full">
-                        <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
-                        <span>Preparando tu certificado...</span>
-                    </div>
-                `;
-                
-                loadingDiv.style.display = "none";
-            
-                jsonp(
-                    `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
-                    (certData) => {
-                        if (certData.error) {
-                            downloadButton.disabled = false;
-                            downloadButton.innerText = "Reintentar Descarga";
-                            downloadButton.className = "w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-md shadow-md";
-                            toast.error("Error al generar el certificado.");
-                            return;
-                        }
-
-                        if (certData.pdfUrl) {
-                            downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-md shadow-md";
-                            downloadButton.innerText = "¡Certificado listo! Abriendo en 3...";
-                            toast.success("Certificado entregado exitosamente.");
-                            
-                            // Cuenta regresiva 3, 2, 1 antes de abrir el certificado
-                            let countdown = 3;
-                            
-                            const countdownInterval = setInterval(() => {
-                                countdown -= 1;
-                                if (countdown > 0) {
-                                    downloadButton.innerText = `¡Certificado listo! Abriendo en ${countdown}...`;
-                                } else {
-                                    clearInterval(countdownInterval);
-                                    downloadButton.innerText = "¡Abriendo certificado!";
-                                    window.open(certData.pdfUrl, "_blank");
-                                }
-                            }, 1000);
-                        
-                            downloadLink.href = certData.pdfUrl;
-                            downloadLink.style.display = "block";
-                            downloadLink.innerText = "Descargar nuevamente";
-                        
-                            setTimeout(() => {
-                                downloadButton.disabled = false;
-                                downloadButton.innerHTML = "Descargar Certificado";
-                                downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md";
-                            }, 4000); // Aumentado a 4 segundos para dar tiempo a la cuenta regresiva
-                        }
-                    }
-                );
+      toast.success("Consulta exitosa. ¡Eres estudiante meritorio!");
+      downloadButton.style.display = "block";
+      downloadButton.innerHTML = "Descargar Certificado";
+      downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-300";
+      downloadButton.disabled = false;
+      
+      downloadButton.onclick = () => {
+          downloadButton.disabled = true;
+          downloadButton.className = "w-full mt-4 bg-red-600 text-white font-bold py-3 rounded-md shadow-md flex items-center justify-center";
+          downloadButton.innerHTML = `
+              <div class="flex items-center justify-center gap-2 w-full">
+                  <div class="w-5 h-5 border-2 border-white border-l-transparent rounded-full animate-spin"></div>
+                  <span>Preparando tu certificado...</span>
+              </div>
+          `;
+          
+          loadingDiv.style.display = "none";
+      
+          // Crear una referencia a una ventana que abriremos más tarde
+          let certificadoWindow = null;
+      
+          jsonp(
+              `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre)}&indice=${encodeURIComponent(data.indice)}&facultad=${encodeURIComponent(data.facultad)}`,
+              (certData) => {
+                  if (certData.error) {
+                      downloadButton.disabled = false;
+                      downloadButton.innerText = "Reintentar Descarga";
+                      downloadButton.className = "w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-md shadow-md";
+                      toast.error("Error al generar el certificado.");
+                      return;
+                  }
+      
+                  if (certData.pdfUrl) {
+                      downloadButton.className = "w-full mt-4 bg-green-600 text-white font-bold py-3 rounded-md shadow-md";
+                      downloadButton.innerText = "¡Certificado listo! Abriendo en 3...";
+                      toast.success("Certificado entregado exitosamente.");
+                      
+                      // Cuenta regresiva 3, 2, 1 antes de abrir el certificado
+                      let countdown = 3;
+                      
+                      const countdownInterval = setInterval(() => {
+                          countdown -= 1;
+                          if (countdown > 0) {
+                              downloadButton.innerText = `¡Certificado listo! Abriendo en ${countdown}...`;
+                          } else {
+                              clearInterval(countdownInterval);
+                              downloadButton.innerText = "¡Abriendo certificado!";
+                              
+                              // Método mejorado para abrir el PDF
+                              downloadButton.innerText = "Haz clic aquí para ver el certificado";
+                              downloadButton.disabled = false;
+                              
+                              // Convertir el botón en un enlace directo al certificado
+                              downloadButton.onclick = (e) => {
+                                  e.preventDefault();
+                                  // Crear nueva ventana con nombre específico para evitar bloqueo
+                                  certificadoWindow = window.open('about:blank', 'certificado_meritorio');
+                                  if (certificadoWindow) {
+                                      certificadoWindow.location.href = certData.pdfUrl;
+                                  } else {
+                                      // Si falla, intentar como enlace de descarga
+                                      window.location.href = certData.pdfUrl;
+                                  }
+                              };
+                          }
+                      }, 1000);
+                  
+                      downloadLink.href = certData.pdfUrl;
+                      downloadLink.style.display = "block";
+                      downloadLink.innerText = "Descargar nuevamente";
+                      
+                      setTimeout(() => {
+                          downloadButton.disabled = false;
+                          downloadButton.innerHTML = "Ver Certificado";
+                          downloadButton.className = "w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md";
+                      }, 4000);
+                  }
+              }
+          );
             };
         } else {
             // Aplicar estilos de error para estudiante no encontrado
