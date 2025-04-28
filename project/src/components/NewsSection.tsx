@@ -91,10 +91,7 @@ const NewsSection: React.FC = () => {
   const regularNews = currentItems.length > 1 ? currentItems.slice(1) : [];
 
   const formatDate = (dateString: string) => {
-    // Parseamos la fecha manteniendo el día exacto que viene de la base de datos
     const [year, month, day] = dateString.split('T')[0].split('-');
-    
-    // Creamos objeto Date con día específico en zona horaria local, fijando la hora a mediodía
     return new Date(`${year}-${month}-${day}T12:00:00`).toLocaleDateString('es-DO', {
       year: 'numeric',
       month: 'long',
@@ -145,27 +142,51 @@ const NewsSection: React.FC = () => {
   };
 
   const getPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
+    const pages: (number | string)[] = [];
+    const milestoneInterval = 10; // Show pages at intervals of 10 (e.g., 10, 20, 30...)
+    
+    // Always include the first page
+    pages.push(1);
 
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
+    // Calculate milestone pages (e.g., 10, 20, 30...)
+    let milestone = milestoneInterval;
+    while (milestone <= totalPages) {
+      if (milestone !== 1 && milestone !== totalPages) {
+        // Add milestone if it's not the first or last page
+        if (Math.abs(milestone - currentPage) <= 5 || milestone % 10 === 0) {
+          pages.push(milestone);
+        }
       }
-    } else {
-      let startPage = Math.max(1, currentPage - 2);
-      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      milestone += milestoneInterval;
+    }
 
-      if (endPage - startPage < maxPagesToShow - 1) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
+    // Add pages around the current page
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(totalPages - 1, currentPage + 2);
+    for (let i = startPage; i <= endPage; i++) {
+      if (!pages.includes(i)) {
         pages.push(i);
       }
     }
 
-    return pages;
+    // Always include the last page if there are more than 1 page
+    if (totalPages > 1 && !pages.includes(totalPages)) {
+      pages.push(totalPages);
+    }
+
+    // Sort pages numerically
+    const sortedPages = [...new Set(pages.filter(p => typeof p === 'number'))].sort((a, b) => Number(a) - Number(b));
+
+    // Add ellipses between non-consecutive pages
+    const finalPages: (number | string)[] = [];
+    for (let i = 0; i < sortedPages.length; i++) {
+      finalPages.push(sortedPages[i]);
+      if (i < sortedPages.length - 1 && sortedPages[i + 1] - sortedPages[i] > 1) {
+        finalPages.push('...');
+      }
+    }
+
+    return finalPages;
   };
 
   return (
@@ -349,20 +370,29 @@ const NewsSection: React.FC = () => {
                     <ChevronLeft size={20} />
                   </button>
 
-                  {getPageNumbers().map(number => (
-                    <button
-                      key={number}
-                      onClick={() => goToPage(number)}
-                      className={`flex items-center justify-center w-10 h-10 text-sm font-serif transition-colors ${
-                        currentPage === number
-                          ? 'bg-gray-900 text-white'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                      aria-label={`Ir a página ${number}`}
-                      aria-current={currentPage === number ? 'page' : undefined}
-                    >
-                      {number}
-                    </button>
+                  {getPageNumbers().map((number, index) => (
+                    typeof number === 'number' ? (
+                      <button
+                        key={index}
+                        onClick={() => goToPage(number)}
+                        className={`flex items-center justify-center w-10 h-10 text-sm font-serif transition-colors ${
+                          currentPage === number
+                            ? 'bg-gray-900 text-white'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                        aria-label={`Ir a página ${number}`}
+                        aria-current={currentPage === number ? 'page' : undefined}
+                      >
+                        {number}
+                      </button>
+                    ) : (
+                      <span
+                        key={index}
+                        className="flex items-center justify-center w-10 h-10 text-sm font-serif text-gray-600"
+                      >
+                        {number}
+                      </span>
+                    )
                   ))}
 
                   <button
