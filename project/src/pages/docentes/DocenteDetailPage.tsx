@@ -212,7 +212,7 @@ const DocenteDetailPage: React.FC = () => {
             
             {/* Sección de Idiomas */}
             {docente.idiomas && docente.idiomas.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-7">
                 <SectionTitle>Idiomas</SectionTitle>
                 <div className="text-gray-700">
                   {docente.idiomas.join(' • ')}
