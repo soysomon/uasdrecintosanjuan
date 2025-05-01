@@ -292,24 +292,6 @@ const DocenteDetailPage: React.FC = () => {
               </div>
             )}
             
-            {/* Investigaciones Destacadas (sección adicional) */}
-            <div className="bg-gray-100 rounded-lg p-6 mt-6">
-              <SectionTitle>Investigaciones Destacadas</SectionTitle>
-              <ul className="list-none space-y-3">
-                <li className="flex items-start">
-                  <span className="mr-2">—</span>
-                  <span className="text-gray-700">Matemáticas Aplicadas en entornos educativos</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">—</span>
-                  <span className="text-gray-700">Modelos predictivos para ciencias sociales</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">—</span>
-                  <span className="text-gray-700">Investigación en metodologías de enseñanza</span>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
