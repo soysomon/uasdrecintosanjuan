@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import ReactGA from 'react-ga4'; // Importa react-ga4
 import MainLayout from './components/MainLayout';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
@@ -35,21 +36,33 @@ import NotFoundPage from './pages/NotFoundPage';
 import InnovacionesEducativas from './components/Innovations';
 import Frequentquestions from './components/frequentquestions';
 import { ContactosPage } from './components/Contact';
-import MeritoriosPage from './meritorios/MeritoriosPage'; // Updated import path
+import MeritoriosPage from './meritorios/MeritoriosPage';
 import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
+
+// Inicializa Google Analytics con el ID de medición
+ReactGA.initialize('G-VH9JTLWD6Z');
+
+// Componente para rastrear cambios de página
+const TrackPageViews = () => {
+  const location = useLocation();
+  useEffect(() => {
+    // Rastrear la vista de página con la ruta actual
+    ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
+  }, [location]);
+  return null;
+};
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <TrackPageViews /> {/* Agrega el componente de rastreo */}
         <Routes>
-          {/* Rutas con Navigation, QuickNav y Footer */}
           <Route element={<MainLayout />}>
-            {/* Rutas públicas */}
             <Route path="/" element={<HomePage />} />
             <Route path="/noticias" element={<NewsPage />} />
             <Route path="/noticias/:id" element={<NewsDetailPage />} />
@@ -79,8 +92,6 @@ function App() {
             <Route path="/contacto" element={<ContactosPage />} />
             <Route path="/meritorios" element={<MeritoriosPage />} />
             <Route path="*" element={<NotFoundPage />} />
-
-            {/* Rutas protegidas para admin */}
             <Route
               path="/admin-panel"
               element={
@@ -121,7 +132,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            {/* Ruta protegida solo para superadmin */}
             <Route
               path="/admin/users"
               element={
@@ -130,7 +140,6 @@ function App() {
                 </SuperAdminRoute>
               }
             />
-            {/* Ruta de acceso denegado */}
             <Route
               path="/unauthorized"
               element={
@@ -143,8 +152,6 @@ function App() {
               }
             />
           </Route>
-
-          {/* Ruta sin Navigation, QuickNav ni Footer */}
           <Route path="/admin-login" element={<AdminLoginPage />} />
         </Routes>
       </BrowserRouter>
