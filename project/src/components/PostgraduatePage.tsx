@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Search, Clock, GraduationCap, Building2, ArrowRight, BookOpen, X } from 'lucide-react';
 
 interface Program {
@@ -9,306 +9,71 @@ interface Program {
   credits: number;
   description: string;
   imageUrl: string;
-  status?: 'active' | 'coming-soon';
+  status: 'active' | 'development' | 'coming-soon';
+  period: string;
 }
 
 const programs: Program[] = [
-  // Facultad de Educación
-  {
-    id: 'gestion-centros-educativos',
-    title: 'Maestría en Gestión de Centros Educativos',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Formación especializada en gestión y administración educativa',
-    imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655'
-  },
-  {
-    id: 'orientacion-educativa',
-    title: 'Maestría en Orientación Educativa e Intervención Psicopedagógica',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en orientación y apoyo psicopedagógico',
-    imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7'
-  },
-  {
-    id: 'geografia-maestros',
-    title: 'Maestría en Geografía para Maestros',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en enseñanza de la geografía',
-    imageUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b'
-  },
-  {
-    id: 'procesos-pedagogicos',
-    title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en educación infantil',
-    imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b'
-  },
-  {
-    id: 'gestion-educacion-fisica',
-    title: 'Maestría en Gestión de la Educación Física y Deporte',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en gestión deportiva y educación física',
-    imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e'
-  },
-  {
-    id: 'matematica-docentes',
-    title: 'Maestría en Matemática para Docentes',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en enseñanza de las matemáticas',
-    imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904'
-  },
-  {
-    id: 'quimica-docentes',
-    title: 'Maestría en Química para Docentes',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en enseñanza de la química',
-    imageUrl: 'https://images.unsplash.com/photo-1532634993-15f421e42ec0'
-  },
-  {
-    id: 'educacion-afectivo-sexual',
-    title: 'Maestría en Educación Afectivo Sexual, basada en habilidades para la vida',
-    faculty: 'Ciencias de la Educación',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en educación sexual y afectiva',
-    imageUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846'
-  },
-  {
-    id: 'lengua-espanola',
-    title: 'Especialidad en Lengua Española y Literatura del Nivel Secundario',
-    faculty: 'Ciencias de la Educación',
-    duration: '1 año',
-    credits: 30,
-    description: 'Especialización en enseñanza de lengua y literatura',
-    imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667'
-  },
+  // Programas de Maestrías que se imparten
+  { id: 'orientacion-educativa-2021', title: 'Maestría en Orientación Educativa e Intervención Psicopedagógica', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Formación en orientación y apoyo psicopedagógico', imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7', status: 'active', period: '2021-2023' },
+  { id: 'linguistica-espanol-2021', title: 'Maestría en Lingüística Aplicada a la Enseñanza del Español', faculty: 'Humanidades', duration: '2 años', credits: 60, description: 'Enseñanza avanzada del español, financiada por INAFOCAM', imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667', status: 'active', period: '2021-2023' },
+  { id: 'salud-publica-2020', title: 'Maestría en Salud Pública', faculty: 'Ciencias de la Salud', duration: '2 años', credits: 60, description: 'Especialización en salud pública', imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d', status: 'active', period: '2020-2022' },
+  { id: 'procesos-pedagogicos-2021', title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de educación infantil', imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b', status: 'active', period: '2021-2023' },
+  { id: 'quimica-docentes-2021', title: 'Maestría en Química para Docentes', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de química, financiada por INAFOCAM', imageUrl: 'https://images.unsplash.com/photo-1532634993-15f421e42ec0', status: 'active', period: '2021-2023' },
+  { id: 'matematica-educadores-2018', title: 'Maestría en Matemática para Educadores', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de matemáticas', imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904', status: 'active', period: '2018-2020' },
+  { id: 'gestion-centros-2019', title: 'Maestría en Gestión de Centros', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de centros educativos', imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655', status: 'active', period: '2019-2021' },
+  { id: 'gestion-educacion-fisica-2019', title: 'Maestría en Gestión de la Educación Física', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de educación física', imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e', status: 'active', period: '2019-2021' },
+  { id: 'gerencia-financiera-2020', title: 'Maestría en Gerencia Financiera', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Gestión financiera avanzada', imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40', status: 'active', period: '2020-2022' },
+  { id: 'derecho-constitucional-2020', title: 'Maestría en Derecho Constitucional y Procesal Penal', faculty: 'Ciencias Jurídicas', duration: '2 años', credits: 60, description: 'Especialización en derecho constitucional', imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb', status: 'active', period: '2020-2022' },
 
-  // Facultad de Humanidades
-  {
-    id: 'linguistica-ingles',
-    title: 'Maestría en Lingüística Aplicada a la Enseñanza del idioma Inglés',
-    faculty: 'Humanidades',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en enseñanza del inglés',
-    imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b'
-  },
-  {
-    id: 'literatura',
-    title: 'Maestría en Literatura',
-    faculty: 'Humanidades',
-    duration: '2 años',
-    credits: 60,
-    description: 'Estudios avanzados en literatura',
-    imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667'
-  },
-  {
-    id: 'historia-dominicana',
-    title: 'Maestría en Historia Dominicana',
-    faculty: 'Humanidades',
-    duration: '2 años',
-    credits: 60,
-    description: 'Estudios avanzados en historia dominicana',
-    imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1'
-  },
-  {
-    id: 'comunicacion-estrategica',
-    title: 'Maestría en Comunicación Estratégica y Relaciones Públicas',
-    faculty: 'Humanidades',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en comunicación y RRPP',
-    imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0'
-  },
+  // Programas de Maestría en Desarrollo
+  { id: 'procesos-pedagogicos-2022', title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de educación infantil', imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b', status: 'development', period: '2022-2024' },
+  { id: 'gestion-educacion-fisica-2022', title: 'Maestría en Gestión de la Educación Física y el Deporte', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de educación física y deportes', imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e', status: 'development', period: '2022-2024' },
+  { id: 'historia-dominicana-2022', title: 'Maestría en Historia Dominicana', faculty: 'Humanidades', duration: '2 años', credits: 60, description: 'Estudios en historia dominicana', imageUrl: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1', status: 'development', period: '2022-2024' },
+  { id: 'derecho-inmobiliario-2022', title: 'Maestría en Derecho Inmobiliario', faculty: 'Ciencias Jurídicas', duration: '2 años', credits: 60, description: 'Especialización en derecho inmobiliario', imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa', status: 'development', period: '2022-2024' },
+  { id: 'auditoria-interna-2022', title: 'Maestría en Auditoría Interna', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Auditoría avanzada', imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c', status: 'development', period: '2022-2024' },
+  { id: 'matematica-educadores-2022', title: 'Maestría en Matemática para Educadores', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de matemáticas', imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904', status: 'development', period: '2022-2024' },
+  { id: 'quimica-docentes-2022', title: 'Maestría en Química para Docentes', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de química', imageUrl: 'https://images.unsplash.com/photo-1532634993-15f421e42ec0', status: 'development', period: '2022-2024' },
+  { id: 'gestion-centros-dev', title: 'Maestría en Gestión de Centros', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión de centros educativos', imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655', status: 'development', period: '2022-2024' },
+  { id: 'contabilidad-tributaria', title: 'Maestría en Contabilidad Tributaria', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Contabilidad y tributación', imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c', status: 'development', period: '2022-2024' },
+  { id: 'alta-gerencia', title: 'Maestría en Alta Gerencia', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Gestión empresarial avanzada', imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c', status: 'development', period: '2022-2024' },
+  { id: 'investigacion-cientifica', title: 'Maestría en Investigación Científica', faculty: 'Ciencias', duration: '2 años', credits: 60, description: 'Metodología de investigación', imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69', status: 'development', period: '2022-2024' },
+  { id: 'orientacion-educativa-dev', title: 'Maestría en Orientación Educativa e Intervención Psicopedagógica', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Apoyo psicopedagógico', imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7', status: 'development', period: '2022-2024' },
+  { id: 'gestion-educacion-fisica-2024', title: 'Maestría en Gestión de la Educación Física y el Deporte', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión deportiva', imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e', status: 'development', period: '2024-2026' },
+  { id: 'procesos-pedagogicos-2023', title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Educación infantil', imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b', status: 'development', period: '2023-2025' },
+  { id: 'gestion-publica', title: 'Maestría en Gestión Pública y Gobernanza', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Gestión pública', imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c', status: 'development', period: '2022-2024' },
+  { id: 'biologia-educadores', title: 'Maestría en Biología para Educadores', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de biología', imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69', status: 'development', period: '2022-2024' },
 
-  // Facultad de Ciencias
-  {
-    id: 'fisica',
-    title: 'Maestría en Física',
-    faculty: 'Ciencias',
-    duration: '2 años',
-    credits: 60,
-    description: 'Estudios avanzados en física teórica y aplicada',
-    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb'
-  },
-  {
-    id: 'biologia',
-    title: 'Maestría en Biología',
-    faculty: 'Ciencias',
-    duration: '2 años',
-    credits: 60,
-    description: 'Estudios avanzados en biología',
-    imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69',
-    status: 'coming-soon'
-  },
-  {
-    id: 'diseno-estadistico',
-    title: 'Maestría en Diseño y Análisis Estadístico de Investigaciones',
-    faculty: 'Ciencias',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en estadística aplicada',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71'
-  },
-
-  // Facultad de Ciencias Agrícolas
-  {
-    id: 'extension-agropecuaria',
-    title: 'Maestría en Ciencias de Extensión Agropecuaria y Forestal',
-    faculty: 'Ciencias Agrícolas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en extensión agrícola y forestal',
-    imageUrl: 'https://images.unsplash.com/photo-1592991538534-00972b6f59ab'
-  },
-
-  // Facultad de Ciencias Económicas
-  {
-    id: 'gerencia-financiera',
-    title: 'Maestría en Gerencia Financiera',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en gestión financiera',
-    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40'
-  },
-  {
-    id: 'auditoria-interna',
-    title: 'Maestría en Auditoría Interna',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en auditoría',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'
-  },
-  {
-    id: 'cibermarketing',
-    title: 'Maestría en Estrategias de Cibermarketing',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en marketing digital',
-    imageUrl: 'https://images.unsplash.com/photo-1533750516457-a7f992034fec'
-  },
-  {
-    id: 'recursos-humanos',
-    title: 'Maestría en Gestión de Recursos Humanos',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en gestión del talento humano',
-    imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216'
-  },
-  {
-    id: 'marketing-estrategico',
-    title: 'Maestría en Marketing Estratégico',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en marketing',
-    imageUrl: 'https://images.unsplash.com/photo-1533750516457-a7f992034fec'
-  },
-  {
-    id: 'contabilidad-tributaria',
-    title: 'Maestría en Contabilidad Tributaria',
-    faculty: 'Ciencias Económicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en contabilidad y tributación',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'
-  },
-
-  // Facultad de Derecho
-  {
-    id: 'actos-estado-civil',
-    title: 'Maestría en Actos del Estado Civil y Actas de Nacimiento',
-    faculty: 'Ciencias Jurídicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en derecho civil',
-    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
-  },
-  {
-    id: 'derecho-inmobiliario',
-    title: 'Maestría en Derecho Inmobiliario',
-    faculty: 'Ciencias Jurídicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en derecho inmobiliario',
-    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa',
-    status: 'coming-soon'
-  },
-  {
-    id: 'derecho-procesal-administrativo',
-    title: 'Maestría en Derecho Procesal Administrativo',
-    faculty: 'Ciencias Jurídicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en derecho administrativo',
-    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
-  },
-  {
-    id: 'derecho-constitucional',
-    title: 'Maestría en Derecho Constitucional y Procesal Constitucional',
-    faculty: 'Ciencias Jurídicas',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en derecho constitucional',
-    imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'
-  },
-
-  // Facultad de Ciencias de la Salud
-  {
-    id: 'salud-publica',
-    title: 'Maestría en Salud Pública',
-    faculty: 'Ciencias de la Salud',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en salud pública',
-    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d'
-  },
-  {
-    id: 'psicologia-escolar',
-    title: 'Maestría en Psicología Escolar',
-    faculty: 'Ciencias de la Salud',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en psicología educativa',
-    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef'
-  },
-  {
-    id: 'psicologia-clinica',
-    title: 'Maestría en Psicología Clínica',
-    faculty: 'Ciencias de la Salud',
-    duration: '2 años',
-    credits: 60,
-    description: 'Especialización en psicología clínica',
-    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d'
-  }
+  // Programas de Maestría Próximos a Iniciar
+  { id: 'orientacion-educativa-2025', title: 'Maestría en Orientación Educativa e Intervención Psicopedagógica', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Apoyo psicopedagógico', imageUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7', status: 'coming-soon', period: '2025-2027' },
+  { id: 'derecho-civil-2025', title: 'Maestría en Derecho Civil y Procedimiento Civil', faculty: 'Ciencias Jurídicas', duration: '2 años', credits: 60, description: 'Derecho civil', imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb', status: 'coming-soon', period: '2025-2027' },
+  { id: 'ciencia-datos-2025', title: 'Maestría en Ciencia de Datos e Inteligencia Artificial', faculty: 'Ciencias', duration: '2 años', credits: 60, description: 'Ciencia de datos e IA', imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71', status: 'coming-soon', period: '2025-2027' },
+  { id: 'gestion-educacion-fisica-2025', title: 'Maestría en Gestión de la Educación Física y Deporte', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión deportiva', imageUrl: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e', status: 'coming-soon', period: '2025-2027' },
+  { id: 'procesos-pedagogicos-2025', title: 'Maestría en Procesos Pedagógicos y Gestión de la Educación Infantil', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Educación infantil', imageUrl: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b', status: 'coming-soon', period: '2025-2027' },
+  { id: 'biologia-educadores-2025', title: 'Maestría en Biología para Educadores 2da. Cohorte', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Enseñanza de biología', imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69', status: 'coming-soon', period: '2025-2027' },
+  { id: 'auditoria-interna-2025', title: 'Maestría en Auditoría Interna', faculty: 'Ciencias Económicas', duration: '2 años', credits: 60, description: 'Auditoría avanzada', imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c', status: 'coming-soon', period: '2025-2027' },
+  { id: 'linguistica-ingles-2025', title: 'Maestría en Lingüística Aplicada al Idioma Inglés', faculty: 'Humanidades', duration: '2 años', credits: 60, description: 'Enseñanza del inglés', imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b', status: 'coming-soon', period: '2025-2027' },
+  { id: 'psicologia-clinica-2025', title: 'Maestría en Psicología Clínica', faculty: 'Ciencias de la Salud', duration: '2 años', credits: 60, description: 'Psicología clínica', imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d', status: 'coming-soon', period: '2025-2027' },
+  { id: 'literatura-2025', title: 'Maestría en Literatura', faculty: 'Humanidades', duration: '2 años', credits: 60, description: 'Estudios literarios', imageUrl: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667', status: 'coming-soon', period: '2025-2027' },
+  { id: 'gestion-centros-2025', title: 'Maestría en Gestión de Centros Educativos', faculty: 'Ciencias de la Educación', duration: '2 años', credits: 60, description: 'Gestión educativa', imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655', status: 'coming-soon', period: '2025-2027' },
+  { id: 'trabajo-social-2025', title: 'Especialidad en Trabajo Social', faculty: 'Ciencias de la Salud', duration: '1 año', credits: 30, description: 'Trabajo social especializado', imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef', status: 'coming-soon', period: '2025-2026' },
+  { id: 'derecho-laboral-2025', title: 'Maestría en Derecho Laboral y Seguridad Social', faculty: 'Ciencias Jurídicas', duration: '2 años', credits: 60, description: 'Derecho laboral', imageUrl: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb', status: 'coming-soon', period: '2025-2027' },
 ];
 
 const faculties = [
   'Todas las Facultades',
-  'Ciencias Económicas',
   'Ciencias de la Educación',
   'Humanidades',
-  'Ciencias',
-  'Ciencias Jurídicas',
   'Ciencias de la Salud',
-  'Ciencias Agrícolas'
+  'Ciencias Económicas',
+  'Ciencias Jurídicas',
+  'Ciencias',
+];
+
+const categories = [
+  { id: 'active', title: 'Programas de Maestrías que se Imparten', status: 'active' },
+  { id: 'development', title: 'Programas de Maestría en Desarrollo', status: 'development' },
+  { id: 'coming-soon', title: 'Programas de Maestría Próximos a Iniciar', status: 'coming-soon' },
 ];
 
 export function PostgraduatePage() {
@@ -316,14 +81,30 @@ export function PostgraduatePage() {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [selectedFaculty, setSelectedFaculty] = useState('Todas las Facultades');
 
-  const filteredPrograms = programs.filter(program =>
-    (selectedFaculty === 'Todas las Facultades' || program.faculty.includes(selectedFaculty)) &&
-    program.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Memoize filtered programs to optimize performance
+  const filteredPrograms = useMemo(() => {
+    return programs.filter(program =>
+      (selectedFaculty === 'Todas las Facultades' || program.faculty === selectedFaculty) &&
+      program.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, selectedFaculty]);
+
+  // Group programs by category
+  const groupedPrograms = useMemo(() => {
+    return categories.reduce((acc, category) => {
+      acc[category.id] = filteredPrograms.filter(program => program.status === category.status);
+      return acc;
+    }, {} as Record<string, Program[]>);
+  }, [filteredPrograms]);
+
+  // Optimize click handler
+  const handleProgramClick = useCallback((program: Program) => {
+    setSelectedProgram(program);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {/* Hero Section - Untouched */}
       <div className="relative bg-[#2f2382] py-24">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
@@ -342,9 +123,9 @@ export function PostgraduatePage() {
         </div>
       </div>
 
-      {/* Search and Filters - Adjusted position */}
+      {/* Search and Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-xl p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-6">
             {/* Faculty Filters */}
             <div className="flex flex-wrap gap-2">
@@ -369,7 +150,7 @@ export function PostgraduatePage() {
               <input
                 type="text"
                 placeholder="Buscar programa de postgrado..."
-                className="w-full pl-12 pr-4 py-3 rounded-lg border-gray-200 focus:border-[#2f2382] focus:ring-[#2f2382]"
+                className="w-full pl-12 pr-4 py-3 rounded-lg border-gray-200 focus:border-[#2f2382] focus:ring-[#2f2382] transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -378,63 +159,72 @@ export function PostgraduatePage() {
         </div>
       </div>
 
-      {/* Programs Grid */}
+      {/* Programs by Category */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPrograms.map((program) => (
-            <div
-              key={program.id}
-              className="group cursor-pointer"
-              onClick={() => setSelectedProgram(program)}
-            >
-              <div className="relative bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="relative aspect-w-16 aspect-h-9">
-                  <img
-                    src={program.imageUrl}
-                    alt={program.title}
-                    className="object-cover transform group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
-
-                {program.status === 'coming-soon' && (
-                  <div className="absolute top-4 right-4 bg-white/90 text-gray-900 px-3 py-1 rounded-full text-sm font-medium z-10">
-                    Próximamente
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {program.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-4">{program.faculty}</p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      <span>{program.duration}</span>
+        {categories.map(category => (
+          groupedPrograms[category.id].length > 0 && (
+            <div key={category.id} className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">{category.title}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedPrograms[category.id].map(program => (
+                  <div
+                    key={program.id}
+                    className="group cursor-pointer bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    onClick={() => handleProgramClick(program)}
+                  >
+                    <div className="relative aspect-w-16 aspect-h-9">
+                      <img
+                        src={program.imageUrl}
+                        alt={program.title}
+                        className="object-cover transform group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      {program.status === 'coming-soon' && (
+                        <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
+                          Próximamente
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center">
-                      <GraduationCap className="w-4 h-4 mr-1" />
-                      <span>{program.credits} cr.</span>
+                    <div className="p-5">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{program.title}</h3>
+                      <p className="text-sm text-gray-500 mb-3">{program.faculty}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{program.duration}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <GraduationCap className="w-4 h-4 mr-1" />
+                          <span>{program.credits} cr.</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-[#2f2382] border border-[#2f2382] rounded-lg hover:bg-[#2f2382]/10 transition-colors">
+                          <BookOpen className="w-4 h-4 mr-1" />
+                          Ver Plan
+                        </button>
+                        <a
+                          href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                            program.status === 'active' || program.status === 'development'
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : 'bg-yellow-400 hover:bg-yellow-500'
+                          }`}
+                        >
+                          <ArrowRight className="w-4 h-4 mr-1" />
+                          Inscribirme
+                        </a>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <button className="flex items-center justify-center px-3 py-2 text-sm font-medium text-[#2f2382] rounded-lg border border-[#2f2382] hover:bg-[#2f2382]/5 transition-colors">
-                      <BookOpen className="w-4 h-4 mr-1" />
-                      Ver Plan
-                    </button>
-                    <button className="flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-[#2f2382] rounded-lg hover:bg-[#2f2382]/90 transition-colors">
-                      <ArrowRight className="w-4 h-4 mr-1" />
-                      Inscribirme
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          )
+        ))}
       </div>
 
       {/* Program Details Modal */}
@@ -447,6 +237,7 @@ export function PostgraduatePage() {
                   src={selectedProgram.imageUrl}
                   alt={selectedProgram.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <button
@@ -456,15 +247,11 @@ export function PostgraduatePage() {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
               <div className="p-8">
                 <div className="max-w-3xl mx-auto">
-                  <h2 className="text-3xl font-bold text-[#2f2382] mb-2">
-                    {selectedProgram.title}
-                  </h2>
+                  <h2 className="text-3xl font-bold text-[#2f2382] mb-2">{selectedProgram.title}</h2>
                   <p className="text-gray-600 mb-6">{selectedProgram.description}</p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <Clock className="w-6 h-6 text-[#2f2382]" />
@@ -493,16 +280,24 @@ export function PostgraduatePage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <button className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-lg border border-[#2f2382] text-[#2f2382] hover:bg-[#2f2382]/5 transition-colors">
+                    <button className="flex-1 flex items-center justify-center px-6 py-3 rounded-lg border border-[#2f2382] text-[#2f2382] hover:bg-[#2f2382]/10 transition-colors">
                       <BookOpen className="w-5 h-5 mr-2" />
                       Ver Plan de Estudios
                     </button>
-                    <button className="flex-1 inline-flex items-center justify-center px-6 py-3 text-white bg-[#2f2382] rounded-lg hover:bg-[#2f2382]/90 transition-colors">
+                    <a
+                      href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex-1 flex items-center justify-center px-6 py-3 text-white rounded-lg transition-colors ${
+                        selectedProgram.status === 'active' || selectedProgram.status === 'development'
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-yellow-400 hover:bg-yellow-500'
+                      }`}
+                    >
                       <ArrowRight className="w-5 h-5 mr-2" />
                       Inscribirme Ahora
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
