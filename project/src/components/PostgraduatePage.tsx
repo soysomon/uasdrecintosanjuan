@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Clock, GraduationCap, Building2, ArrowRight, BookOpen, X } from 'lucide-react';
 
 interface Program {
@@ -81,7 +81,6 @@ export function PostgraduatePage() {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [selectedFaculty, setSelectedFaculty] = useState('Todas las Facultades');
 
-  // Memoize filtered programs to optimize performance
   const filteredPrograms = useMemo(() => {
     return programs.filter(program =>
       (selectedFaculty === 'Todas las Facultades' || program.faculty === selectedFaculty) &&
@@ -89,7 +88,6 @@ export function PostgraduatePage() {
     );
   }, [searchTerm, selectedFaculty]);
 
-  // Group programs by category
   const groupedPrograms = useMemo(() => {
     return categories.reduce((acc, category) => {
       acc[category.id] = filteredPrograms.filter(program => program.status === category.status);
@@ -97,14 +95,9 @@ export function PostgraduatePage() {
     }, {} as Record<string, Program[]>);
   }, [filteredPrograms]);
 
-  // Optimize click handler
-  const handleProgramClick = useCallback((program: Program) => {
-    setSelectedProgram(program);
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Untouched */}
+      {/* Hero Section - Intacto */}
       <div className="relative bg-[#2f2382] py-24">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
@@ -127,7 +120,6 @@ export function PostgraduatePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-6">
-            {/* Faculty Filters */}
             <div className="flex flex-wrap gap-2">
               {faculties.map((faculty, index) => (
                 <button
@@ -143,8 +135,6 @@ export function PostgraduatePage() {
                 </button>
               ))}
             </div>
-
-            {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -169,20 +159,25 @@ export function PostgraduatePage() {
                 {groupedPrograms[category.id].map(program => (
                   <div
                     key={program.id}
-                    className="group cursor-pointer bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                    onClick={() => handleProgramClick(program)}
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    onClick={() => setSelectedProgram(program)}
                   >
-                    <div className="relative aspect-w-16 aspect-h-9">
+                    <div className="relative aspect-video">
                       <img
                         src={program.imageUrl}
                         alt={program.title}
-                        className="object-cover transform group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover w-full h-full"
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                       {program.status === 'coming-soon' && (
                         <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                           Próximamente
+                        </div>
+                      )}
+                      {program.status === 'development' && (
+                        <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
+                          En Desarrollo
                         </div>
                       )}
                     </div>
@@ -204,19 +199,29 @@ export function PostgraduatePage() {
                           <BookOpen className="w-4 h-4 mr-1" />
                           Ver Plan
                         </button>
-                        <a
-                          href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                            program.status === 'active' || program.status === 'development'
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-yellow-400 hover:bg-yellow-500'
-                          }`}
-                        >
-                          <ArrowRight className="w-4 h-4 mr-1" />
-                          Inscribirme
-                        </a>
+                        {program.status === 'coming-soon' ? (
+                          <button
+                            disabled
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-400 bg-yellow-300 rounded-lg cursor-not-allowed"
+                          >
+                            <ArrowRight className="w-4 h-4 mr-1" />
+                            Inscribirme
+                          </button>
+                        ) : (
+                          <a
+                            href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                              program.status === 'active'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-yellow-500 hover:bg-yellow-600'
+                            }`}
+                          >
+                            <ArrowRight className="w-4 h-4 mr-1" />
+                            Inscribirme
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -285,19 +290,29 @@ export function PostgraduatePage() {
                       <BookOpen className="w-5 h-5 mr-2" />
                       Ver Plan de Estudios
                     </button>
-                    <a
-                      href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex-1 flex items-center justify-center px-6 py-3 text-white rounded-lg transition-colors ${
-                        selectedProgram.status === 'active' || selectedProgram.status === 'development'
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-yellow-400 hover:bg-yellow-500'
-                      }`}
-                    >
-                      <ArrowRight className="w-5 h-5 mr-2" />
-                      Inscribirme Ahora
-                    </a>
+                    {selectedProgram.status === 'coming-soon' ? (
+                      <button
+                        disabled
+                        className="flex-1 flex items-center justify-center px-6 py-3 text-gray-400 bg-yellow-300 rounded-lg cursor-not-allowed"
+                      >
+                        <ArrowRight className="w-5 h-5 mr-2" />
+                        Inscribirme Ahora
+                      </button>
+                    ) : (
+                      <a
+                        href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex-1 flex items-center justify-center px-6 py-3 text-white rounded-lg transition-colors ${
+                          selectedProgram.status === 'active'
+                            ? 'bg-green-600 hover:bg-green-700'
+                            : 'bg-yellow-500 hover:bg-yellow-600'
+                        }`}
+                      >
+                        <ArrowRight className="w-5 h-5 mr-2" />
+                        Inscribirme Ahora
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
