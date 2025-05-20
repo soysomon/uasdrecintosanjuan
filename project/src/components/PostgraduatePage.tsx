@@ -288,7 +288,7 @@ export function PostgraduatePage() {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button className="flex-1 flex items-center justify-center px-6 py-3 rounded-lg border border-[#2f2382] text-[#2f2382] hover:bg-[#2f2382]/10 transition-colors">
                       <BookOpen className="w-5 h-5 mr-2" />
-                      Ver Plan de Estudios
+                      Ver Pensum de Estudios
                     </button>
                     {selectedProgram.status === 'coming-soon' ? (
                       <button
