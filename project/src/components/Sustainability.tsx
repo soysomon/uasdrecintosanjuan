@@ -22,7 +22,7 @@ const Sustainability: React.FC = () => {
         </h2>
 
         <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-          Bajo el liderazgo del Dr. Carlos Manuel Sánchez de Oleo, el Recinto San Juan de la UASD 
+          Bajo el liderazgo del Dr. Carlos Manuel Sánchez De Óleo, el Recinto San Juan de la UASD 
           impulsa la inclusión tecnológica, el desarrollo local y la modernización de infraestructuras 
           para formar profesionales preparados para los retos del futuro.
         </p>

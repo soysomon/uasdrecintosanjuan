@@ -268,7 +268,7 @@ export default function MeritoriosPage() {
 
             {/* Footer institucional */}
             <footer className="max-w-full w-full bg-gradient-to-r from-red-500 via-orange-400 to-orange-500 text-white text-center font-bold py-5 text-lg tracking-wide mt-auto drop-shadow-lg">
-                DR. CARLOS SÁNCHEZ DE OLEO · <span className="text-yellow-200">DIRECTOR UASD RECINTO SAN JUAN</span>
+                DR. CARLOS SÁNCHEZ DE ÓLEO · <span className="text-yellow-200">DIRECTOR UASD RECINTO SAN JUAN</span>
             </footer>
         </div>
     );
