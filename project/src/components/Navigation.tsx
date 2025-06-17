@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useMemo
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown, ExternalLink, Search, ChevronRight } from 'lucide-react';
+import { useAuth } from '../auth/context/AuthContext'; // Added useAuth
 import type { NavItem } from '../types';
 
 interface NavChildItem {
@@ -87,8 +88,25 @@ function Navigation() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [navItems] = useState<NavItem[]>(baseNavItems);
-  const [flatMobileItems] = useState(getFlattenedMenuItems(baseNavItems));
+  // const [navItems] = useState<NavItem[]>(baseNavItems); // Removed
+  // const [flatMobileItems] = useState(getFlattenedMenuItems(baseNavItems)); // Removed
+  const { user } = useAuth();
+
+  const currentNavItems = useMemo(() => {
+    let newNavItems = [...baseNavItems];
+    if (user && user.role === 'estandar') {
+      if (!newNavItems.find(item => item.href === '/reservations')) {
+        newNavItems.push({ label: 'Mis Reservas', href: '/reservations' });
+      }
+    } else {
+      newNavItems = newNavItems.filter(item => item.href !== '/reservations');
+    }
+    return newNavItems;
+  }, [user]);
+
+  const flatMobileItems = useMemo(() => {
+    return getFlattenedMenuItems(currentNavItems);
+  }, [currentNavItems]);
   
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 10);
@@ -163,7 +181,7 @@ function Navigation() {
             </div>
 
             {/* Ítems de navegación */}
-            {navItems.map((item) => (
+            {currentNavItems.map((item) => (
               <div key={item.href} className="relative group dropdown-container">
                 {item.children ? (
                   <button

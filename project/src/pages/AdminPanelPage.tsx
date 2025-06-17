@@ -5,6 +5,9 @@ import { Link } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { FileText, Image as ImageIcon, Users, Loader } from 'lucide-react';
 import Confetti from 'react-confetti';
+// Ensure FileText or another icon is imported if used for the new link, or choose an existing one.
+// For example, CalendarDays could be suitable for reservations. Let's assume FileText is okay for now.
+import { FileText, Image as ImageIcon, Users, Loader, CalendarDays } from 'lucide-react'; // Added CalendarDays
 import { useAuth } from '../auth/hooks/useAuth';
 import SecurityManager from '../components/SecurityManager';
 import EstadosFinancierosManager from '../components/EstadosFinancierosManager';
@@ -12,6 +15,7 @@ import NewsCreate from '../admin/news/NewsCreate';
 import NewsManage from '../admin/news/NewsManage';
 import NewsEdit from '../admin/news/NewsEdit';
 import { NewsService } from '../admin/news/NewsService'; // Importamos NewsService
+import ApprovedActivitiesDashboard from '../../components/admin/ApprovedActivitiesDashboard'; // Import ApprovedActivitiesDashboard
 
 interface CategoryStats {
   [key: string]: number;
@@ -27,7 +31,7 @@ const AdminPanelPage: React.FC = () => {
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats>({ totalNews: 0, byCategory: {} });
   const [showConfetti, setShowConfetti] = useState(false);
-  const { isSuperAdmin, token } = useAuth();
+  const { user, isSuperAdmin, token } = useAuth(); // Added user
 
   // Función para obtener y calcular estadísticas
   const fetchStats = async () => {
@@ -105,6 +109,9 @@ const AdminPanelPage: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* Conditionally render ApprovedActivitiesDashboard for superadmins */}
+        {isSuperAdmin && <ApprovedActivitiesDashboard />}
+
         <div className="flex mb-6 bg-white rounded-lg shadow p-1">
           <button
             onClick={() => setActiveTab('create')}
@@ -154,6 +161,15 @@ const AdminPanelPage: React.FC = () => {
             <Users className="mr-2" size={18} />
             Editor de Docentes
           </Link>
+          {user && (user.role === 'admin' || user.role === 'superadmin') && (
+            <Link
+              to="/admin/manage-reservations"
+              className="flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all text-gray-600 hover:bg-gray-100"
+            >
+              <CalendarDays className="mr-2" size={18} /> {/* Changed icon to CalendarDays */}
+              Gestionar Reservas
+            </Link>
+          )}
           {isSuperAdmin && (
             <button
               onClick={() => setActiveTab('security')}

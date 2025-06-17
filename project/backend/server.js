@@ -11,6 +11,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const estadosFinancierosRoutes = require('./estados/estadofinanciero');
+const reservationRoutes = require('./routes/reservationRoutes'); // Added reservation routes
 const IpAttempt = require('./models/IpAttempt');
 
 const app = express();
@@ -38,6 +39,7 @@ app.use(cors({
 }));
 
 app.use('/api/estados-financieros', estadosFinancierosRoutes);
+app.use('/api/reservations', reservationRoutes); // Added reservation routes
 
 // S3 Client Configuration
 const s3Client = new S3Client({

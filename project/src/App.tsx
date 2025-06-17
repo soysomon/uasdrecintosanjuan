@@ -21,6 +21,7 @@ import { NonResidentFacultyPage } from './pages/NonResidentFacultyPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import SlidesEditorPage from './pages/SlidesEditorPage';
+import ReservationPage from './pages/ReservationPage'; // Added ReservationPage import
 import { MemoriasPostgradoPage } from './pages/memorias/MemoriasPostgradoPage';
 import MemoriasEditorPage from './pages/memorias/MemoriasEditorPage';
 import MemoriaContentPage from './pages/MemoriaContentPage';
@@ -41,6 +42,7 @@ import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
+import ManageReservationsPage from './pages/admin/ManageReservationsPage'; // Import ManageReservationsPage
 
 // Inicializa Google Analytics con el ID de medición
 ReactGA.initialize('G-VH9JTLWD6Z');
@@ -91,6 +93,7 @@ function App() {
             <Route path="/preguntas-frecuentes" element={<Frequentquestions />} />
             <Route path="/contacto" element={<ContactosPage />} />
             <Route path="/meritorios" element={<MeritoriosPage />} />
+            <Route path="/reservations" element={<ReservationPage />} /> {/* Added ReservationPage route */}
             <Route path="*" element={<NotFoundPage />} />
             <Route
               path="/admin-panel"
@@ -138,6 +141,14 @@ function App() {
                 <SuperAdminRoute>
                   <UserManagementPage />
                 </SuperAdminRoute>
+              }
+            />
+            <Route
+              path="/admin/manage-reservations" // New route for managing reservations
+              element={
+                <ProtectedRoute>
+                  <ManageReservationsPage />
+                </ProtectedRoute>
               }
             />
             <Route
