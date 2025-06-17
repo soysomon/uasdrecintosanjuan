@@ -11,6 +11,8 @@ import Events from '../components/Events';
 import StatsSection from '../components/StatsSection';
 import { SocialMediaSection } from '../components/SocialMediaSection';
 import ChatBot from '../components/ChatBot';
+import Innovations from '../components/Innovations'; // Added Innovations import
+import PublicActivitiesCalendar from '../components/PublicActivitiesCalendar'; // Added Calendar import
 
 const HomePage: React.FC = () => {
   return (
@@ -21,6 +23,8 @@ const HomePage: React.FC = () => {
       <Statement />
       <UniversityInfo />
       <Events />
+      <Innovations />
+      <PublicActivitiesCalendar />
       <Sustainability />
       <StatsSection />
       <SocialMediaSection />

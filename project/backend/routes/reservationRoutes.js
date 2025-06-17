@@ -36,4 +36,10 @@ router.put(
   reservationController.updateReservationStatus
 );
 
+// GET /api/reservations/public/approved-reservations - Get approved reservations for public calendar
+router.get(
+  '/public/approved-reservations',
+  reservationController.getPublicApprovedReservations
+);
+
 module.exports = router;

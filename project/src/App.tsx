@@ -98,7 +98,7 @@ function App() {
             <Route
               path="/admin-panel"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <AdminPanelPage />
                 </ProtectedRoute>
               }
@@ -106,7 +106,7 @@ function App() {
             <Route
               path="/slides-editor"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <SlidesEditorPage />
                 </ProtectedRoute>
               }
@@ -114,7 +114,7 @@ function App() {
             <Route
               path="/memorias-editor"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <MemoriasEditorPage />
                 </ProtectedRoute>
               }
@@ -122,7 +122,7 @@ function App() {
             <Route
               path="/docentes-editor"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <DocentesEditorPage />
                 </ProtectedRoute>
               }
@@ -130,7 +130,7 @@ function App() {
             <Route
               path="/estados-financieros"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <EstadosFinancierosManager />
                 </ProtectedRoute>
               }
@@ -146,7 +146,7 @@ function App() {
             <Route
               path="/admin/manage-reservations" // New route for managing reservations
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
                   <ManageReservationsPage />
                 </ProtectedRoute>
               }

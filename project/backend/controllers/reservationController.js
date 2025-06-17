@@ -119,3 +119,23 @@ exports.updateReservationStatus = async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar el estado de la reserva.' });
   }
 };
+
+// Get public approved reservations (for calendar)
+exports.getPublicApprovedReservations = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+
+    const reservations = await Reservation.find({
+      status: 'aprobada',
+      date: { $gte: today } // Only today or future dates
+    })
+    .select('space date startTime endTime purpose') // Select only public fields
+    .sort({ date: 1, startTime: 1 }); // Sort by date and then start time
+
+    res.json(reservations);
+  } catch (error) {
+    console.error('Error fetching public approved reservations:', error);
+    res.status(500).json({ message: 'Error al obtener las actividades aprobadas.' });
+  }
+};
