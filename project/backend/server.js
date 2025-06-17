@@ -12,6 +12,9 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const estadosFinancierosRoutes = require('./estados/estadofinanciero');
 const IpAttempt = require('./models/IpAttempt');
+const spaceRoutes = require('./routes/spaceRoutes');
+const resourceRoutes = require('./routes/resourceRoutes');
+const reservationRoutes = require('./routes/reservationRoutes');
 
 const app = express();
 app.use(express.json());
@@ -38,6 +41,9 @@ app.use(cors({
 }));
 
 app.use('/api/estados-financieros', estadosFinancierosRoutes);
+app.use('/api/spaces', spaceRoutes);
+app.use('/api/resources', resourceRoutes);
+app.use('/api/reservations', reservationRoutes);
 
 // S3 Client Configuration
 const s3Client = new S3Client({

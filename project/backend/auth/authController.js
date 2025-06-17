@@ -15,8 +15,12 @@ const generateToken = (userId) => {
 // Login
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body; // Cambiado username a email
     const ip = req.ip || req.connection.remoteAddress; // Obtener IP del cliente
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos.' });
+    }
 
     // Verificar si la IP está bloqueada
     let ipAttempt = await IpAttempt.findOne({ ip });
@@ -28,7 +32,7 @@ exports.login = async (req, res) => {
     }
 
     // Buscar usuario
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email }); // Cambiado username a email
     if (!user) {
       await recordFailedIpAttempt(ip);
       return res.status(401).json({ message: 'Credenciales inválidas' });
@@ -69,7 +73,20 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
+    // Devuelve email y name (si existe), username es opcional ahora
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      role: user.role
+    };
+    if (user.name) {
+      userResponse.name = user.name;
+    }
+    if (user.username) { // Si username aún existe en el modelo y quieres devolverlo
+      userResponse.username = user.username;
+    }
+
+    res.json({ token, user: userResponse });
   } catch (error) {
     console.error('Error en login:', error);
     res.status(500).json({ message: 'Error en el servidor' });
@@ -143,42 +160,8 @@ exports.getBlockedIps = async (req, res) => {
   }
 };
 
-// Función para registrar intentos fallidos de IP
-async function recordFailedIpAttempt(ip) {
-  let ipAttempt = await IpAttempt.findOne({ ip });
-  if (!ipAttempt) {
-    ipAttempt = new IpAttempt({ ip });
-  }
-
-  ipAttempt.failedAttempts += 1;
-  ipAttempt.lastAttempt = Date.now();
-
-  // Lógica de bloqueo progresivo
-  if (ipAttempt.failedAttempts >= 5 && ipAttempt.blockLevel === 0) {
-    ipAttempt.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-    ipAttempt.blockLevel = 1;
-  } else if (ipAttempt.failedAttempts >= 10 && ipAttempt.blockLevel === 1) {
-    ipAttempt.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
-    ipAttempt.blockLevel = 2;
-  } else if (ipAttempt.failedAttempts >= 15 && ipAttempt.blockLevel === 2) {
-    ipAttempt.lockUntil = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-    ipAttempt.blockLevel = 3;
-  } else if (ipAttempt.failedAttempts >= 20 && ipAttempt.blockLevel === 3) {
-    ipAttempt.lockUntil = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5 horas
-    ipAttempt.blockLevel = 4;
-  }
-
-  await ipAttempt.save();
-}
-
-// Función para registrar intentos fallidos de usuario
-async function recordFailedUserAttempt(user) {
-  user.failedAttempts = (user.failedAttempts || 0) + 1;
-  if (user.failedAttempts >= 5) {
-    user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Bloqueo de 15 min
-  }
-  await user.save();
-}
+// Las funciones recordFailedIpAttempt y recordFailedUserAttempt ya están definidas arriba
+// Se eliminan las definiciones duplicadas que estaban aquí.
 
 // Obtener usuario actual
 exports.getCurrentUser = async (req, res) => {
@@ -189,7 +172,9 @@ exports.getCurrentUser = async (req, res) => {
     res.json({
       user: {
         id: user._id,
-        username: user.username,
+        email: user.email, // Devolver email
+        name: user.name, // Devolver name si existe
+        username: user.username, // Devolver username si aún es relevante
         role: user.role
       }
     });
@@ -228,37 +213,49 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    // Ahora se espera email y name, username es opcional
+    const { email, password, role, name, username } = req.body;
     
     // Validar campos obligatorios
-    if (!username || !password) {
-      return res.status(400).json({ message: 'El nombre de usuario y la contraseña son obligatorios' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'El email y la contraseña son obligatorios.' });
     }
     
-    // Verificar si el usuario ya existe
-    const existingUser = await User.findOne({ username });
+    // Verificar si el usuario ya existe por email
+    let existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
+      return res.status(400).json({ message: 'Un usuario con este email ya existe.' });
+    }
+    // Opcional: verificar por username si se proporciona y es requerido como único
+    if (username) {
+        existingUser = await User.findOne({ username });
+        if (existingUser) {
+          return res.status(400).json({ message: 'Un usuario con este nombre de usuario ya existe.' });
+        }
     }
     
     // Crear nuevo usuario
     const user = new User({
-      username,
+      email,
       password, // Se hasheará automáticamente en el middleware pre-save
-      role: role || 'admin',
+      name,
+      username, // Guardar si se proporciona
+      role: role || 'admin', // 'personal' o 'docente' podrían ser defaults más adecuados
       active: true
     });
     
     await user.save();
     
-    res.status(201).json({
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        active: user.active
-      }
-    });
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      active: user.active
+    };
+    if (user.name) userResponse.name = user.name;
+    if (user.username) userResponse.username = user.username;
+
+    res.status(201).json({ user: userResponse });
   } catch (error) {
     console.error('Error al crear usuario:', error);
     res.status(500).json({ message: 'Error al crear usuario' });
@@ -267,60 +264,50 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { username, password, role, active } = req.body;
+    const { email, password, role, active, name, username } = req.body;
     const userId = req.params.id;
     
-    // Buscar el usuario que estamos actualizando
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
     
+    // Si se intenta cambiar el email, verificar que no exista otro usuario con ese email
+    if (email && email !== user.email) {
+      const existingUserByEmail = await User.findOne({ email, _id: { $ne: user._id } });
+      if (existingUserByEmail) {
+        return res.status(400).json({ message: 'El email ya está en uso por otro usuario.' });
+      }
+      user.email = email;
+    }
+
     // Si se intenta cambiar el username, verificar que no exista otro usuario con ese username
     if (username && username !== user.username) {
-      const existingUser = await User.findOne({ 
-        username, 
-        _id: { $ne: user._id } // Excluir el usuario actual de la búsqueda
-      });
-      
-      if (existingUser) {
-        return res.status(400).json({ 
-          message: 'El nombre de usuario ya está en uso por otro usuario' 
-        });
+      const existingUserByUsername = await User.findOne({ username, _id: { $ne: user._id } });
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: 'El nombre de usuario ya está en uso por otro usuario.' });
       }
-      
-      // Actualizar el username
       user.username = username;
     }
     
-    // Actualizar contraseña si se proporciona
-    if (password) {
-      user.password = password; // El hash se maneja automáticamente en el middleware pre-save
-    }
+    if (password) user.password = password;
+    if (role) user.role = role;
+    if (active !== undefined) user.active = active;
+    if (name !== undefined) user.name = name; // Actualizar name
     
-    // Actualizar rol si se proporciona
-    if (role) {
-      user.role = role;
-    }
-    
-    // Actualizar estado si se proporciona
-    if (active !== undefined) {
-      user.active = active;
-    }
-    
-    // Guardar los cambios
     await user.save();
     
-    // Enviar respuesta (sin incluir la contraseña)
-    res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        active: user.active,
-        lastLogin: user.lastLogin
-      }
-    });
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      active: user.active,
+      lastLogin: user.lastLogin
+    };
+    if (user.name) userResponse.name = user.name;
+    if (user.username) userResponse.username = user.username;
+
+    res.json({ user: userResponse });
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
     res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });

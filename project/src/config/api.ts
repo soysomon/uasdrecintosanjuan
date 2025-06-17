@@ -46,6 +46,24 @@ const API_ROUTES = {
   // Usuarios
   USER_BY_ID: (id: string) => `${API_BASE_URL}/users/${id}`, // Obtiene un usuario por su ID
   USERS: `${API_BASE_URL}/users`, // Lista todos los usuarios (solo superadmin)
+
+  // Espacios (Spaces)
+  SPACES_CRUD: `${API_BASE_URL}/spaces`, // Base para GET all (admin), POST
+  SPACES_ALL_ACTIVE: `${API_BASE_URL}/spaces`, // GET (retorna activos por defecto para usuarios autenticados)
+  SPACE_BY_ID: (id: string) => `${API_BASE_URL}/spaces/${id}`, // GET by ID, PUT, DELETE
+
+  // Recursos (Resources)
+  RESOURCES_CRUD: `${API_BASE_URL}/resources`, // Base para GET all (admin), POST
+  RESOURCES_ALL_AVAILABLE: `${API_BASE_URL}/resources`, // GET (retorna disponibles por defecto para usuarios autenticados)
+  RESOURCE_BY_ID: (id: string) => `${API_BASE_URL}/resources/${id}`, // GET by ID, PUT, DELETE
+
+  // Reservas (Reservations)
+  RESERVATIONS_CRUD: `${API_BASE_URL}/reservations`, // Base para POST, GET (admin)
+  RESERVATIONS_CREATE: `${API_BASE_URL}/reservations`, // POST para crear nueva reserva
+  RESERVATION_BY_ID: (id: string) => `${API_BASE_URL}/reservations/${id}`, // GET by ID, PUT (usuario), DELETE (usuario)
+  RESERVATION_STATUS_UPDATE: (id: string) => `${API_BASE_URL}/reservations/${id}/status`, // PUT para admin (cambiar estado)
+  RESERVATIONS_USER: `${API_BASE_URL}/reservations/user`, // GET para las reservas del usuario actual
+  RESERVATIONS_APPROVED_WEEKLY: `${API_BASE_URL}/reservations/approved-weekly`, // GET para calendario/vista semanal
 };
 
 export default API_ROUTES;

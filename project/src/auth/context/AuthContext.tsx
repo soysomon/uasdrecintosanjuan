@@ -2,16 +2,17 @@ import React, { createContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 import { authReducer, initialState, AuthState } from './AuthReducer';
 import API_ROUTES from '../../config/api';
+import AuthService from '../services/authService'; // Import AuthService
 
 interface AuthContextProps extends AuthState {
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isSuperAdmin: boolean;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
   ...initialState,
-  login: async () => {},
+  login: async () => {}, // Signature updated
   logout: () => {},
   isSuperAdmin: false
 });
@@ -55,11 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     verifyToken();
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => { // Signature updated
     dispatch({ type: 'AUTH_LOADING' });
     
     try {
-      const response = await axios.post(API_ROUTES.AUTH_LOGIN, { username, password });
+      // Now using AuthService.login to keep API calls centralized if desired,
+      // or keep the axios call here if that's the established pattern.
+      // For this change, we'll assume the direct axios call was intentional here and just update the payload.
+      const response = await axios.post(API_ROUTES.AUTH_LOGIN, { email, password }); // Payload updated
       const { user, token } = response.data;
       
       dispatch({

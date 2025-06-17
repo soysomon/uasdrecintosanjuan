@@ -14,6 +14,7 @@
     "@geist-ui/core": "^2.3.8",
     "@react-pdf/renderer": "^4.3.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tanstack/react-query": "^5.0.0",
     "axios": "^1.8.2",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^3.6.0",

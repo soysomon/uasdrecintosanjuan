@@ -4,7 +4,9 @@ import API_ROUTES from '../../config/api';
 // Interfaz para usuario
 export interface User {
   id: string;
-  username: string;
+  email: string;
+  name?: string;
+  username?: string; // Puede mantenerse si aún se usa en alguna parte o para migración
   role: string;
   active?: boolean;
   lastLogin?: string;
@@ -12,8 +14,10 @@ export interface User {
 
 // Interfaz para crear/actualizar usuario
 export interface UserFormData {
-  username: string;
-  password: string;
+  email: string;
+  password: string; // Requerido para login y creación. Para actualización, se manejará en el componente.
+  name?: string;
+  username?: string; // Puede mantenerse si aún se usa en alguna parte o para migración
   role: string;
   active?: boolean;
 }
@@ -21,9 +25,9 @@ export interface UserFormData {
 // Servicios de autenticación y gestión de usuarios
 const AuthService = {
   // Login de usuario
-  login: async (username: string, password: string) => {
+  login: async (email: string, password: string) => {
     try {
-      const response = await axios.post(API_ROUTES.AUTH_LOGIN, { username, password });
+      const response = await axios.post(API_ROUTES.AUTH_LOGIN, { email, password });
       return response.data;
     } catch (error) {
       throw error;
@@ -61,7 +65,7 @@ const AuthService = {
   },
 
   // Actualizar usuario existente (solo superadmin)
-  updateUser: async (userId: string, userData: UserFormData) => {
+  updateUser: async (userId: string, userData: Partial<UserFormData>) => {
     try {
       const response = await axios.put(API_ROUTES.USER_BY_ID(userId), userData);
       return response.data;

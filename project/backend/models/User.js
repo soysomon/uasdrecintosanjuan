@@ -9,13 +9,25 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    name: { // Nuevo campo
+      type: String,
+      trim: true,
+    },
+    email: { // Nuevo campo
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      sparse: true, // Permite valores null o no existentes en el índice único
+    },
     password: {
       type: String,
       required: true,
     },
     role: {
       type: String,
-      enum: ['admin', 'superadmin'],
+      enum: ['director', 'admin', 'superadmin', 'docente', 'personal'], // Enum actualizado
       default: 'admin',
     },
     lastLogin: {

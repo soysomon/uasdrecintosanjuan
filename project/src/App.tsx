@@ -41,6 +41,8 @@ import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
+import CreateReservationPage from './pages/reservations/CreateReservationPage';
+import AdminReservationsPage from './pages/reservations/AdminReservationsPage'; // Nueva importación
 
 // Inicializa Google Analytics con el ID de medición
 ReactGA.initialize('G-VH9JTLWD6Z');
@@ -149,6 +151,22 @@ function App() {
                     <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
                   </div>
                 </div>
+              }
+            />
+            <Route
+              path="/reservations/new"
+              element={
+                <ProtectedRoute roles={['docente', 'personal', 'admin', 'director']}>
+                  <CreateReservationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reservations"
+              element={
+                <ProtectedRoute roles={['admin', 'director']}>
+                  <AdminReservationsPage />
+                </ProtectedRoute>
               }
             />
           </Route>

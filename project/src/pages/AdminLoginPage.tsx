@@ -4,7 +4,7 @@ import { useAuth } from '../auth/hooks/useAuth';
 import gsap from 'gsap';
 
 const AdminLoginPage: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +94,7 @@ const AdminLoginPage: React.FC = () => {
           duration: 0.4,
           ease: "power2.in",
           onComplete: () => {
-            if (usernameInputRef.current) {
+            if (usernameInputRef.current) { // usernameInputRef can keep its name
               usernameInputRef.current.disabled = false;
               usernameInputRef.current.focus();
             }
@@ -155,7 +155,7 @@ const AdminLoginPage: React.FC = () => {
 
   // Función para avanzar al campo de contraseña
   const handleNextStep = () => {
-    if (username.trim() !== '') {
+    if (email.trim() !== '') {
       setShowPasswordField(true);
       setTimeout(() => {
         animatePasswordField(true);
@@ -184,7 +184,7 @@ const AdminLoginPage: React.FC = () => {
 
     try {
       // Llamar al método login del AuthContext
-      await login(username, password);
+      await login(email, password);
       
       // Si el login es exitoso, iniciar animación
       animateSuccess();
@@ -268,12 +268,12 @@ const AdminLoginPage: React.FC = () => {
           {/* Campo de usuario con flecha - siempre editable */}
           <div className="relative">
             <input
-              ref={usernameInputRef}
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              ref={usernameInputRef} // Ref can keep its name, or change to emailInputRef
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               onKeyDown={handleUsernameKeyDown}
-              placeholder="Correo o nombre de usuario"
+              placeholder="Correo electrónico"
               className="input-field w-full p-6 pr-14 text-[#1D1D1F] bg-white border border-[#D2D2D7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-[#0071E3] transition-all duration-200"
               style={{ fontSize: '1.2rem' }}
               required
@@ -289,7 +289,7 @@ const AdminLoginPage: React.FC = () => {
                 type="button" 
                 onClick={handleNextStep}
                 className="absolute right-5 top-1/2 transform -translate-y-1/2 text-[#0071E3] hover:text-[#0077ED]"
-                disabled={username.trim() === '' || isLoading}
+                disabled={email.trim() === '' || isLoading}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
