@@ -21,7 +21,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://uasdrecintosanjuan-fe-production.up.railway.app',
-  'https://uasdrecintosanjuan.org'
+  'https://uasdrecintosanjuan.org',
+  'https://www.uasdrecintosanjuan.org'
 ];
 
 app.use(cors({
