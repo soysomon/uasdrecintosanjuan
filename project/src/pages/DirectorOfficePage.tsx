@@ -52,7 +52,7 @@ export function DirectorOfficePage() {
               Dr. Carlos Manuel Sánchez De Óleo
             </h3>
             <p className="text-lg text-[#333333] font-medium mb-4">
-              Rector UASD-Recinto San Juan de la Maguana
+              Director UASD-Recinto San Juan de la Maguana
             </p>
 
             <p className="text-base text-gray-700 mb-4">
