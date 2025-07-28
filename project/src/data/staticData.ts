@@ -12,7 +12,7 @@ export const featuredServices = [
   },
   {
     title: "Despacho Director",
-    description: "Director UASD – Centro San Juan de la Maguana",
+    description: "Director UASD – Recinto San Juan de la Maguana",
     link: "/director/despacho",
   },
   {

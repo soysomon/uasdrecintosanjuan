@@ -180,7 +180,7 @@ const Events: React.FC = () => {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="text-lg text-blue-100 font-medium leading-relaxed"
                 >
-                  Director UASD – Centro San Juan de la Maguana
+                  Director UASD – Recinto San Juan de la Maguana
                 </motion.p>
               </div>
 

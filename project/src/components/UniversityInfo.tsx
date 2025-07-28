@@ -46,7 +46,7 @@ const UniversidadSection: React.FC = () => {
                 transition={{ duration: 0.8, delay: 0.4 }}
                 className="text-lg text-gray-600 font-medium leading-relaxed"
               >
-                UASD - Centro San Juan de la Maguana
+                UASD - Recinto San Juan de la Maguana
               </motion.p>
             </div>
             

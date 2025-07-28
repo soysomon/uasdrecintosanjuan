@@ -13,14 +13,14 @@ export function DirectorOfficePage() {
     <br></br>
     <br></br>
     <h1 className="text-2xl sm:text-3xl font-bold text-white">
-      DESPACHO DEL RECTOR
+      DESPACHO DEL DIRECTOR
     </h1>
     <div className="flex text-white/80 text-sm mt-2">
       <Link to="/" className="hover:text-white">Inicio</Link>
       <span className="mx-2">/</span>
       <Link to="/sobre-nosotros" className="hover:text-white">Sobre Nosotros</Link>
       <span className="mx-2">/</span>
-      <span>Despacho del Rector</span>
+      <span>Despacho del Director</span>
     </div>
   </div>
 </div>
@@ -33,7 +33,7 @@ export function DirectorOfficePage() {
           <br></br>
           <br></br>
           <h2 className="text-2xl font-bold text-[#003366] mb-4 pb-2 border-b-2 border-[#003366]">
-            Despacho del Rector
+            Despacho del Director
           </h2>
           <div className="flex gap-2 mb-6">
             <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded">
