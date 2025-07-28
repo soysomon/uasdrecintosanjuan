@@ -22,6 +22,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://uasdrecintosanjuan-fe-production.up.railway.app',
   'https://uasdrecintosanjuan.org',
+  //New
   'https://www.uasdrecintosanjuan.org'
 ];
 
