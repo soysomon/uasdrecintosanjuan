@@ -14,7 +14,7 @@ const ImageManager: React.FC<{
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   const handleImageError = (imageId: string, imageUrl: string) => {
-    console.error('Error al cargar la imagen:', imageUrl);
+    console.error('¡Upps! La imagen excede el límite permitido 30 MB. Por favor, selecciona una imagen más liviana', imageUrl);
     setFailedImages((prev) => new Set(prev).add(imageId));
   };
 
