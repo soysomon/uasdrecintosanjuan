@@ -54,7 +54,7 @@ const serviceLinks = [
     description: 'Portal de autoservicio estudiantil',
   },
   { id: 'admisiones', label: 'Admisiones', href: 'https://uasd.edu.do/admisiones/', description: 'Proceso de admisión' },
-  { id: 'pagos', label: 'Pago en línea', href: 'https://soft.uasd.edu.do/pagoenlinea/', description: 'Sistema de pagos' },
+  { id: 'pagos', label: 'Pago en línea', href: 'https://uasd.edu.do/servicios/pago-en-linea/', description: 'Sistema de pagos' },
 ];
 
 // Función para convertir la estructura de menú anidada a una lista plana para móvil
