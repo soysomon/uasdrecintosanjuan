@@ -1,275 +1,307 @@
-import { useEffect } from "react";
-import { buscarEstudianteLogic } from "./meritoriosLogic";
-import CountdownInstitucional from "./CountdownInstitucional";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
-export default function MeritoriosPage() {
-    useEffect(() => {
-        // Ajustar el padding-top para compensar el nav fijo
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            const navHeight = document.querySelector('nav')?.offsetHeight || 0;
-            mainContent.setAttribute('style', `padding-top: ${navHeight + 20}px`);
+// Tipos para el sistema
+interface ResultadoBusqueda {
+  error?: string;
+  encontrado?: boolean;
+  nombre?: string;
+  indice?: string;
+  facultad?: string;
+  periodo?: string;
+}
+
+interface CertificadoData {
+  error?: string;
+  pdfUrl?: string;
+}
+
+export default function MeritoriosMultiPeriodo() {
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("2025-10");
+  const [matricula, setMatricula] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [resultado, setResultado] = useState<ResultadoBusqueda | null>(null);
+  const [generatingCert, setGeneratingCert] = useState<boolean>(false);
+  const [certUrl, setCertUrl] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  const API_URL = "https://script.google.com/macros/s/AKfycbwDa37z2_erCoWo62cJ5njVEPP3ukmFO4kVu8XQrgFk35neQBXPE0TUFx1CDt3T_Nx0/exec";
+
+  const periods = [
+    { id: "2025-10", label: "2025-10", color: "from-blue-500 to-blue-600" },
+    { id: "2024-20", label: "2024-20", color: "from-purple-500 to-purple-600" }
+  ];
+
+  const jsonp = (url: string, callback: (data: any) => void) => {
+    const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
+    (window as any)[callbackName] = (data: any) => {
+      delete (window as any)[callbackName];
+      document.body.removeChild(script);
+      callback(data);
+    };
+
+    const script = document.createElement("script");
+    url += (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
+    script.src = url;
+    document.body.appendChild(script);
+
+    script.onerror = () => {
+      delete (window as any)[callbackName];
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+      callback({ error: "Error de conexión" });
+    };
+  };
+
+  const buscarEstudiante = () => {
+    if (!matricula.trim()) {
+      setResultado({ error: "Ingrese su matrícula" });
+      return;
+    }
+
+    setLoading(true);
+    setResultado(null);
+    setCertUrl(null);
+
+    jsonp(
+      `${API_URL}?action=buscar&matricula=${encodeURIComponent(matricula)}&periodo=${selectedPeriod}`,
+      (data: ResultadoBusqueda) => {
+        setLoading(false);
+        setResultado(data);
+      }
+    );
+  };
+
+  const generarCertificado = (data: ResultadoBusqueda) => {
+    setGeneratingCert(true);
+
+    jsonp(
+      `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(data.nombre || "")}&indice=${encodeURIComponent(data.indice || "")}&facultad=${encodeURIComponent(data.facultad || "")}&periodo=${selectedPeriod}`,
+      (certData: CertificadoData) => {
+        if (certData.error) {
+          setGeneratingCert(false);
+          alert("Error al generar certificado");
+          return;
         }
 
-        // Inicializar la lógica de búsqueda
-        buscarEstudianteLogic();
-    }, []);
+        if (certData.pdfUrl) {
+          setCertUrl(certData.pdfUrl);
+          let count = 3;
+          setCountdown(count);
 
-    return (
-        <div className="bg-white min-h-screen flex flex-col relative overflow-hidden">
-            {/* Animated geometric shapes background */}
-            <motion.div
-                initial={{ scale: 0, rotate: 0 }}
-                animate={{ scale: 1, rotate: 45 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="absolute top-1/4 left-0 w-96 h-96 bg-blue-100/30"
-            />
-            <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 1.5, delay: 0.3 }}
-                className="absolute bottom-0 right-0 w-80 h-80 bg-yellow-100/30 rounded-full"
-            />
-            <motion.div
-                initial={{ scale: 0, rotate: 0 }}
-                animate={{ scale: 1, rotate: -45 }}
-                transition={{ duration: 1.5, delay: 0.6 }}
-                className="absolute top-0 right-1/3 w-64 h-64 bg-blue-50/40"
-            />
-            
-            {/* ToastContainer para notificaciones animadas */}
-            <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
-
-            {/* Hero Section con ajuste para nav fijo */}
-            <section className="main-content w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center pb-9 relative z-10">
-                {/* Info & Consulta */}
-                <motion.div
-                    className="flex-1 flex flex-col items-start justify-center px-4 lg:px-2 py-5"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className="flex flex-col mb-2">
-                        <motion.h1
-                            className="text-4xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
-                            style={{ color: "#234880" }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2, duration: 0.8 }}
-                        >
-                            ¡Descubre si eres
-                        </motion.h1>
-                        <motion.span
-                            className="text-4xl sm:text-4xl lg:text-5xl font-extrabold text-yellow-400 leading-tight "
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4, duration: 0.8 }}
-                        >
-                            Estudiante Meritorio
-                        </motion.span>
-                    </div>
-
-                    <motion.div
-                        className="flex gap-2 items-end mb-3"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                    >
-                        <span className="text-6xl sm:text-7xl lg:text-6xl font-extrabold text-red-500 leading-none">2024-20</span>
-                    </motion.div>
-
-                    <motion.p
-                        className="text-blue-500 mb-6 font-medium max-w-lg text-lg"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.7, duration: 0.8 }}
-                    >
-                        Ingresa tu matrícula y conoce si formas parte de la lista de excelencia académica <b>UASD</b>.
-                    </motion.p>
-
-                    {/* Formulario consulta */}
-                    <motion.form
-                        id="consultaForm"
-                        className="w-full max-w-md bg-white/80 border border-blue-100 rounded-2xl shadow-xl px-5 py-8 mb-5"
-                        autoComplete="off"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8, duration: 0.6 }}
-                        whileHover={{ scale: 1.015 }}
-                    >
-                        <label
-                            htmlFor="matricula"
-                            className="block text-blue-800 text-[1.10rem] font-bold mb-1 pl-1"
-                        >
-                            Matrícula universitaria
-                        </label>
-                        <input
-                            type="text"
-                            id="matricula"
-                            name="matricula"
-                            maxLength={15}
-                            className="block w-full text-lg font-medium border-2 border-blue-100 bg-blue-50 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 focus:bg-white transition-all placeholder:text-blue-200 tracking-widest mb-4"
-                            placeholder="Ej: 100123456"
-                            required
-                        />
-                        <button
-                            type="button"
-                            id="buscarBtn"
-                            className="w-full py-3 font-black text-lg rounded-xl bg-gradient-to-r from-green-600 to-green-400 shadow-xl text-white transition-all duration-150 transform-gpu hover:scale-105 hover:from-green-700 hover:to-green-500 hover:shadow-2xl active:scale-95 focus:ring-2 focus:ring-green-400"
-                            onClick={() => buscarEstudianteLogic()}
-                        >
-                            Consultar
-                        </button>
-
-                        {/* Loader animado más pequeño y centrado */}
-
-                        <div id="loading" className="hidden flex-col items-center justify-center w-full mt-4">
-                            <div className="w-10 h-10 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-2"></div>
-                            <p className="text-blue-900 text-lg animate-pulse">Consultando Datos...</p>  
-                        </div>
-
-                        {/* Contenedor para resultados animados */}
-                        <div id="resultadoContainer" className="mt-4 w-full">
-                            <AnimatePresence>
-                                <motion.div
-                                    id="resultado"
-                                    className="resultado mt-3 hidden w-full"
-                                    initial={{ opacity: 0, y: 10, height: 0 }}
-                                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                    exit={{ opacity: 0, y: -10, height: 0 }}
-                                    transition={{ duration: 0.4 }}
-                                ></motion.div>
-                            </AnimatePresence>
-                        </div>
-
-                        {/* Botones de descarga con animación */}
-                        <motion.button
-                            id="downloadButton"
-                            className="w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-md shadow-md hidden"
-                            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Descargar Certificado
-                        </motion.button>
-
-                        <motion.a
-                            id="downloadLink"
-                            className="w-full mt-3 bg-blue-100 text-blue-700 font-semibold py-2.5 rounded-lg shadow-sm text-center block hidden"
-                            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                            whileTap={{ scale: 0.95 }}
-                            download
-                        >
-                            Descargar
-                        </motion.a>
-                    </motion.form>
-
-                    {/* Fila de badges con animación */}
-                    <motion.div
-                        className="flex flex-wrap gap-3 mt-3"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1, duration: 0.6 }}
-                    >
-                        <motion.span
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-100 font-bold text-yellow-700 shadow-sm text-sm"
-                            whileHover={{ scale: 1.05, backgroundColor: "#fef3c7" }}
-                        >
-                            <span className="text-2xl">🏆</span> Excelencia
-                        </motion.span>
-
-                        <motion.span
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-100 font-bold text-blue-700 shadow-sm text-sm"
-                            whileHover={{ scale: 1.05, backgroundColor: "#dbeafe" }}
-                        >
-                            <span className="text-2xl">🎓</span> Mérito
-                        </motion.span>
-
-                        <motion.span
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 font-bold text-blue-500 shadow-sm text-sm"
-                            whileHover={{ scale: 1.05, backgroundColor: "#eff6ff" }}
-                        >
-                            <span className="text-2xl">🌟</span> UASD
-                        </motion.span>
-                    </motion.div>
-                </motion.div>
-
-                {/* Sección Afiche/Mérito */}
-                <motion.aside
-                    className="flex flex-col items-center px-4 py-4"
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                >
-                    <motion.div
-                        className="w-full max-w-sm bg-white/80 rounded-3xl shadow-2xl border-2 border-blue-100 overflow-hidden flex flex-col items-center mb-6"
-                        initial={{ y: 30 }}
-                        animate={{ y: 0 }}
-                        transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
-                        whileHover={{ scale: 1.03, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
-                    >
-                        <img
-                            src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/news_images/MERITO-POST-WEB.jpg"
-                            alt="Afiche Meritorio UASD"
-                            className="rounded-2xl w-full object-cover object-center bg-blue-50 shadow-md"
-                            style={{ minHeight: "240px" }}
-                            loading="eager"
-                        />
-                    </motion.div>
-
-                    {/* Tarjetas horizontales con animación */}
-                    <div className="flex flex-col gap-4 w-full max-w-sm">
-                        <motion.div
-                            className="w-full flex items-center gap-4 rounded-xl bg-gradient-to-br from-yellow-50 via-blue-50 to-white px-5 py-4 shadow-md"
-                            whileHover={{ scale: 1.03, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 1, duration: 0.5 }}
-                        >
-                            <span className="text-3xl bg-yellow-300 rounded-full p-2 text-white drop-shadow">🏆</span>
-                            <div>
-                                <div className="font-bold text-blue-900">Excelencia Académica</div>
-                                <div className="text-blue-400 text-[0.95rem]">Reconoce tu esfuerzo y dedicación.</div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            className="w-full flex items-center gap-4 rounded-xl bg-gradient-to-br from-blue-50 via-yellow-50 to-white px-5 py-4 shadow-md"
-                            whileHover={{ scale: 1.03, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 1.2, duration: 0.5 }}
-                        >
-                            <span className="text-3xl bg-blue-400 rounded-full p-2 text-white drop-shadow">🎓</span>
-                            <div>
-                                <div className="font-bold text-blue-900">Estudiante Meritorio</div>
-                                <div className="text-blue-400 text-[0.95rem]">Destaca entre los mejores.</div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </motion.aside>
-            </section>
-
-            {/* Countdown animado institucional */}
-            <CountdownInstitucional />
-
-            {/* Footer institucional */}
-            <footer className="max-w-full w-full bg-gradient-to-r from-red-500 via-orange-400 to-orange-500 text-white text-center font-bold py-5 text-lg tracking-wide mt-auto drop-shadow-lg">
-                DR. CARLOS SÁNCHEZ DE OLEO · <span className="text-yellow-200">DIRECTOR UASD RECINTO SAN JUAN</span>
-            </footer>
-        </div>
+          const interval = setInterval(() => {
+            count -= 1;
+            if (count > 0) {
+              setCountdown(count);
+            } else {
+              clearInterval(interval);
+              setCountdown(null);
+              setGeneratingCert(false);
+              window.open(certData.pdfUrl, '_blank');
+            }
+          }, 1000);
+        }
+      }
     );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
+      {/* Header minimalista */}
+      <header className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 py-6 px-4 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-2xl font-bold">U</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">UASD San Juan</h1>
+              <p className="text-sm text-gray-500">Mérito Estudiantil</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-8"
+        >
+          {/* Título */}
+          <div className="text-center space-y-3">
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl md:text-6xl font-black text-gray-900"
+            >
+              Consulta tu
+              <span className="block bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+                Mérito Estudiantil
+              </span>
+            </motion.h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Verifica tu estatus de excelencia académica ingresando tu matrícula
+            </p>
+          </div>
+
+          {/* Selector de período */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md mx-auto"
+          >
+            <label className="block text-sm font-semibold text-gray-700 mb-3 text-center">
+              Selecciona el período académico
+            </label>
+            <div className="flex gap-3 justify-center">
+              {periods.map((period) => (
+                <motion.button
+                  key={period.id}
+                  onClick={() => setSelectedPeriod(period.id)}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 py-4 px-6 rounded-2xl font-bold text-lg transition-all ${
+                    selectedPeriod === period.id
+                      ? `bg-gradient-to-r ${period.color} text-white shadow-lg`
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {period.label}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Formulario de consulta */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-md mx-auto bg-white rounded-3xl shadow-xl p-8 border border-gray-100"
+          >
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Matrícula universitaria
+                </label>
+                <input
+                  type="text"
+                  value={matricula}
+                  onChange={(e) => setMatricula(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && buscarEstudiante()}
+                  placeholder="Ej: 100123456"
+                  maxLength={15}
+                  className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl text-lg font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <motion.button
+                onClick={buscarEstudiante}
+                disabled={loading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Consultando...
+                  </div>
+                ) : (
+                  "Consultar"
+                )}
+              </motion.button>
+            </div>
+
+            {/* Resultados */}
+            <AnimatePresence>
+              {resultado && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-6"
+                >
+                  {resultado.error ? (
+                    <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                      <p className="text-red-700 font-semibold">{resultado.error}</p>
+                    </div>
+                  ) : resultado.encontrado ? (
+                    <div className="space-y-4">
+                      <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-xl">
+                        <h3 className="text-xl font-bold text-green-800 mb-3">
+                          ¡Felicidades! Eres estudiante meritorio
+                        </h3>
+                        <div className="space-y-2 text-green-700">
+                          <p><strong>Nombre:</strong> {resultado.nombre}</p>
+                          <p><strong>Índice:</strong> {resultado.indice}</p>
+                          <p><strong>Facultad:</strong> {resultado.facultad}</p>
+                          <p><strong>Período:</strong> {resultado.periodo}</p>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        onClick={() => generarCertificado(resultado)}
+                        disabled={generatingCert}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50"
+                      >
+                        {generatingCert ? (
+                          countdown ? (
+                            `Abriendo en ${countdown}...`
+                          ) : (
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Generando certificado...
+                            </div>
+                          )
+                        ) : certUrl ? (
+                          "Ver certificado"
+                        ) : (
+                          "Generar certificado"
+                        )}
+                      </motion.button>
+
+                      {certUrl && !generatingCert && (
+                        <a
+                          href={certUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full py-2.5 text-center bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition-all"
+                        >
+                          Descargar nuevamente
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                      <p className="text-yellow-800 font-semibold">
+                        No encontrado en el período {selectedPeriod}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white py-6 mt-auto">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <p className="font-bold text-lg">
+            DR. CARLOS SÁNCHEZ DE OLEO
+          </p>
+          <p className="text-blue-200 text-sm">
+            Director UASD Recinto San Juan
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 }

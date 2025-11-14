@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const NotFoundPage: React.FC = () => {
-  const [countdown, setCountdown] = useState<number>(20);
+  const [countdown, setCountdown] = useState<number>(5);
   const navigate = useNavigate();
 
   useEffect(() => {
