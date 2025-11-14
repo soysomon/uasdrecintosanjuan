@@ -182,7 +182,7 @@ export default function MeritoriosMultiPeriodo() {
               <span className="text-white text-lg font-bold">U</span>
             </div>
             <div>
-              <h1 className="text-base font-semibold text-gray-900 tracking-tight">UASD San Juan</h1>
+              <h1 className="text-base font-semibold text-gray-900 tracking-tight"> UASD RECINTO SAN JUAN</h1>
               <p className="text-xs text-gray-500 font-normal">Sistema de Mérito Académico</p>
             </div>
           </motion.div>
@@ -482,8 +482,8 @@ export default function MeritoriosMultiPeriodo() {
         className="relative z-10 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-6 mt-20"
       >
         <div className="max-w-7xl mx-auto px-6 text-center space-y-1">
-        <p className="font-semibold text-base text-white">DR. CARLOS SÁNCHEZ DE OLEO</p>
-        <p className="text-blue-100 text-xs">Director UASD Recinto San Juan</p>
+        <p className="font-semibold text-base text-white">DR. CARLOS MANUEL SÁNCHEZ DE ÓLEO</p>
+        <p className="text-blue-100 text-xs">Director General</p>
         </div>
       </motion.footer>
     </div>
