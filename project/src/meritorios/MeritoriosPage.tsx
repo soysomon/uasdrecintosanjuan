@@ -19,7 +19,7 @@ export default function MeritoriosMultiPeriodo() {
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
 
-  const API_URL = "https://script.google.com/macros/s/AKfycbwDa37z2_erCoWo62cJ5njVEPP3ukmFO4kVu8XQrgFk35neQBXPE0TUFx1CDt3T_Nx0/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwReklhuyNe2uZylv6ZToNlzCgurKZCYW1Hglm7-6X8JisreizXTyC42X_Bu0e14KST/exec";
 
   // Fecha de desbloqueo: Viernes 21 de Febrero 2025, 00:00:00
   const UNLOCK_DATE = new Date("2025-02-21T00:00:00");
