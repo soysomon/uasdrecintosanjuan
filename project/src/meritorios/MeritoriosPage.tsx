@@ -345,6 +345,25 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
+                        {/* MENSAJE TEMPORAL - Descomentar sección después del 21 de febrero */}
+                        <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl text-center space-y-3">
+                          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl">
+                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
+                            <p className="text-xs text-blue-700 mb-2">
+                              La descarga de certificados estará disponible el viernes 21 del presente mes
+                            </p>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl">
+                              <span className="text-xs font-bold text-blue-900">Viernes 21 de Febrero</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CÓDIGO PARA ACTIVAR DESPUÉS DEL 21 DE FEBRERO
                         {!isUnlocked ? (
                           <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl text-center space-y-3">
                             <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl">
@@ -370,6 +389,7 @@ export default function MeritoriosMultiPeriodo() {
                             Descargar Certificado
                           </button>
                         )}
+                        */}
                       </div>
                     ) : (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
@@ -390,7 +410,6 @@ export default function MeritoriosMultiPeriodo() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
               className="relative hidden lg:block"
             >
-              {/* Placeholder para tu imagen - Reemplaza este div con tu imagen */}
               <div className="relative">
                 {/* Elementos flotantes decorativos (como en tu referencia) */}
                 <motion.div
@@ -437,30 +456,16 @@ export default function MeritoriosMultiPeriodo() {
                   <span className="text-white font-semibold text-sm">Excelencia</span>
                 </motion.div>
 
-                {/* AQUÍ VA TU IMAGEN - Reemplaza src con tu imagen PNG */}
                 <div className="relative w-full h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                   <img 
-                    src="YOUR_IMAGE_URL_HERE.png" 
+                    src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imgmeritorios/Post+Web+Merito+Estudiantil+Semestre+2025-10.png" 
                     alt="Estudiante UASD" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       // Fallback si la imagen no carga
                       e.currentTarget.style.display = 'none';
                     }}
-                  />
-                  {/* Placeholder mientras no tengas la imagen */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                        <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                      <p className="text-gray-500 font-medium text-sm">
-                        <br />
-                      </p>
-                    </div>
-                  </div>
+                  />            
                 </div>
               </div>
             </motion.div>
