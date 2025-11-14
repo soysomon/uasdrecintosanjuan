@@ -209,7 +209,7 @@ export default function MeritoriosMultiPeriodo() {
                   transition={{ duration: 0.8, delay: 0.2 }}
                   className="inline-block px-4 py-2 bg-blue-50 rounded-full border border-blue-100"
                 >
-                  <span className="text-sm font-semibold text-blue-600">UASD SAN JUAN</span>
+                  <span className="text-sm font-semibold text-blue-600">UASD RECINTO SAN JUAN</span>
                 </motion.div>
 
                 <motion.div
@@ -477,8 +477,8 @@ export default function MeritoriosMultiPeriodo() {
         className="relative z-10 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-6 mt-20"
       >
         <div className="max-w-7xl mx-auto px-6 text-center space-y-1">
-          <p className="font-semibold text-base">DR. CARLOS SÁNCHEZ DE OLEO</p>
-          <p className="text-blue-100 text-xs">Director UASD Recinto San Juan</p>
+        <p className="font-semibold text-base text-white">DR. CARLOS SÁNCHEZ DE OLEO</p>
+        <p className="text-blue-100 text-xs">Director UASD Recinto San Juan</p>
         </div>
       </motion.footer>
     </div>
