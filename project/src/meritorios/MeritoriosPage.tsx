@@ -21,8 +21,8 @@ export default function MeritoriosMultiPeriodo() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbwReklhuyNe2uZylv6ZToNlzCgurKZCYW1Hglm7-6X8JisreizXTyC42X_Bu0e14KST/exec";
 
-  // Fecha de desbloqueo: Viernes 21 de Febrero 2025, 00:00:00
-  const UNLOCK_DATE = new Date("2025-02-21T00:00:00");
+  // Fecha de desbloqueo: Jueves 27 de Noviembre 2025, 00:00:00
+  const UNLOCK_DATE = new Date("2025-11-27T00:00:00");
 
   const periods = [
     { id: "2025-10", label: "Ene-Abr 2025" },
@@ -170,19 +170,19 @@ export default function MeritoriosMultiPeriodo() {
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full bg-white/90 backdrop-blur-xl border-b border-gray-100 py-4 px-6"
+        className="relative w-full bg-white/90 backdrop-blur-xl border-b border-gray-100 py-3 sm:py-4 px-4 sm:px-6"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div 
-            className="flex items-center gap-3"
+            className="flex items-center gap-2 sm:gap-3"
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-lg font-bold">U</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-base sm:text-lg font-bold">U</span>
             </div>
             <div>
-              <h1 className="text-base font-semibold text-gray-900 tracking-tight"> UASD RECINTO SAN JUAN</h1>
+              <h1 className="text-sm sm:text-base font-semibold text-gray-900 tracking-tight">UASD RECINTO SAN JUAN</h1>
               <p className="text-xs text-gray-500 font-normal">Sistema de Mérito Académico</p>
             </div>
           </motion.div>
@@ -191,25 +191,25 @@ export default function MeritoriosMultiPeriodo() {
 
       {/* Main content - Layout de dos columnas */}
       <main className="relative z-10 w-full">
-        <div className="max-w-7xl mx-auto px-6 py-12 md:py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start lg:items-center">
             
             {/* Columna izquierda - Contenido y formulario */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-8"
+              className="space-y-6 sm:space-y-8"
             >
               {/* Título hero */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
-                  className="inline-block px-4 py-2 bg-blue-50 rounded-full border border-blue-100"
+                  className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 rounded-full border border-blue-100"
                 >
-                  <span className="text-sm font-semibold text-blue-600">UASD RECINTO SAN JUAN</span>
+                  <span className="text-xs sm:text-sm font-semibold text-blue-600">UASD RECINTO SAN JUAN</span>
                 </motion.div>
 
                 <motion.div
@@ -217,13 +217,13 @@ export default function MeritoriosMultiPeriodo() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  <h2 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-4">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
                     Consulta tu
                     <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                       Mérito Estudiantil
                     </span>
                   </h2>
-                  <p className="text-xl text-gray-600 font-normal max-w-lg">
+                  <p className="text-base sm:text-lg md:text-xl text-gray-600 font-normal max-w-lg">
                     Verifica tu estatus de excelencia académica y descarga tu certificado digital.
                   </p>
                 </motion.div>
@@ -236,17 +236,17 @@ export default function MeritoriosMultiPeriodo() {
                 transition={{ duration: 0.6, delay: 0.5 }}
                 className="max-w-md"
               >
-                <label className="block text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-gray-500 mb-2 sm:mb-3 uppercase tracking-wide">
                   Período Académico
                 </label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-2xl">
-                  {periods.map((period, index) => (
+                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl sm:rounded-2xl">
+                  {periods.map((period) => (
                     <motion.button
                       key={period.id}
                       onClick={() => setSelectedPeriod(period.id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`relative py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                      className={`relative py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${
                         selectedPeriod === period.id
                           ? "text-gray-900"
                           : "text-gray-500 hover:text-gray-700"
@@ -255,7 +255,7 @@ export default function MeritoriosMultiPeriodo() {
                       {selectedPeriod === period.id && (
                         <motion.div
                           layoutId="periodSelector"
-                          className="absolute inset-0 bg-white rounded-xl shadow-sm"
+                          className="absolute inset-0 bg-white rounded-lg sm:rounded-xl shadow-sm"
                           transition={{ type: "spring", stiffness: 400, damping: 35 }}
                         />
                       )}
@@ -270,7 +270,7 @@ export default function MeritoriosMultiPeriodo() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
-                className="max-w-md space-y-4"
+                className="max-w-md space-y-3 sm:space-y-4"
               >
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
@@ -283,7 +283,7 @@ export default function MeritoriosMultiPeriodo() {
                     onKeyPress={(e) => e.key === "Enter" && buscarEstudiante()}
                     placeholder="100-1234567"
                     maxLength={15}
-                    className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
+                    className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white border-2 border-gray-200 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
                   />
                 </div>
 
@@ -292,17 +292,17 @@ export default function MeritoriosMultiPeriodo() {
                   disabled={loading}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Consultando...</span>
                     </>
                   ) : (
                     <>
                       <span>Consultar Mérito</span>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </>
@@ -321,78 +321,78 @@ export default function MeritoriosMultiPeriodo() {
                     className="max-w-md"
                   >
                     {resultado.error ? (
-                      <div className="p-4 bg-red-50 border border-red-200 rounded-2xl">
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-xl sm:rounded-2xl">
                         <p className="text-red-700 font-medium text-sm">{resultado.error}</p>
                       </div>
                     ) : resultado.encontrado ? (
-                      <div className="space-y-4">
-                        <div className="p-6 bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl">
-                          <h3 className="text-xl font-bold text-emerald-800 mb-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="p-5 sm:p-6 bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl sm:rounded-2xl">
+                          <h3 className="text-lg sm:text-xl font-bold text-emerald-800 mb-3 sm:mb-4">
                             ¡Felicidades! 🎉
                           </h3>
-                          <div className="space-y-3">
+                          <div className="space-y-2.5 sm:space-y-3">
                             {[
                               { label: "Nombre", value: resultado.nombre },
                               { label: "Índice", value: resultado.indice },
                               { label: "Facultad", value: resultado.facultad },
                               { label: "Período", value: resultado.periodo }
                             ].map((item) => (
-                              <div key={item.label} className="flex justify-between items-center">
+                              <div key={item.label} className="flex justify-between items-center gap-2">
                                 <span className="text-xs font-semibold text-emerald-700 uppercase">{item.label}</span>
-                                <span className="text-sm font-semibold text-emerald-900">{item.value}</span>
+                                <span className="text-xs sm:text-sm font-semibold text-emerald-900 text-right">{item.value}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
                         {/* MENSAJE TEMPORAL - Descomentar sección después del 21 de febrero */}
-                        <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl text-center space-y-3">
-                          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl">
-                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
+                          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                           </div>
                           <div>
-                            <h4 className="text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
+                            <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
                             <p className="text-xs text-blue-700 mb-2">
-                              La descarga de certificados estará disponible el viernes 21 del presente mes
+                              La descarga de certificados estará disponible el Jueves 27 del presente mes
                             </p>
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl">
-                              <span className="text-xs font-bold text-blue-900">Viernes 21 de Febrero</span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
+                              <span className="text-xs font-bold text-blue-900">Jueves 27 de Noviembre</span>
                             </div>
                           </div>
                         </div>
 
                         {/* CÓDIGO PARA ACTIVAR DESPUÉS DEL 21 DE FEBRERO
                         {!isUnlocked ? (
-                          <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl text-center space-y-3">
-                            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl">
-                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
+                            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
+                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                               </svg>
                             </div>
                             <div>
-                              <h4 className="text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
+                              <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
                               <p className="text-xs text-blue-700 mb-2">
                                 Disponible después de la entrega presencial
                               </p>
-                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl">
-                                <span className="text-xs font-bold text-blue-900">Viernes 21 de Febrero</span>
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
+                                <span className="text-xs font-bold text-blue-900">Jueves 27 de Nobiembre</span>
                               </div>
-                              <div className="mt-3 text-lg font-mono font-bold text-blue-600">
+                              <div className="mt-2 sm:mt-3 text-base sm:text-lg font-mono font-bold text-blue-600">
                                 {timeRemaining}
                               </div>
                             </div>
                           </div>
                         ) : (
-                          <button className="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
+                          <button className="w-full py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
                             Descargar Certificado
                           </button>
                         )}
                         */}
                       </div>
                     ) : (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl">
                         <p className="text-amber-800 font-medium text-sm">
                           No encontrado en el período {selectedPeriod}
                         </p>
@@ -403,66 +403,66 @@ export default function MeritoriosMultiPeriodo() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Columna derecha - Imagen/Ilustración */}
+            {/* Columna derecha - Imagen/Ilustración - RESPONSIVE */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              className="relative hidden lg:block"
+              className="relative w-full mt-8 lg:mt-0"
             >
               <div className="relative">
-                {/* Elementos flotantes decorativos (como en tu referencia) */}
+                {/* Elementos flotantes decorativos - Responsive */}
                 <motion.div
-                  className="absolute -top-8 left-12 bg-white rounded-2xl shadow-lg p-3 flex items-center gap-2 z-20"
+                  className="absolute -top-4 left-4 md:left-12 md:-top-8 bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 flex items-center gap-1.5 md:gap-2 z-20"
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500" />
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500" />
                   <div className="text-left">
-                    <div className="w-20 h-2 bg-gray-200 rounded mb-1" />
-                    <div className="w-16 h-2 bg-gray-100 rounded" />
+                    <div className="w-14 md:w-20 h-1.5 md:h-2 bg-gray-200 rounded mb-1" />
+                    <div className="w-10 md:w-16 h-1.5 md:h-2 bg-gray-100 rounded" />
                   </div>
                 </motion.div>
 
                 <motion.div
-                  className="absolute top-1/4 -right-4 bg-orange-500 rounded-full px-4 py-2 shadow-lg z-20"
+                  className="absolute top-12 right-2 md:top-1/4 md:-right-4 bg-orange-500 rounded-full px-3 py-1.5 md:px-4 md:py-2 shadow-lg z-20"
                   animate={{ x: [0, 10, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 >
-                  <span className="text-white font-semibold text-sm">Mérito</span>
+                  <span className="text-white font-semibold text-xs md:text-sm">Mérito</span>
                 </motion.div>
 
                 <motion.div
-                  className="absolute bottom-32 -right-8 bg-white rounded-2xl shadow-lg p-3 flex items-center gap-3 z-20"
+                  className="absolute bottom-20 right-2 md:bottom-32 md:-right-8 bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 flex items-center gap-2 md:gap-3 z-20"
                   animate={{ y: [0, 15, 0] }}
                   transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <div className="w-24 h-2 bg-blue-500 rounded mb-1" />
-                    <div className="w-20 h-1.5 bg-gray-200 rounded" />
+                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-blue-500 rounded mb-1" />
+                    <div className="w-12 md:w-20 h-1 md:h-1.5 bg-gray-200 rounded" />
                   </div>
                 </motion.div>
 
                 <motion.div
-                  className="absolute bottom-12 -left-4 bg-purple-600 rounded-full px-4 py-2 shadow-lg z-20"
+                  className="absolute bottom-6 left-2 md:bottom-12 md:-left-4 bg-purple-600 rounded-full px-3 py-1.5 md:px-4 md:py-2 shadow-lg z-20"
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <span className="text-white font-semibold text-sm">Excelencia</span>
+                  <span className="text-white font-semibold text-xs md:text-sm">Excelencia</span>
                 </motion.div>
 
-                <div className="relative w-full h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                {/* Contenedor de imagen responsive */}
+                <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                   <img 
                     src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imgmeritorios/Post+Web+Merito+Estudiantil+Semestre+2025-10.png" 
                     alt="Estudiante UASD" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback si la imagen no carga
                       e.currentTarget.style.display = 'none';
                     }}
                   />            
@@ -479,11 +479,11 @@ export default function MeritoriosMultiPeriodo() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 1 }}
-        className="relative z-10 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-6 mt-20"
+        className="relative z-10 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-5 sm:py-6 mt-12 sm:mt-20"
       >
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-1">
-        <p className="font-semibold text-base text-white">DR. CARLOS MANUEL SÁNCHEZ DE ÓLEO</p>
-        <p className="text-blue-100 text-xs">Director General</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center space-y-1">
+          <p className="font-semibold text-sm sm:text-base text-white">DR. CARLOS MANUEL SÁNCHEZ DE ÓLEO</p>
+          <p className="text-blue-100 text-xs">Director General</p>
         </div>
       </motion.footer>
     </div>
