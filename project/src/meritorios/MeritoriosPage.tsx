@@ -21,8 +21,8 @@ export default function MeritoriosMultiPeriodo() {
   // Estado para el botón de descarga (Apple-style)
   const [downloadState, setDownloadState] = useState<"idle" | "preparing" | "ready">("idle");
 
-  const API_URL = "https://script.google.com/macros/s/AKfycbwReklhuyNe2uZylv6ZToNlzCgurKZCYW1Hglm7-6X8JisreizXTyC42X_Bu0e14KST/exec";
-  const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
+  const API_URL = "https://script.google.com/macros/s/AKfycbymecvWWH9AKQxoXmOawpQxPWuf59Y5hf0WH-d1p-13TZ4KE7P-y0x50g7J2qw62txq/exec";
+    const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
     { id: "2025-10", label: "Ene-Abr 2025" },
