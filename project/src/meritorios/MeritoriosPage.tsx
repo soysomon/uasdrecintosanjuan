@@ -23,7 +23,8 @@ export default function MeritoriosMultiPeriodo() {
   const [rating, setRating] = useState<number>(0);
   const [comentario, setComentario] = useState<string>("");
 
-  const API_URL = "https://script.google.com/macros/s/AKfycbyETmNfiy_Nq0i5yFI6pooxAl8jdMZUOXt_eWf-M28kDtm9GWEAqbOKfpWTeBs_IhIa/exec";
+  
+  const API_URL = "https://script.google.com/macros/s/AKfycbxrs-zYWnHkr21DVGUzYI-nuS7Y87_AyYXUM_wabTYvBNsKWZ5G85Zm1CMrqk3pVrPr/exec";
   const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
