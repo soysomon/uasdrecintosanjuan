@@ -21,7 +21,7 @@ export default function MeritoriosMultiPeriodo() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbwReklhuyNe2uZylv6ZToNlzCgurKZCYW1Hglm7-6X8JisreizXTyC42X_Bu0e14KST/exec";
 
-  // Fecha de desbloqueo: Jueves 27 de Noviembre 2025, 00:00:00
+  // Fecha de desbloqueo: Cambiada a fecha pasada para activar inmediatamente
   const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
@@ -97,6 +97,20 @@ export default function MeritoriosMultiPeriodo() {
         setResultado(data);
       }
     );
+  };
+
+  // Función para descargar el certificado
+  const descargarCertificado = () => {
+    if (!resultado || !resultado.encontrado) {
+      alert("No hay datos para generar el certificado");
+      return;
+    }
+
+    // Construir la URL de descarga con los parámetros necesarios
+    const downloadUrl = `${API_URL}?action=descargar&matricula=${encodeURIComponent(matricula)}&periodo=${selectedPeriod}`;
+    
+    // Abrir en nueva pestaña para descargar
+    window.open(downloadUrl, '_blank');
   };
 
   return (
@@ -345,49 +359,40 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
-                        {/* MENSAJE TEMPORAL - Descomentar sección después del 21 de febrero */}
-                        <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
-                          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
-                            <p className="text-xs text-blue-700 mb-2">
-                              La descarga de certificados estará disponible el Jueves 27 del presente mes
-                            </p>
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
-                              <span className="text-xs font-bold text-blue-900">Jueves 27 de Noviembre</span>
+                        {/* Botón de descarga con funcionalidad */}
+                        {!isUnlocked ? (
+                          <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
+                            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
+                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
+                              <p className="text-xs text-blue-700 mb-2">
+                                Disponible después de la entrega presencial
+                              </p>
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
+                                <span className="text-xs font-bold text-blue-900">Jueves 27 de Noviembre</span>
+                              </div>
+                              <div className="mt-2 sm:mt-3 text-base sm:text-lg font-mono font-bold text-blue-600">
+                                {timeRemaining}
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {!isUnlocked ? (
-  <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
-    <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
-      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    </div>
-    <div>
-      <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
-      <p className="text-xs text-blue-700 mb-2">
-        Disponible después de la entrega presencial
-      </p>
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
-        <span className="text-xs font-bold text-blue-900">Jueves 27 de Noviembre</span>
-      </div>
-      <div className="mt-2 sm:mt-3 text-base sm:text-lg font-mono font-bold text-blue-600">
-        {timeRemaining}
-      </div>
-    </div>
-  </div>
-) : (
-  <button className="w-full py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
-    Descargar Certificado
-  </button>
-)}
+                        ) : (
+                          <motion.button
+                            onClick={descargarCertificado}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Descargar Certificado
+                          </motion.button>
+                        )}
                       </div>
                     ) : (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl">
