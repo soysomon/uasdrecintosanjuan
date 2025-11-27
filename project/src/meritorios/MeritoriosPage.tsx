@@ -24,7 +24,7 @@ export default function MeritoriosMultiPeriodo() {
   const [comentario, setComentario] = useState<string>("");
 
   
-  const API_URL = "https://script.google.com/macros/s/AKfycbxrs-zYWnHkr21DVGUzYI-nuS7Y87_AyYXUM_wabTYvBNsKWZ5G85Zm1CMrqk3pVrPr/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbxGTiCo7PrFqPJPK11YzfV3Ogxat9VyLP7r9uDOhWET6667qaWTKzReTqsfZmlrRiE1/exec";
   const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
@@ -105,17 +105,24 @@ export default function MeritoriosMultiPeriodo() {
     );
   };
 
-  const enviarFeedback = async () => {
+  const enviarFeedback = () => {
     if (!rating) return;
-
-    await fetch(`${API_URL}?action=feedback&matricula=${matricula}&periodo=${selectedPeriod}&estrellas=${rating}&comentario=${encodeURIComponent(comentario)}`)
-      .catch(() => {});
-
-    localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "sent");
-    alert("¡Gracias por tu valoración! ❤️");
-    setRating(0);
-    setComentario("");
-    setDownloadState("idle");
+  
+    // Usar JSONP como las demás funciones
+    jsonp(
+      `${API_URL}?action=feedback&matricula=${encodeURIComponent(matricula)}&periodo=${selectedPeriod}&estrellas=${rating}&comentario=${encodeURIComponent(comentario)}`,
+      (data) => {
+        if (data.success) {
+          localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "sent");
+          alert("¡Gracias por tu valoración! ❤️");
+          setRating(0);
+          setComentario("");
+          setDownloadState("idle");
+        } else if (data.error) {
+          alert("Error al enviar valoración: " + data.error);
+        }
+      }
+    );
   };
 
   const omitirFeedback = () => {
