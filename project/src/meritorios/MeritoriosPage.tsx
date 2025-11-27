@@ -17,12 +17,14 @@ export default function MeritoriosMultiPeriodo() {
   const [resultado, setResultado] = useState<ResultadoBusqueda | null>(null);
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
-
-  // Estado para el botón de descarga (Apple-style)
   const [downloadState, setDownloadState] = useState<"idle" | "preparing" | "ready">("idle");
 
-  const API_URL = "https://script.google.com/macros/s/AKfycbymecvWWH9AKQxoXmOawpQxPWuf59Y5hf0WH-d1p-13TZ4KE7P-y0x50g7J2qw62txq/exec";
-    const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
+  // Feedback
+  const [rating, setRating] = useState<number>(0);
+  const [comentario, setComentario] = useState<string>("");
+
+  const API_URL = "https://script.google.com/macros/s/AKfycbyETmNfiy_Nq0i5yFI6pooxAl8jdMZUOXt_eWf-M28kDtm9GWEAqbOKfpWTeBs_IhIa/exec";
+  const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
     { id: "2025-10", label: "Ene-Abr 2025" },
@@ -37,43 +39,29 @@ export default function MeritoriosMultiPeriodo() {
         setTimeRemaining("");
       } else {
         setIsUnlocked(false);
-        calculateTimeRemaining();
+        const diff = UNLOCK_DATE.getTime() - now.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeRemaining(`${days}d ${hours}h ${minutes}m ${seconds}s`);
       }
     };
-
-    const calculateTimeRemaining = () => {
-      const now = new Date();
-      const diff = UNLOCK_DATE.getTime() - now.getTime();
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimeRemaining(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-    };
-
     checkUnlock();
     const interval = setInterval(checkUnlock, 1000);
     return () => clearInterval(interval);
   }, []);
 
   const jsonp = (url: string, callback: (data: any) => void) => {
-    const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
+    const callbackName = "jsonp_" + Math.round(1000000 * Math.random());
     (window as any)[callbackName] = (data: any) => {
       delete (window as any)[callbackName];
       document.body.removeChild(script);
       callback(data);
     };
-
     const script = document.createElement("script");
-    url += (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
-    script.src = url;
+    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
     document.body.appendChild(script);
-
-    script.onerror = () => {
-      delete (window as any)[callbackName];
-      if (document.body.contains(script)) document.body.removeChild(script);
-      callback({ error: "Error de conexión" });
-    };
   };
 
   const buscarEstudiante = () => {
@@ -83,7 +71,6 @@ export default function MeritoriosMultiPeriodo() {
     }
     setLoading(true);
     setResultado(null);
-
     jsonp(
       `${API_URL}?action=buscar&matricula=${encodeURIComponent(matricula)}&periodo=${selectedPeriod}`,
       (data: ResultadoBusqueda) => {
@@ -95,7 +82,6 @@ export default function MeritoriosMultiPeriodo() {
 
   const descargarCertificado = () => {
     if (!resultado || !resultado.encontrado || downloadState !== "idle") return;
-
     setDownloadState("preparing");
 
     jsonp(
@@ -106,7 +92,6 @@ export default function MeritoriosMultiPeriodo() {
           setDownloadState("idle");
           return;
         }
-
         if (certData.pdfUrl) {
           const win = window.open('about:blank', 'certificado_meritorio');
           if (win) win.location.href = certData.pdfUrl;
@@ -114,32 +99,39 @@ export default function MeritoriosMultiPeriodo() {
 
           setDownloadState("ready");
           setTimeout(() => setDownloadState("idle"), 4000);
-        } else {
-          setDownloadState("idle");
         }
       }
     );
   };
 
+  const enviarFeedback = async () => {
+    if (!rating) return;
+
+    await fetch(`${API_URL}?action=feedback&matricula=${matricula}&periodo=${selectedPeriod}&estrellas=${rating}&comentario=${encodeURIComponent(comentario)}`)
+      .catch(() => {});
+
+    localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "sent");
+    alert("¡Gracias por tu valoración! ❤️");
+    setRating(0);
+    setComentario("");
+    setDownloadState("idle");
+  };
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
-      {/* Formas decorativas de fondo */}
+      {/* Fondo decorativo */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div className="absolute -top-20 right-1/4 w-32 h-32 rounded-full bg-green-400/40" animate={{ y: [0, 20, 0], scale: [1, 1.1, 1] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
         <motion.div className="absolute top-32 right-20 w-64 h-48 rounded-full bg-pink-300/30" style={{ borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" }} animate={{ rotate: [0, 10, 0], scale: [1, 1.05, 1] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
         <motion.div className="absolute top-16 right-10 w-80 h-64 rounded-full bg-red-400/30" style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }} animate={{ rotate: [0, -15, 0], y: [0, 30, 0] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }} />
         <motion.div className="absolute bottom-20 right-32 w-96 h-80 rounded-full bg-purple-400/25" style={{ borderRadius: "70% 30% 50% 50% / 30% 50% 50% 70%" }} animate={{ scale: [1, 1.08, 1], rotate: [0, 5, 0] }} transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }} />
         <motion.div className="absolute bottom-40 right-16 w-40 h-40 rounded-full bg-purple-500/30" animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.4, 0.3] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.div className="absolute top-1/3 right-1/3 w-3 h-3 rounded-full bg-pink-400/60" animate={{ y: [0, -15, 0], x: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.svg className="absolute bottom-1/3 right-1/4 w-24 h-24" viewBox="0 0 100 100" animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
-          <path d="M 20 50 Q 40 20, 60 50 T 100 50" stroke="#8b5cf6" strokeWidth="2" fill="none" opacity="0.3" />
-        </motion.svg>
       </div>
 
       {/* Header */}
       <motion.header initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="relative w-full bg-white/90 backdrop-blur-xl border-b border-gray-100 py-3 sm:py-4 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div whileHover={{ scale: 1.01 }} transition={{ duration: 0.2 }} className="flex items-center gap-2 sm:gap-3">
+          <motion.div whileHover={{ scale: 1.01 }} className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white text-base sm:text-lg font-bold">U</span>
             </div>
@@ -151,11 +143,10 @@ export default function MeritoriosMultiPeriodo() {
         </div>
       </motion.header>
 
-      {/* Main */}
       <main className="relative z-10 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start lg:items-center">
-            {/* Columna izquierda */}
+            {/* Izquierda */}
             <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="space-y-6 sm:space-y-8">
               <div className="space-y-4 sm:space-y-6">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 rounded-full border border-blue-100">
@@ -172,7 +163,7 @@ export default function MeritoriosMultiPeriodo() {
                 </motion.div>
               </div>
 
-              {/* Selector de período */}
+              {/* Selector período */}
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }} className="max-w-md">
                 <label className="block text-xs font-semibold text-gray-500 mb-2 sm:mb-3 uppercase tracking-wide">Período Académico</label>
                 <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl sm:rounded-2xl">
@@ -232,7 +223,7 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
-                        {/* Botón de descarga con animación Apple */}
+                        {/* Botón descarga */}
                         {!isUnlocked ? (
                           <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
                             <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
@@ -278,7 +269,6 @@ export default function MeritoriosMultiPeriodo() {
                                     <span>Descargar Certificado</span>
                                   </motion.div>
                                 )}
-
                                 {downloadState === "preparing" && (
                                   <motion.div key="preparing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
                                     <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -288,7 +278,6 @@ export default function MeritoriosMultiPeriodo() {
                                     <span>Preparando tu certificado...</span>
                                   </motion.div>
                                 )}
-
                                 {downloadState === "ready" && (
                                   <motion.div key="ready" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
                                     <motion.svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, ease: "easeInOut" }}>
@@ -312,33 +301,9 @@ export default function MeritoriosMultiPeriodo() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Columna derecha - Imagen */}
+            {/* Imagen derecha */}
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }} className="relative w-full mt-8 lg:mt-0">
               <div className="relative">
-                <motion.div className="absolute -top-4 left-4 md:left-12 md:-top-8 bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 flex items-center gap-1.5 md:gap-2 z-20" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500" />
-                  <div className="text-left">
-                    <div className="w-14 md:w-20 h-1.5 md:h-2 bg-gray-200 rounded mb-1" />
-                    <div className="w-10 md:w-16 h-1.5 md:h-2 bg-gray-100 rounded" />
-                  </div>
-                </motion.div>
-                <motion.div className="absolute top-12 right-2 md:top-1/4 md:-right-4 bg-orange-500 rounded-full px-3 py-1.5 md:px-4 md:py-2 shadow-lg z-20" animate={{ x: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}>
-                  <span className="text-white font-semibold text-xs md:text-sm">Mérito</span>
-                </motion.div>
-                <motion.div className="absolute bottom-20 right-2 md:bottom-32 md:-right-8 bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 flex items-center gap-2 md:gap-3 z-20" animate={{ y: [0, 15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}>
-                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-blue-500 rounded mb-1" />
-                    <div className="w-12 md:w-20 h-1 md:h-1.5 bg-gray-200 rounded" />
-                  </div>
-                </motion.div>
-                <motion.div className="absolute bottom-6 left-2 md:bottom-12 md:-left-4 bg-purple-600 rounded-full px-3 py-1.5 md:px-4 md:py-2 shadow-lg z-20" animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
-                  <span className="text-white font-semibold text-xs md:text-sm">Excelencia</span>
-                </motion.div>
                 <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                   <img src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imgmeritorios/Post+Web+Merito+Estudiantil+Semestre+2025-10.png" alt="Estudiante UASD" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
@@ -355,6 +320,65 @@ export default function MeritoriosMultiPeriodo() {
           <p className="text-blue-100 text-xs">Director General</p>
         </div>
       </motion.footer>
+
+      {/* POPUP DE FEEDBACK */}
+      <AnimatePresence>
+        {downloadState === "ready" && !localStorage.getItem(`feedback_${matricula}_${selectedPeriod}`) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setDownloadState("idle")}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold text-center mb-4 text-gray-900">¡Gracias por descargar tu certificado!</h3>
+              <p className="text-center text-gray-600 mb-8">¿Cómo calificarías tu experiencia con el sistema?</p>
+
+              <div className="flex justify-center gap-4 mb-8">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} onClick={() => setRating(n)} className="transition-transform hover:scale-125">
+                    <span className={`text-5xl ${rating >= n ? "text-yellow-400 drop-shadow-lg" : "text-gray-300"}`}>★</span>
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={3}
+                placeholder="¿Quieres dejarnos un comentario? (Opcional)"
+                value={comentario}
+                onChange={(e) => setComentario(e.target.value)}
+                className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 resize-none mb-6"
+              />
+
+              <div className="flex gap-4">
+                <button
+                  onClick={enviarFeedback}
+                  disabled={!rating}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Enviar valoración
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "skipped");
+                    setDownloadState("idle");
+                  }}
+                  className="px-6 py-4 bg-gray-200 text-gray-700 font-semibold rounded-2xl"
+                >
+                  Omitir
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
