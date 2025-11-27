@@ -98,7 +98,7 @@ export default function MeritoriosMultiPeriodo() {
           else window.location.href = certData.pdfUrl;
 
           setDownloadState("ready");
-          setTimeout(() => setDownloadState("idle"), 4000);
+          // NO desaparece solo → el popup de feedback se encarga ahora
         }
       }
     );
@@ -114,6 +114,11 @@ export default function MeritoriosMultiPeriodo() {
     alert("¡Gracias por tu valoración! ❤️");
     setRating(0);
     setComentario("");
+    setDownloadState("idle");
+  };
+
+  const omitirFeedback = () => {
+    localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "skipped");
     setDownloadState("idle");
   };
 
@@ -163,7 +168,6 @@ export default function MeritoriosMultiPeriodo() {
                 </motion.div>
               </div>
 
-              {/* Selector período */}
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }} className="max-w-md">
                 <label className="block text-xs font-semibold text-gray-500 mb-2 sm:mb-3 uppercase tracking-wide">Período Académico</label>
                 <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl sm:rounded-2xl">
@@ -178,7 +182,6 @@ export default function MeritoriosMultiPeriodo() {
                 </div>
               </motion.div>
 
-              {/* Formulario */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }} className="max-w-md space-y-3 sm:space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Matrícula Universitaria</label>
@@ -201,7 +204,6 @@ export default function MeritoriosMultiPeriodo() {
                 </motion.button>
               </motion.div>
 
-              {/* Resultados */}
               <AnimatePresence mode="wait">
                 {resultado && (
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="max-w-md">
@@ -223,7 +225,6 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
-                        {/* Botón descarga */}
                         {!isUnlocked ? (
                           <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
                             <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
@@ -241,54 +242,47 @@ export default function MeritoriosMultiPeriodo() {
                             </div>
                           </div>
                         ) : (
-                          <AnimatePresence mode="wait">
-                            <motion.button
-                              key={downloadState}
-                              onClick={descargarCertificado}
-                              disabled={downloadState !== "idle"}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.3, ease: "easeOut" }}
-                              className={`relative w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden flex items-center justify-center gap-3 text-white font-semibold text-sm sm:text-base transition-all duration-300 ${
-                                downloadState === "idle" ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:shadow-xl" :
-                                downloadState === "preparing" ? "bg-gray-400 cursor-not-allowed" :
-                                "bg-gradient-to-r from-emerald-500 to-green-500"
-                              }`}
-                              whileHover={downloadState === "idle" ? { scale: 1.02 } : {}}
-                              whileTap={downloadState === "idle" ? { scale: 0.98 } : {}}
-                            >
-                              <motion.div className="absolute inset-0 bg-white opacity-0" animate={{ opacity: downloadState === "ready" ? 0.2 : 0 }} transition={{ duration: 0.4 }} />
+                          <motion.button
+                            onClick={descargarCertificado}
+                            disabled={downloadState !== "idle"}
+                            className={`relative w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden flex items-center justify-center gap-3 text-white font-semibold text-sm sm:text-base transition-all duration-300 ${
+                              downloadState === "idle" ? "bg-gradient-to-r from-emerald-600 to-green-600 hover:shadow-xl" :
+                              downloadState === "preparing" ? "bg-gray-400 cursor-not-allowed" :
+                              "bg-gradient-to-r from-emerald-500 to-green-500"
+                            }`}
+                            whileHover={downloadState === "idle" ? { scale: 1.02 } : {}}
+                            whileTap={downloadState === "idle" ? { scale: 0.98 } : {}}
+                          >
+                            <motion.div className="absolute inset-0 bg-white opacity-0" animate={{ opacity: downloadState === "ready" ? 0.2 : 0 }} transition={{ duration: 0.4 }} />
 
-                              <AnimatePresence mode="popLayout">
-                                {downloadState === "idle" && (
-                                  <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <span>Descargar Certificado</span>
-                                  </motion.div>
-                                )}
-                                {downloadState === "preparing" && (
-                                  <motion.div key="preparing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
-                                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.3" />
-                                      <path stroke="currentColor" strokeWidth="4" strokeLinecap="round" d="M4 12a8 8 0 018-8" />
-                                    </svg>
-                                    <span>Preparando tu certificado...</span>
-                                  </motion.div>
-                                )}
-                                {downloadState === "ready" && (
-                                  <motion.div key="ready" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
-                                    <motion.svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, ease: "easeInOut" }}>
-                                      <motion.path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                    </motion.svg>
-                                    <span>Tu certificado está listo</span>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </motion.button>
-                          </AnimatePresence>
+                            <AnimatePresence mode="popLayout">
+                              {downloadState === "idle" && (
+                                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <span>Descargar Certificado</span>
+                                </motion.div>
+                              )}
+                              {downloadState === "preparing" && (
+                                <motion.div key="preparing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
+                                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.3" />
+                                    <path stroke="currentColor" strokeWidth="4" strokeLinecap="round" d="M4 12a8 8 0 018-8" />
+                                  </svg>
+                                  <span>Preparando tu certificado...</span>
+                                </motion.div>
+                              )}
+                              {downloadState === "ready" && (
+                                <motion.div key="ready" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Tu certificado está listo</span>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.button>
                         )}
                       </div>
                     ) : (
@@ -301,12 +295,10 @@ export default function MeritoriosMultiPeriodo() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Imagen derecha */}
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }} className="relative w-full mt-8 lg:mt-0">
-              <div className="relative">
-                <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <img src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imgmeritorios/Post+Web+Merito+Estudiantil+Semestre+2025-10.png" alt="Estudiante UASD" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                </div>
+            {/* Derecha - Imagen */}
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative w-full mt-8 lg:mt-0">
+              <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                <img src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imgmeritorios/Post+Web+Merito+Estudiantil+Semestre+2025-10.png" alt="Estudiante UASD" className="w-full h-full object-cover" />
               </div>
             </motion.div>
           </div>
@@ -321,47 +313,60 @@ export default function MeritoriosMultiPeriodo() {
         </div>
       </motion.footer>
 
-      {/* POPUP DE FEEDBACK */}
+      {/* POPUP FEEDBACK - PERSISTENTE */}
       <AnimatePresence>
-  {!localStorage.getItem(`feedback_${matricula}_${selectedPeriod}`) && resultado?.encontrado && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={() => {}} // evita cerrar al hacer clic fuera (opcional)
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9 }}
-        className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Todo tu contenido del popup... */}
-        
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={enviarFeedback}
-            disabled={!rating}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-2xl disabled:opacity-50"
+        {resultado?.encontrado && !localStorage.getItem(`feedback_${matricula}_${selectedPeriod}`) && downloadState === "ready" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
           >
-            Enviar valoración
-          </button>
-          <button
-            onClick={() => {
-              localStorage.setItem(`feedback_${matricula}_${selectedPeriod}`, "skipped");
-              // No cerramos downloadState porque ya no lo usamos para el popup
-            }}
-            className="px-6 py-4 bg-gray-200 text-gray-700 font-semibold rounded-2xl"
-          >
-            Omitir
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+            <motion.div
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 50 }}
+              className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold text-center mb-4 text-gray-900">¡Gracias por descargar tu certificado!</h3>
+              <p className="text-center text-gray-600 mb-8">¿Cómo calificarías tu experiencia con el sistema?</p>
+
+              <div className="flex justify-center gap-4 mb-8">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} onClick={() => setRating(n)} className="transition-all hover:scale-125">
+                    <span className={`text-5xl ${rating >= n ? "text-yellow-400 drop-shadow-lg" : "text-gray-300"}`}>★</span>
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={3}
+                placeholder="¿Quieres dejarnos un comentario? (Opcional)"
+                value={comentario}
+                onChange={(e) => setComentario(e.target.value)}
+                className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 resize-none mb-6"
+              />
+
+              <div className="flex gap-4">
+                <button
+                  onClick={enviarFeedback}
+                  disabled={!rating}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                >
+                  Enviar valoración
+                </button>
+                <button
+                  onClick={omitirFeedback}
+                  className="px-6 py-4 bg-gray-200 text-gray-700 font-semibold rounded-2xl hover:bg-gray-300 transition-all"
+                >
+                  Omitir
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
