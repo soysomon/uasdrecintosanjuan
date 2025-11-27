@@ -99,18 +99,34 @@ export default function MeritoriosMultiPeriodo() {
     );
   };
 
-  // Función para descargar el certificado
+  // Función para descargar el certificado - CORREGIDA
   const descargarCertificado = () => {
     if (!resultado || !resultado.encontrado) {
       alert("No hay datos para generar el certificado");
       return;
     }
 
-    // Construir la URL de descarga con los parámetros necesarios
-    const downloadUrl = `${API_URL}?action=descargar&matricula=${encodeURIComponent(matricula)}&periodo=${selectedPeriod}`;
-    
-    // Abrir en nueva pestaña para descargar
-    window.open(downloadUrl, '_blank');
+    // Usar la acción correcta: generarCertificado (no "descargar")
+    jsonp(
+      `${API_URL}?action=generarCertificado&nombre=${encodeURIComponent(resultado.nombre || '')}&indice=${encodeURIComponent(resultado.indice || '')}&facultad=${encodeURIComponent(resultado.facultad || '')}`,
+      (certData) => {
+        if (certData.error) {
+          alert("Error al generar el certificado: " + certData.error);
+          return;
+        }
+
+        if (certData.pdfUrl) {
+          // Abrir el certificado en nueva ventana
+          const certificadoWindow = window.open('about:blank', 'certificado_meritorio');
+          if (certificadoWindow) {
+            certificadoWindow.location.href = certData.pdfUrl;
+          } else {
+            // Si falla, intentar como enlace directo
+            window.location.href = certData.pdfUrl;
+          }
+        }
+      }
+    );
   };
 
   return (
@@ -359,7 +375,7 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
-                        {/* Botón de descarga con funcionalidad */}
+                        {/* Botón de descarga con funcionalidad CORREGIDA */}
                         {!isUnlocked ? (
                           <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
                             <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
