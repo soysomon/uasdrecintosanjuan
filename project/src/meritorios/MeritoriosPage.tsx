@@ -22,7 +22,7 @@ export default function MeritoriosMultiPeriodo() {
   const API_URL = "https://script.google.com/macros/s/AKfycbwReklhuyNe2uZylv6ZToNlzCgurKZCYW1Hglm7-6X8JisreizXTyC42X_Bu0e14KST/exec";
 
   // Fecha de desbloqueo: Jueves 27 de Noviembre 2025, 00:00:00
-  const UNLOCK_DATE = new Date("2025-11-27T00:00:00");
+  const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
   const periods = [
     { id: "2025-10", label: "Ene-Abr 2025" },
@@ -363,33 +363,31 @@ export default function MeritoriosMultiPeriodo() {
                           </div>
                         </div>
 
-                        {/* CÓDIGO PARA ACTIVAR DESPUÉS DEL 21 DE FEBRERO
                         {!isUnlocked ? (
-                          <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
-                            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
-                              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                              </svg>
-                            </div>
-                            <div>
-                              <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
-                              <p className="text-xs text-blue-700 mb-2">
-                                Disponible después de la entrega presencial
-                              </p>
-                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
-                                <span className="text-xs font-bold text-blue-900">Jueves 27 de Nobiembre</span>
-                              </div>
-                              <div className="mt-2 sm:mt-3 text-base sm:text-lg font-mono font-bold text-blue-600">
-                                {timeRemaining}
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <button className="w-full py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
-                            Descargar Certificado
-                          </button>
-                        )}
-                        */}
+  <div className="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl text-center space-y-2.5 sm:space-y-3">
+    <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg sm:rounded-xl">
+      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    </div>
+    <div>
+      <h4 className="text-sm sm:text-base font-bold text-blue-900 mb-1">Descarga Próximamente</h4>
+      <p className="text-xs text-blue-700 mb-2">
+        Disponible después de la entrega presencial
+      </p>
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg sm:rounded-xl">
+        <span className="text-xs font-bold text-blue-900">Jueves 27 de Noviembre</span>
+      </div>
+      <div className="mt-2 sm:mt-3 text-base sm:text-lg font-mono font-bold text-blue-600">
+        {timeRemaining}
+      </div>
+    </div>
+  </div>
+) : (
+  <button className="w-full py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
+    Descargar Certificado
+  </button>
+)}
                       </div>
                     ) : (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl">
