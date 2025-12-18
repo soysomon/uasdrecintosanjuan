@@ -233,9 +233,6 @@ const ImageManager: React.FC<{
               <p className="text-gray-500 text-xs mt-1">
                 Arrastra aquí o haz clic • JPG, PNG, GIF • Múltiples archivos permitidos
               </p>
-              <p className="text-blue-600 text-xs mt-2 font-medium">
-                💡 Puedes seleccionar varias imágenes a la vez
-              </p>
             </>
           )}
         </div>
