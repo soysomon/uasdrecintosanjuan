@@ -223,7 +223,7 @@ const upload = multer({
   }
 });
 
-// Image Upload Route with Quality Preservation
+/// Image Upload Route with Quality Preservation
 app.post('/api/upload-image', upload.single('file'), async (req, res) => {
   try {
     console.log('Received image upload request');
@@ -233,6 +233,16 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
     }
 
     console.log('File received:', req.file.originalname, 'Size:', req.file.size, 'MIME Type:', req.file.mimetype);
+
+    // NUEVA VALIDACIÓN: Tamaño máximo
+    if (req.file.size > 30 * 1024 * 1024) {
+      await fs.remove(req.file.path);
+      console.error('File too large:', req.file.size);
+      return res.status(400).json({ 
+        success: false, 
+        error: `La imagen ${req.file.originalname} es demasiado grande (${(req.file.size / 1024 / 1024).toFixed(2)}MB). Máximo 30MB.` 
+      });
+    }
 
     // Read file into memory
     const fileContent = await fs.readFile(req.file.path);
@@ -245,14 +255,19 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
       Bucket: bucketName,
       Key: fileKey,
       Body: fileContent,
-      ContentType: req.file.mimetype, // Ensure correct MIME type is set
+      ContentType: req.file.mimetype,
       Metadata: {
         'original-filename': req.file.originalname,
         'content-type': req.file.mimetype,
         'upload-date': new Date().toISOString(),
       },
     };
-    console.log('Uploading to S3 with params:', uploadParams);
+    console.log('Uploading to S3 with params:', { 
+      Bucket: uploadParams.Bucket, 
+      Key: uploadParams.Key,
+      ContentType: uploadParams.ContentType,
+      Size: fileContent.length 
+    });
 
     const uploadCommand = new PutObjectCommand(uploadParams);
     await s3Client.send(uploadCommand);
@@ -262,11 +277,15 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
     console.log('Generated public URL:', url);
 
     // Verify file size after upload by fetching metadata from S3
-    const headResponse = await axios.head(url);
-    const uploadedSize = parseInt(headResponse.headers['content-length'], 10);
-    console.log('Uploaded file size:', uploadedSize);
-    if (uploadedSize !== fileContent.length) {
-      console.error('File size mismatch after upload. Original:', fileContent.length, 'Uploaded:', uploadedSize);
+    try {
+      const headResponse = await axios.head(url);
+      const uploadedSize = parseInt(headResponse.headers['content-length'], 10);
+      console.log('Uploaded file size:', uploadedSize);
+      if (uploadedSize !== fileContent.length) {
+        console.error('File size mismatch after upload. Original:', fileContent.length, 'Uploaded:', uploadedSize);
+      }
+    } catch (verifyError) {
+      console.warn('Could not verify uploaded file size:', verifyError.message);
     }
 
     await fs.remove(req.file.path);
@@ -281,18 +300,25 @@ app.post('/api/upload-image', upload.single('file'), async (req, res) => {
     });
   } catch (error) {
     console.error('Error al subir imagen:', error);
+    
+    // Limpiar archivo temporal en caso de error
     if (req.file && req.file.path) {
       try {
         await fs.remove(req.file.path);
-        console.log('Temporary file cleaned up');
+        console.log('Temporary file cleaned up after error');
       } catch (cleanupError) {
         console.error('Error al limpiar archivo temporal:', cleanupError);
       }
     }
+    
+    // Enviar error detallado
     res.status(500).json({
       success: false,
       error: 'Error al subir la imagen',
-      details: error.message
+      details: error.message,
+      fileName: req.file?.originalname,
+      // Solo en desarrollo
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });

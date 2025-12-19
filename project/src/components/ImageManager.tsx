@@ -4,6 +4,7 @@ import {
   Upload, Image as ImageIcon, Settings, X, AlignLeft, AlignCenter, 
   AlignRight, Minimize, Maximize, AlertCircle, CheckCircle, Loader 
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { ImageDisplayOptions, NewsImage, Section } from '../types/news';
 import API_ROUTES from '../config/api';
 
@@ -116,15 +117,41 @@ const ImageManager: React.FC<{
 
     setIsMultiUploading(true);
 
-    // Convertir FileList a array y crear objetos de carga
+    // Convertir FileList a array y validar
     const filesArray = Array.from(files);
-    const newUploadingImages: UploadingImage[] = filesArray.map((file) => ({
-      id: `temp-${Date.now()}-${Math.random()}`,
-      file,
-      preview: URL.createObjectURL(file),
-      progress: 0,
-      status: 'pending' as const,
-    }));
+    
+    // Validaciones
+    const MAX_SIZE = 30 * 1024 * 1024; // 30MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    const newUploadingImages: UploadingImage[] = filesArray
+      .filter((file) => {
+        // Validar tamaño
+        if (file.size > MAX_SIZE) {
+          toast.error(`${file.name} es demasiado grande (máx 30MB)`);
+          return false;
+        }
+        
+        // Validar tipo
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          toast.error(`${file.name} no es un formato válido (JPG, PNG, GIF, WEBP)`);
+          return false;
+        }
+        
+        return true;
+      })
+      .map((file) => ({
+        id: `temp-${Date.now()}-${Math.random()}`,
+        file,
+        preview: URL.createObjectURL(file),
+        progress: 0,
+        status: 'pending' as const,
+      }));    
+    if (newUploadingImages.length === 0) {
+      setIsMultiUploading(false);
+      toast.error('No hay imágenes válidas para subir');
+      return;
+    }
 
     setUploadingImages(newUploadingImages);
 
@@ -232,6 +259,9 @@ const ImageManager: React.FC<{
               </p>
               <p className="text-gray-500 text-xs mt-1">
                 Arrastra aquí o haz clic • JPG, PNG, GIF • Múltiples archivos permitidos
+              </p>
+              <p className="text-blue-600 text-xs mt-2 font-medium">
+                💡 Puedes seleccionar varias imágenes a la vez
               </p>
             </>
           )}
