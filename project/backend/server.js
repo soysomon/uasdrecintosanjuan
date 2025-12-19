@@ -117,7 +117,7 @@ mongoose.connect(process.env.MONGODB_URI)
       const { date, ...rest } = req.body;
       const newsData = {
         ...rest,
-        date: new Date(`${date}T00:00:00Z`), // Forzar UTC
+        date: new Date(`${date}T00:00:00Z`),
       };
       const news = new News(newsData);
       await news.save();
@@ -155,7 +155,7 @@ mongoose.connect(process.env.MONGODB_URI)
       const { date, ...rest } = req.body;
       const updateData = {
         ...rest,
-        date: new Date(`${date}T00:00:00Z`), // Forzar UTC
+        date: new Date(`${date}T00:00:00Z`),
         sections: req.body.sections.map(section => {
           const { id, ...sectionRest } = section; // Elimina el campo "id"
           return sectionRest;
