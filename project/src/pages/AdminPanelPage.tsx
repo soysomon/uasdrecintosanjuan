@@ -11,6 +11,7 @@ import NewsCreate from '../admin/news/NewsCreate';
 import NewsManage from '../admin/news/NewsManage';
 import NewsEdit from '../admin/news/NewsEdit';
 import { NewsService } from '../admin/news/NewsService';
+import UserManager from '../components/UserManager';
 
 interface CategoryStats {
   [key: string]: number;
@@ -28,8 +29,7 @@ const FEATURE_KEY = 'multi-image-news-v1';
 const FEATURE_DURATION = 12 * 60 * 60 * 1000; // 12 horas
 
 const AdminPanelPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'edit' | 'security' | 'estados'>('create');
-  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'edit' | 'security' | 'estados' | 'users'>('create');  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats>({ totalNews: 0, byCategory: {} });
   const [showConfetti, setShowConfetti] = useState(false);
   const [showFeatureBanner, setShowFeatureBanner] = useState(false);
@@ -239,6 +239,19 @@ const AdminPanelPage: React.FC = () => {
               Seguridad
             </button>
           )}
+          {isSuperAdmin && (
+  <button
+    onClick={() => setActiveTab('users')}
+    className={`flex items-center py-3 px-4 rounded-lg font-medium transition-all ${
+      activeTab === 'users'
+        ? 'bg-green-600 text-white shadow-md'
+        : 'text-gray-600 hover:bg-gray-100'
+    }`}
+  >
+    <Users className="mr-2" size={18} />
+    Usuarios
+  </button>
+)}
         </div>
 
         {/* ==============================
@@ -252,6 +265,8 @@ const AdminPanelPage: React.FC = () => {
           )}
           {activeTab === 'security' && isSuperAdmin && <SecurityManager token={token} />}
           {activeTab === 'estados' && <EstadosFinancierosManager />}
+          {activeTab === 'users' && isSuperAdmin && <UserManager token={token} />}
+
         </AnimatePresence>
       </div>
 
