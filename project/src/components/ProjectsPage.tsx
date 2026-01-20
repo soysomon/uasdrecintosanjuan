@@ -112,6 +112,8 @@ const sections: Section[] = [
       { title: 'Apertura Psicología Escolar (No. 2022-410)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Resolucion-Psicologia-Escolar.pdf', date: '2022' },
       { title: 'Apertura Licenciatura en Letras (No. 2021-106)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/RESOLUCION-CU-2021-106-CU-23-AGOSTO-2021.pdf', date: '2021' },
       { title: 'Apertura Licenciatura en Letras (No. 2021-106)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/RESOLUCION-CU-2021-106-CU-23-AGOSTO-2021.pdf', date: '2021' },
+      { title: 'Proclama Oficial CCE 007-2022: Elecciones de Directivos - Recinto San Juan', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+CCE+007-2022+Ganadores+Elecciones+Director+General+y+Subdirectores+Recinto+San+Juan.pdf', date: '2022' },
+      { title: 'Proclama Electoral 2018-2022: Director y Subdirector - UASD Recinto San Juan de la Maguana', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+Director+y+Subdirector+2018-2022+UASD+Recinto+San+Juan+de+la+Maguana.pdf', date: '2022' },
 
     ],
     imageSrc: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-innovaciones/Resoluciones+Oficiales.jpg"
