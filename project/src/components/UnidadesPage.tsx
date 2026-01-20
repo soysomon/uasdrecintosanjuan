@@ -414,18 +414,19 @@ export function UnidadesPage() {
                   <h3 className="font-medium text-gray-700">Recursos adicionales</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
-                  <a href="#" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <a href="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Ley+de+Creacio%CC%81n+de+la+UASD.pdf" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
 
                     {/*Documentos a la espera de ser subidos- Web no los tiene */}
                     <span className="text-gray-700">Reglamento universitario (PDF)</span>
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                   </a>
                   <a href="#" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-gray-700">Constitución de la universidad</span>
+                    <span className="text-gray-700">Informe anual 2023 (PDF)</span>
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                   </a>
-                  <a href="#" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-gray-700">Informe anual 2023 (PDF)</span>
+
+                  <a href="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+Director+General+del+Recinto+San+Juan.pdf" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-gray-700">Proclamación CCE-007-2022 - Director General Recinto San Juan (PDF)</span>
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                   </a>
                 </div>
