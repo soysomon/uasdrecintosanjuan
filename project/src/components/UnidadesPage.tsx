@@ -425,10 +425,7 @@ export function UnidadesPage() {
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                   </a>
 
-                  <a href="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+Director+General+del+Recinto+San+Juan.pdf" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-gray-700">Proclamación CCE-007-2022 - Director General Recinto San Juan (PDF)</span>
-                    <ExternalLink className="w-4 h-4 text-gray-500" />
-                  </a>
+                
                 </div>
               </div>
             </div>

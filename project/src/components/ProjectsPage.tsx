@@ -103,7 +103,7 @@ const sections: Section[] = [
     title: 'Resoluciones Oficiales',
     description: 'Documentos normativos y resoluciones',
     projects: [
-      { title: 'Proclama CCE-007-2022 - Director General UASD San Juan', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+Director+General+del+Recinto+San+Juan.pdf', date: '2022' },
+    // { title: 'Proclama CCE-007-2022 - Director General UASD San Juan', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Proclama+Director+General+del+Recinto+San+Juan.pdf', date: '2022' },
       { title: 'Cambio de Centro a Recinto (No. CM-2020-004)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Aprobacio%CC%81n-elevacio%CC%81n-de-Centro-a-Recinto-e1637585027448.jpeg', date: '2020' },
       { title: 'Oficinas UASD Elias Piña', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Resolucion-oficinas-UASD-Elias-Pi%C3%B1a.pdf', date: '2021' },
       { title: 'Apertura Pre-Médica (No. 2022-137)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Resolucion-aprobacion-Premedica.pdf', date: '2022' },
