@@ -415,6 +415,8 @@ export function UnidadesPage() {
                 </div>
                 <div className="divide-y divide-gray-200">
                   <a href="#" className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
+
+                    {/*Documentos a la espera de ser subidos- Web no los tiene */}
                     <span className="text-gray-700">Reglamento universitario (PDF)</span>
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                   </a>

@@ -57,6 +57,8 @@ const sections: Section[] = [
       { title: 'Manual de Procedimientos UCOTESIS', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Manual-de-Procedimientos-de-la-Unidad-de-Cursos-Optativos-de-Tesis-Ucotesis.pdf', date: '2023' },
       { title: 'Plan Estratégico 2022-2026', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/PLAN-ESTRATEGICO-UASD-RECINTO-SAN-JUAN-DE-LA-MAGUANA.pdf', date: '2022' },
       { title: 'Plan Operativo 2023', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/PLAN-OPERATIVO-ANUAL-RECINTO-SAN-JUAN-2023-1.pdf', date: '2023' },
+      { title: 'Ley de Creación de la UASD', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Ley+de+Creacio%CC%81n+de+la+UASD.pdf', date: '2026' },
+
     ],
     imageSrc: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-innovaciones/Documentos+Institucionales.jpg"
   },
@@ -108,6 +110,8 @@ const sections: Section[] = [
       { title: 'Apertura Ingeniería Civil (No. 073-2022)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Resolucion-Ing.-Civil.pdf', date: '2022' },
       { title: 'Apertura Psicología Escolar (No. 2022-410)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/Resolucion-Psicologia-Escolar.pdf', date: '2022' },
       { title: 'Apertura Licenciatura en Letras (No. 2021-106)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/RESOLUCION-CU-2021-106-CU-23-AGOSTO-2021.pdf', date: '2021' },
+      { title: 'Apertura Licenciatura en Letras (No. 2021-106)', link: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/pdf-Proyectos+y+Resoluciones/RESOLUCION-CU-2021-106-CU-23-AGOSTO-2021.pdf', date: '2021' },
+
     ],
     imageSrc: "https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-innovaciones/Resoluciones+Oficiales.jpg"
   }
