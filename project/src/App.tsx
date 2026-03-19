@@ -9,7 +9,6 @@ import { HistoryPage } from './components/HistoryPage';
 import { PhilosophyPage } from './components/PhilosophyPage';
 import { MisionVisionPage } from './components/MisionVisionPage';
 import { ProjectsPage } from './components/ProjectsPage';
-import { ReportsPage } from './components/ReportsPage';
 import { EliasPinaPage } from './components/EliasPinaPage';
 import { DirectivosPage } from './components/DirectivosPage';
 import { UnidadesPage } from './components/UnidadesPage';
@@ -73,7 +72,6 @@ function App() {
             <Route path="/inicio/filosofia" element={<PhilosophyPage />} />
             <Route path="/inicio/mision-vision" element={<MisionVisionPage />} />
             <Route path="/inicio/proyectos" element={<ProjectsPage />} />
-            <Route path="/inicio/informes" element={<ReportsPage />} />
             <Route path="/inicio/elias-pina" element={<EliasPinaPage />} />
             <Route path="/inicio/consejo-directivo" element={<DirectivosPage />} />
             <Route path="/inicio/unidades" element={<UnidadesPage />} />
