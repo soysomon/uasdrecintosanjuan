@@ -304,7 +304,7 @@ export function ContactosPage() {
                 {/* Ubicación */}
                 <div className="mb-8">
                   <h3 className="font-medium text-lg mb-2 text-white">Oficina Principal</h3>
-                  <p className="text-white/80">Calle Correa y Cidrón No. 22</p>
+                  <p className="text-white/80">Ctra. Francisco del Rosario Sánchez, San Juan de la Maguana</p>
                   <p className="text-white/80">San Juan - República Dominicana</p>
                 </div>
 

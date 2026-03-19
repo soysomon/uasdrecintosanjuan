@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit, Check, AlertTriangle, User, Users, Loader, X, Search, Youtube } from 'lucide-react';
+import {
+  Plus, Trash2, User, Loader, X, Search,
+  GraduationCap, Briefcase, Award, Calendar, Globe, Save, Youtube,
+} from 'lucide-react';
 import DocenteImgUploader from './DocenteImgUploader';
 import API_ROUTES from '../config/api';
-import { Video } from 'lucide-react'; // Alternativa a Youtube
 
-// Interfaces para tipos de datos
+// ── Interfaces ──────────────────────────────────────────────────
 export interface DocenteItem {
   _id?: string;
   nombre: string;
@@ -19,1071 +21,984 @@ export interface DocenteItem {
   departamento?: string;
   fotoPerfil?: string;
   fotoPublicId?: string;
-  videoUrl?: string; 
+  videoUrl?: string;
   descripcionGeneral?: string;
-  educacion?: {
-    titulo: string;
-    institucion: string;
-    anio: string;
-  }[];
+  educacion?: { titulo: string; institucion: string; anio: string }[];
   idiomas?: string[];
-  experienciaProfesional?: {
-    cargo: string;
-    institucion: string;
-    periodo: string;
-  }[];
-  reconocimientos?: {
-    titulo: string;
-    otorgadoPor: string;
-    anio: string;
-  }[];
-  participacionEventos?: {
-    nombre: string;
-    lugar: string;
-    anio: string;
-  }[];
+  experienciaProfesional?: { cargo: string; institucion: string; periodo: string }[];
+  reconocimientos?: { titulo: string; otorgadoPor: string; anio: string }[];
+  participacionEventos?: { nombre: string; lugar: string; anio: string }[];
   order?: number;
   isPublished: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
+const emptyDocente: DocenteItem = {
+  nombre: '', apellidos: '', slug: '', tipo: 'residente',
+  cargo: '', especialidad: '', departamento: '',
+  descripcionGeneral: '', videoUrl: '',
+  educacion: [], idiomas: [],
+  experienciaProfesional: [], reconocimientos: [], participacionEventos: [],
+  isPublished: true,
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.03, duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
+// ── Section title helper ─────────────────────────────────────────
+const SectionTitle: React.FC<{ icon: React.ElementType; label: string }> = ({ icon: Icon, label }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
+    fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, fontWeight: 500,
+    letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--adm-ink-3)',
+  }}>
+    <Icon size={11} />
+    {label}
+  </div>
+);
+
+// ── Array item row helper ────────────────────────────────────────
+const ArrayItem: React.FC<{
+  main: string; sub?: string; onRemove: () => void;
+}> = ({ main, sub, onRemove }) => (
+  <div style={{
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+    padding: '8px 10px', background: 'var(--adm-paper-2)',
+    border: '1px solid var(--adm-rule)', borderRadius: 6, marginBottom: 6,
+  }}>
+    <div style={{ flex: 1 }}>
+      <div style={{
+        fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500,
+        color: 'var(--adm-ink)',
+      }}>{main}</div>
+      {sub && (
+        <div style={{
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+          color: 'var(--adm-ink-3)', letterSpacing: '0.04em',
+        }}>{sub}</div>
+      )}
+    </div>
+    <button
+      type="button" onClick={onRemove}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        color: 'var(--adm-ink-4)', padding: '0 0 0 8px', flexShrink: 0, display: 'flex',
+      }}
+    >
+      <X size={13} />
+    </button>
+  </div>
+);
+
+// ── AddForm helper ───────────────────────────────────────────────
+const AddFormBox: React.FC<{ children: React.ReactNode; onAdd: () => void; label: string }> = ({
+  children, onAdd, label,
+}) => (
+  <div style={{
+    background: 'var(--adm-paper)', border: '1px solid var(--adm-rule)',
+    borderRadius: 6, padding: 10,
+  }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+      {children}
+    </div>
+    <button
+      type="button" onClick={onAdd}
+      className="adm-btn adm-btn-secondary adm-btn-sm"
+      style={{ width: '100%', justifyContent: 'center' }}
+    >
+      <Plus size={11} /> {label}
+    </button>
+  </div>
+);
+
+// ── Section divider ──────────────────────────────────────────────
+const SectionDivider: React.FC<{
+  icon: React.ElementType; label: string; children: React.ReactNode;
+}> = ({ icon, label, children }) => (
+  <div style={{ borderTop: '1px solid var(--adm-rule)', paddingTop: 16, marginBottom: 20 }}>
+    <SectionTitle icon={icon} label={label} />
+    {children}
+  </div>
+);
+
+/* ─────────────────────────────────────────────────────────────── */
+
 const DocentesManager: React.FC = () => {
-  // Estados
-  const [docentes, setDocentes] = useState<DocenteItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [docentes, setDocentes]     = useState<DocenteItem[]>([]);
+  const [loading, setLoading]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode]     = useState<'create' | 'edit'>('create');
+  const [panelMode, setPanelMode]   = useState<'idle' | 'active'>('idle');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'residente' | 'no_residente'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Estado del docente actual en edición
-  const [currentDocente, setCurrentDocente] = useState<DocenteItem>({
-    nombre: '',
-    apellidos: '',
-    slug: '',
-    tipo: 'residente',
-    cargo: '',
-    especialidad: '',
-    departamento: '',
-    descripcionGeneral: '',
-    videoUrl: '', // Añadir campo para video
-    educacion: [],
-    idiomas: [],
-    experienciaProfesional: [],
-    reconocimientos: [],
-    participacionEventos: [],
-    isPublished: true,
-  });
-  
-  // Cargar docentes al iniciar
-  useEffect(() => {
-    fetchDocentes();
-  }, []);
-  
-  // Funciones para formularios dinámicos
-  const [newEducacion, setNewEducacion] = useState({ titulo: '', institucion: '', anio: '' });
-  const [newExperiencia, setNewExperiencia] = useState({ cargo: '', institucion: '', periodo: '' });
+  const [currentDocente, setCurrentDocente] = useState<DocenteItem>(emptyDocente);
+
+  // Array item temp states
+  const [newEducacion, setNewEducacion]         = useState({ titulo: '', institucion: '', anio: '' });
+  const [newExperiencia, setNewExperiencia]     = useState({ cargo: '', institucion: '', periodo: '' });
   const [newReconocimiento, setNewReconocimiento] = useState({ titulo: '', otorgadoPor: '', anio: '' });
-  const [newEvento, setNewEvento] = useState({ nombre: '', lugar: '', anio: '' });
-  const [newIdioma, setNewIdioma] = useState('');
-  
-  // Función para obtener todos los docentes
+  const [newEvento, setNewEvento]               = useState({ nombre: '', lugar: '', anio: '' });
+  const [newIdioma, setNewIdioma]               = useState('');
+
+  useEffect(() => { fetchDocentes(); }, []);
+
+  // ── Data fetching ──────────────────────────────────────────────
   const fetchDocentes = async () => {
     try {
       setLoading(true);
       const res = await axios.get(API_ROUTES.DOCENTES);
       setDocentes(res.data);
-      setLoading(false);
     } catch (err) {
-      setLoading(false);
-      toast.error('Error al cargar los docentes', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
+      toast.error('Error al cargar los docentes');
       console.error('Error fetching docentes:', err);
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Generar un slug a partir del nombre y apellidos
-  const generateSlug = (nombre: string, apellidos: string) => {
-    return `${nombre.toLowerCase()} ${apellidos.toLowerCase()}`
+
+  // ── Slug generation ────────────────────────────────────────────
+  const generateSlug = (nombre: string, apellidos: string) =>
+    `${nombre.toLowerCase()} ${apellidos.toLowerCase()}`
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-      .replace(/[^\w\s-]/g, '') // Eliminar caracteres especiales
-      .replace(/\s+/g, '-') // Reemplazar espacios con guiones
-      .replace(/--+/g, '-') // Eliminar guiones múltiples
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
       .trim();
-  };
-  
-  // Actualizar el campo slug cuando cambia el nombre o apellidos
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const updatedDocente = { ...currentDocente, [name]: value };
-    
-    // Generar slug automáticamente si cambia nombre o apellidos
+    const updated = { ...currentDocente, [name]: value };
     if (name === 'nombre' || name === 'apellidos') {
-      updatedDocente.slug = generateSlug(
+      updated.slug = generateSlug(
         name === 'nombre' ? value : currentDocente.nombre,
-        name === 'apellidos' ? value : currentDocente.apellidos
+        name === 'apellidos' ? value : currentDocente.apellidos,
       );
     }
-    
-    setCurrentDocente(updatedDocente);
+    setCurrentDocente(updated);
   };
-  
-  // Manejar cambios en el formulario
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setCurrentDocente({
-      ...currentDocente,
-      [name]: value
-    });
+    setCurrentDocente({ ...currentDocente, [name]: value });
   };
-  
-  // Manejar cambios en el estado de publicación
+
   const handlePublishedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentDocente({
-      ...currentDocente,
-      isPublished: e.target.checked
-    });
+    setCurrentDocente({ ...currentDocente, isPublished: e.target.checked });
   };
-  
-  // Preparar formulario para crear nuevo docente
+
+  // ── Panel mode helpers ─────────────────────────────────────────
+  const resetNewFields = () => {
+    setNewEducacion({ titulo: '', institucion: '', anio: '' });
+    setNewExperiencia({ cargo: '', institucion: '', periodo: '' });
+    setNewReconocimiento({ titulo: '', otorgadoPor: '', anio: '' });
+    setNewEvento({ nombre: '', lugar: '', anio: '' });
+    setNewIdioma('');
+  };
+
   const handleNewDocente = () => {
-    setCurrentDocente({
-      nombre: '',
-      apellidos: '',
-      slug: '',
-      tipo: 'residente',
-      cargo: '',
-      especialidad: '',
-      departamento: '',
-      descripcionGeneral: '',
-      educacion: [],
-      idiomas: [],
-      experienciaProfesional: [],
-      reconocimientos: [],
-      participacionEventos: [],
-      isPublished: true,
-    });
+    setCurrentDocente({ ...emptyDocente });
     setFormMode('create');
-    setShowForm(true);
+    setPanelMode('active');
+    setSelectedId(null);
+    resetNewFields();
   };
-  
-  // Preparar formulario para editar docente existente
+
   const handleEditDocente = (docente: DocenteItem) => {
-    setCurrentDocente(docente);
+    setCurrentDocente({ ...docente });
     setFormMode('edit');
-    setShowForm(true);
+    setPanelMode('active');
+    setSelectedId(docente._id || null);
+    resetNewFields();
   };
-  
-  // Cancelar y cerrar formulario
+
   const handleCancel = () => {
-    setShowForm(false);
+    setPanelMode('idle');
+    setSelectedId(null);
   };
-  
-  // Guardar docente (crear o actualizar)
+
+  // ── CRUD ───────────────────────────────────────────────────────
   const handleSaveDocente = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!currentDocente.nombre || !currentDocente.apellidos || !currentDocente.slug) {
-      toast.error('El nombre y apellidos son obligatorios', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
+      toast.error('El nombre y apellidos son obligatorios');
       return;
     }
-    
     setSubmitting(true);
-    
     try {
       if (formMode === 'create') {
-        // Crear nuevo docente
         await axios.post(API_ROUTES.DOCENTES, currentDocente);
-        toast.success('Docente creado correctamente', {
-          icon: <Check className="text-green-500" size={18} />
-        });
+        toast.success('Docente creado correctamente');
       } else {
-        // Actualizar docente existente
         await axios.put(API_ROUTES.DOCENTES_BY_ID(currentDocente._id!), currentDocente);
-        toast.success('Docente actualizado correctamente', {
-          icon: <Check className="text-green-500" size={18} />
-        });
+        toast.success('Docente actualizado correctamente');
       }
-      
-      setSubmitting(false);
-      setShowForm(false);
-      fetchDocentes(); // Recargar la lista después de guardar
+      setPanelMode('idle');
+      setSelectedId(null);
+      fetchDocentes();
     } catch (err) {
-      setSubmitting(false);
-      toast.error('Error al guardar el docente', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
+      toast.error('Error al guardar el docente');
       console.error('Error saving docente:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
-  
-  // Eliminar docente
+
   const handleDeleteDocente = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este docente?')) {
-      return;
-    }
-    
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este docente?')) return;
     try {
       setLoading(true);
       await axios.delete(API_ROUTES.DOCENTES_BY_ID(id));
-      
-      toast.success('Docente eliminado correctamente', {
-        icon: <Check className="text-green-500" size={18} />
-      });
-      
-      fetchDocentes(); // Recargar la lista después de eliminar
+      toast.success('Docente eliminado correctamente');
+      if (selectedId === id) { setPanelMode('idle'); setSelectedId(null); }
+      fetchDocentes();
     } catch (err) {
       setLoading(false);
-      toast.error('Error al eliminar el docente', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
+      toast.error('Error al eliminar el docente');
       console.error('Error deleting docente:', err);
     }
   };
-  
-  // Actualizar imagen del docente
+
   const handleImageUploaded = (url: string, publicId: string) => {
-    setCurrentDocente({
-      ...currentDocente,
-      fotoPerfil: url,
-      fotoPublicId: publicId
-    });
+    setCurrentDocente({ ...currentDocente, fotoPerfil: url, fotoPublicId: publicId });
   };
-  
-  // --- Funciones para gestionar arrays de educación, experiencia, etc. ---
-  
-  // Educación
+
+  // ── Array operations ───────────────────────────────────────────
   const addEducacion = () => {
     if (!newEducacion.titulo || !newEducacion.institucion) return;
-    
-    setCurrentDocente({
-      ...currentDocente,
-      educacion: [...(currentDocente.educacion || []), { ...newEducacion }]
-    });
-    
+    setCurrentDocente({ ...currentDocente, educacion: [...(currentDocente.educacion || []), { ...newEducacion }] });
     setNewEducacion({ titulo: '', institucion: '', anio: '' });
   };
-  
-  const removeEducacion = (index: number) => {
-    const educacion = [...(currentDocente.educacion || [])];
-    educacion.splice(index, 1);
-    setCurrentDocente({ ...currentDocente, educacion });
+  const removeEducacion = (i: number) => {
+    const arr = [...(currentDocente.educacion || [])]; arr.splice(i, 1);
+    setCurrentDocente({ ...currentDocente, educacion: arr });
   };
-  
-  // Experiencia Profesional
+
   const addExperiencia = () => {
     if (!newExperiencia.cargo || !newExperiencia.institucion) return;
-    
-    setCurrentDocente({
-      ...currentDocente,
-      experienciaProfesional: [...(currentDocente.experienciaProfesional || []), { ...newExperiencia }]
-    });
-    
+    setCurrentDocente({ ...currentDocente, experienciaProfesional: [...(currentDocente.experienciaProfesional || []), { ...newExperiencia }] });
     setNewExperiencia({ cargo: '', institucion: '', periodo: '' });
   };
-  
-  const removeExperiencia = (index: number) => {
-    const experiencia = [...(currentDocente.experienciaProfesional || [])];
-    experiencia.splice(index, 1);
-    setCurrentDocente({ ...currentDocente, experienciaProfesional: experiencia });
+  const removeExperiencia = (i: number) => {
+    const arr = [...(currentDocente.experienciaProfesional || [])]; arr.splice(i, 1);
+    setCurrentDocente({ ...currentDocente, experienciaProfesional: arr });
   };
-  
-  // Reconocimientos
+
   const addReconocimiento = () => {
     if (!newReconocimiento.titulo) return;
-    
-    setCurrentDocente({
-      ...currentDocente,
-      reconocimientos: [...(currentDocente.reconocimientos || []), { ...newReconocimiento }]
-    });
-    
+    setCurrentDocente({ ...currentDocente, reconocimientos: [...(currentDocente.reconocimientos || []), { ...newReconocimiento }] });
     setNewReconocimiento({ titulo: '', otorgadoPor: '', anio: '' });
   };
-  
-  const removeReconocimiento = (index: number) => {
-    const reconocimientos = [...(currentDocente.reconocimientos || [])];
-    reconocimientos.splice(index, 1);
-    setCurrentDocente({ ...currentDocente, reconocimientos });
+  const removeReconocimiento = (i: number) => {
+    const arr = [...(currentDocente.reconocimientos || [])]; arr.splice(i, 1);
+    setCurrentDocente({ ...currentDocente, reconocimientos: arr });
   };
-  
-  // Eventos
+
   const addEvento = () => {
     if (!newEvento.nombre || !newEvento.lugar) return;
-    
-    setCurrentDocente({
-      ...currentDocente,
-      participacionEventos: [...(currentDocente.participacionEventos || []), { ...newEvento }]
-    });
-    
+    setCurrentDocente({ ...currentDocente, participacionEventos: [...(currentDocente.participacionEventos || []), { ...newEvento }] });
     setNewEvento({ nombre: '', lugar: '', anio: '' });
   };
-  
-  const removeEvento = (index: number) => {
-    const eventos = [...(currentDocente.participacionEventos || [])];
-    eventos.splice(index, 1);
-    setCurrentDocente({ ...currentDocente, participacionEventos: eventos });
+  const removeEvento = (i: number) => {
+    const arr = [...(currentDocente.participacionEventos || [])]; arr.splice(i, 1);
+    setCurrentDocente({ ...currentDocente, participacionEventos: arr });
   };
-  
-  // Idiomas
+
   const addIdioma = () => {
-    if (!newIdioma) return;
-    
-    setCurrentDocente({
-      ...currentDocente,
-      idiomas: [...(currentDocente.idiomas || []), newIdioma]
-    });
-    
+    if (!newIdioma.trim()) return;
+    setCurrentDocente({ ...currentDocente, idiomas: [...(currentDocente.idiomas || []), newIdioma.trim()] });
     setNewIdioma('');
   };
-  
-  const removeIdioma = (index: number) => {
-    const idiomas = [...(currentDocente.idiomas || [])];
-    idiomas.splice(index, 1);
-    setCurrentDocente({ ...currentDocente, idiomas });
+  const removeIdioma = (i: number) => {
+    const arr = [...(currentDocente.idiomas || [])]; arr.splice(i, 1);
+    setCurrentDocente({ ...currentDocente, idiomas: arr });
   };
 
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
-    
-    // Si ya es una URL de embed, la devolvemos tal cual
     if (url.includes('/embed/')) return url;
-    
-    // Intentamos extraer el ID del video
-    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const regExp = /^.*((youtu\.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     const match = url.match(regExp);
     const videoId = (match && match[7].length === 11) ? match[7] : null;
-    
-    if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-    
-    // Si no podemos extraer el ID, devolvemos la URL original
-    return url;
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
   };
-  
-  // Filtrar docentes para la visualización
-  const filteredDocentes = docentes.filter(docente => {
-    // Filtrar por tipo
-    if (filterType !== 'all' && docente.tipo !== filterType) {
-      return false;
-    }
-    
-    // Filtrar por término de búsqueda
+
+  // ── Filtered list ──────────────────────────────────────────────
+  const filteredDocentes = docentes.filter(d => {
+    if (filterType !== 'all' && d.tipo !== filterType) return false;
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        docente.nombre.toLowerCase().includes(searchLower) ||
-        docente.apellidos.toLowerCase().includes(searchLower) ||
-        (docente.departamento && docente.departamento.toLowerCase().includes(searchLower))
-      );
+      const sl = searchTerm.toLowerCase();
+      return d.nombre.toLowerCase().includes(sl)
+        || d.apellidos.toLowerCase().includes(sl)
+        || (d.departamento && d.departamento.toLowerCase().includes(sl));
     }
-    
     return true;
   });
-  
+
+  const emptyLabel = searchTerm
+    ? 'No se encontraron docentes con ese término'
+    : 'No hay docentes registrados';
+
+  /* ─── render ─── */
   return (
-    <div className="bg-white shadow-xl rounded-2xl p-8 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-          <Users className="mr-2 text-blue-600" size={22} />
-          Gestión de Docentes
-        </h2>
-        
-        <button
-          onClick={handleNewDocente}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={18} className="mr-1" /> 
-          Nuevo Docente
-        </button>
-      </div>
-      
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex-1">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nombre o departamento..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+    <div className="adm-slides-layout adm-section-enter">
+
+      {/* ══ LEFT COLUMN ══════════════════════════════════════════ */}
+      <div>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 18 }}>
+          <div>
+            <div className="adm-page-label">Gestión de contenido</div>
+            <h2 style={{
+              fontFamily: "'Libre Baskerville', serif", fontSize: '1.3rem',
+              fontWeight: 400, color: 'var(--adm-ink)', margin: 0, lineHeight: 1.3,
+            }}>
+              Perfiles de docentes
+            </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 3 }}>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5,
+              color: 'var(--adm-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase',
+            }}>
+              {filteredDocentes.length} {filteredDocentes.length === 1 ? 'docente' : 'docentes'}
+            </span>
+            <button
+              type="button"
+              className="adm-btn adm-btn-primary adm-btn-sm"
+              onClick={handleNewDocente}
+            >
+              <Plus size={11} /> Nuevo docente
+            </button>
           </div>
         </div>
-        
-        <div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as 'all' | 'residente' | 'no_residente')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-          >
-            <option value="all">Todos los docentes</option>
-            <option value="residente">Docentes Residentes</option>
-            <option value="no_residente">Docentes No Residentes</option>
-          </select>
+
+        {/* Filter bar */}
+        <div className="adm-card" style={{ marginBottom: 14, padding: '13px 16px' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search size={12} style={{
+                position: 'absolute', left: 10, top: '50%',
+                transform: 'translateY(-50%)', color: 'var(--adm-ink-4)', pointerEvents: 'none',
+              }} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nombre o departamento..."
+                className="adm-input"
+                style={{ paddingLeft: 30 }}
+              />
+            </div>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value as typeof filterType)}
+              className="adm-input adm-select"
+              style={{ width: 'auto', minWidth: 190 }}
+            >
+              <option value="all">Todos los docentes</option>
+              <option value="residente">Docentes Residentes</option>
+              <option value="no_residente">Docentes No Residentes</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Docentes list */}
+        <div className="adm-card" style={{ padding: 0, overflow: 'hidden' }}>
+
+          {/* Loading */}
+          {loading && (
+            <div style={{ padding: '52px 24px', textAlign: 'center' }}>
+              <span style={{
+                fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5,
+                color: 'var(--adm-ink-4)', letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                Cargando...
+              </span>
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && filteredDocentes.length === 0 && (
+            <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+              <User size={26} style={{ color: 'var(--adm-ink-4)', margin: '0 auto 12px', display: 'block' }} />
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, color: 'var(--adm-ink-3)' }}>
+                {emptyLabel}
+              </div>
+            </div>
+          )}
+
+          {/* Rows */}
+          {!loading && filteredDocentes.length > 0 && (
+            <AnimatePresence mode="wait">
+              <motion.div key={`${filterType}-${searchTerm}`}>
+                {filteredDocentes.map((docente, i) => (
+                  <motion.div
+                    key={docente._id}
+                    custom={i}
+                    variants={rowVariants}
+                    initial="hidden"
+                    animate="visible"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 20px', borderBottom: '1px solid var(--adm-rule)',
+                      background: selectedId === docente._id ? 'var(--adm-paper-3)' : 'transparent',
+                      transition: 'background 0.12s',
+                      borderLeft: selectedId === docente._id
+                        ? '2px solid var(--adm-blue)'
+                        : '2px solid transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedId !== docente._id)
+                        e.currentTarget.style.background = 'var(--adm-paper-2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        selectedId === docente._id ? 'var(--adm-paper-3)' : 'transparent';
+                    }}
+                  >
+                    {/* Photo circle */}
+                    <div style={{
+                      width: 38, height: 38, borderRadius: '50%', flexShrink: 0, marginRight: 14,
+                      overflow: 'hidden', background: 'var(--adm-paper-3)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: '1px solid var(--adm-rule)',
+                    }}>
+                      {docente.fotoPerfil
+                        ? <img src={docente.fotoPerfil} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <User size={16} style={{ color: 'var(--adm-ink-4)' }} />
+                      }
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0, marginRight: 14 }}>
+                      <div style={{
+                        fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 500,
+                        color: 'var(--adm-ink)', whiteSpace: 'nowrap',
+                        overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 4,
+                      }}>
+                        {docente.nombre} {docente.apellidos}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span className={`adm-badge ${docente.tipo === 'residente' ? 'adm-badge-green' : 'adm-badge-blue'}`}>
+                          {docente.tipo === 'residente' ? 'Residente' : 'No residente'}
+                        </span>
+                        {docente.departamento && (
+                          <span style={{
+                            fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5,
+                            color: 'var(--adm-ink-4)', letterSpacing: '0.04em',
+                            whiteSpace: 'nowrap', overflow: 'hidden',
+                            textOverflow: 'ellipsis', maxWidth: 200,
+                          }}>
+                            {docente.departamento}
+                          </span>
+                        )}
+                        {!docente.isPublished && (
+                          <span className="adm-badge adm-badge-default">No publicado</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleEditDocente(docente)}
+                        className="adm-btn adm-btn-secondary adm-btn-sm"
+                        title="Editar docente"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocente(docente._id!)}
+                        className="adm-btn adm-btn-danger adm-btn-sm"
+                        title="Eliminar docente"
+                        style={{ padding: '5px 9px' }}
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </div>
-      
-      {/* Formulario para crear/editar */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <form onSubmit={handleSaveDocente} className="border border-gray-200 rounded-lg p-6 mb-8">
-              <h3 className="text-xl font-medium text-gray-700 mb-4 flex items-center">
-                <User className="mr-2 text-blue-600" size={20} />
-                {formMode === 'create' ? 'Crear Nuevo Docente' : 'Editar Docente'}
-              </h3>
-              
-              {/* Secciones del formulario */}
-              <div className="space-y-6">
-                {/* Información Básica */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Información Básica</h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Nombre
-                      </label>
-                      <input
-                        type="text"
-                        name="nombre"
-                        value={currentDocente.nombre}
-                        onChange={handleNameChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ej: Juan"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Apellidos
-                      </label>
-                      <input
-                        type="text"
-                        name="apellidos"
-                        value={currentDocente.apellidos}
-                        onChange={handleNameChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ej: Pérez García"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        URL Amigable
-                      </label>
-                      <input
-                        type="text"
-                        name="slug"
-                        value={currentDocente.slug}
-                        onChange={handleChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                        placeholder="generado-automaticamente"
-                        readOnly
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Generado automáticamente del nombre y apellidos
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Tipo de Docente
-                      </label>
-                      <select
-                        name="tipo"
-                        value={currentDocente.tipo}
-                        onChange={handleChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      >
-                        <option value="residente">Docente Residente</option>
-                        <option value="no_residente">Docente No Residente</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Cargo
-                      </label>
-                      <input
-                        type="text"
-                        name="cargo"
-                        value={currentDocente.cargo || ''}
-                        onChange={handleChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ej: Profesor de Matemáticas"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Especialidad
-                      </label>
-                      <input
-                        type="text"
-                        name="especialidad"
-                        value={currentDocente.especialidad || ''}
-                        onChange={handleChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ej: Matemático e Investigador"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Departamento
-                      </label>
-                      <input
-                        type="text"
-                        name="departamento"
-                        value={currentDocente.departamento || ''}
-                        onChange={handleChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ej: Facultad de Ciencias"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-  <label className="block text-sm font-medium text-gray-600 mb-1">
-    Descripción General
-  </label>
-  <textarea
-    name="descripcionGeneral"
-    value={currentDocente.descripcionGeneral || ''}
-    onChange={handleChange}
-    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
-    placeholder="Breve biografía o descripción del docente..."
-    style={{ whiteSpace: 'pre-wrap' }} // Añadir esta línea
-  />
-  <p className="text-xs text-gray-500 mt-1">
-    Puedes usar saltos de línea para crear párrafos y secciones.
-  </p>
-</div>
-                </div>
-                
-                {/* Foto del Docente */}
-                <DocenteImgUploader
-                  onImageUploaded={handleImageUploaded}
-                  currentImageUrl={currentDocente.fotoPerfil}
-                  title="Fotografía del Docente"
-                />
-                
-                {/* Educación */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Formación Académica</h4>
-                  
-                  {/* Lista de educación existente */}
-                  <div className="space-y-2 mb-4">
-                    {currentDocente.educacion && currentDocente.educacion.length > 0 ? (
-                      currentDocente.educacion.map((edu, index) => (
-                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                          <div>
-                            <span className="font-medium">{edu.titulo}</span>
-                            <div className="text-sm text-gray-600">
-                              {edu.institucion} {edu.anio && `(${edu.anio})`}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeEducacion(index)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No hay formación académica registrada.</p>
-                    )}
-                  </div>
-                  
-                  {/* Formulario para nueva educación */}
-                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="text"
-                        value={newEducacion.titulo}
-                        onChange={(e) => setNewEducacion({ ...newEducacion, titulo: e.target.value })}
-                        placeholder="Título académico"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newEducacion.institucion}
-                        onChange={(e) => setNewEducacion({ ...newEducacion, institucion: e.target.value })}
-                        placeholder="Institución"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newEducacion.anio}
-                        onChange={(e) => setNewEducacion({ ...newEducacion, anio: e.target.value })}
-                        placeholder="Año (opcional)"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
 
+      {/* ══ RIGHT COLUMN — Sticky config panel ═══════════════════ */}
+      <div className="adm-slides-config">
+        <AnimatePresence mode="wait">
+
+          {/* ── Idle placeholder ── */}
+          {panelMode === 'idle' && (
+            <motion.div
+              key="idle"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div className="adm-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+                <User size={28} style={{ color: 'var(--adm-ink-4)', margin: '0 auto 14px', display: 'block' }} />
+                <div style={{
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 13.5,
+                  color: 'var(--adm-ink-3)', marginBottom: 18,
+                }}>
+                  Selecciona un docente para editar o crea un nuevo perfil
+                </div>
+                <button
+                  type="button"
+                  className="adm-btn adm-btn-primary adm-btn-sm"
+                  onClick={handleNewDocente}
+                >
+                  <Plus size={11} /> Nuevo docente
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Active form ── */}
+          {panelMode === 'active' && (
+            <motion.div
+              key={formMode === 'create' ? 'create' : selectedId}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              <div className="adm-card" style={{ padding: 0, overflow: 'hidden' }}>
+
+                {/* Card header */}
+                <div style={{
+                  padding: '14px 20px', borderBottom: '1px solid var(--adm-rule)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div className="adm-page-label" style={{ marginBottom: 3 }}>
+                      {formMode === 'create' ? 'Nuevo perfil' : 'Editar perfil'}
                     </div>
-                    <button
-                      type="button"
-                      onClick={addEducacion}
-                      className="w-full p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors flex items-center justify-center"
-                    >
-                      <Plus size={16} className="mr-1" /> Añadir Formación
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Idiomas */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Idiomas</h4>
-                  
-                  {/* Lista de idiomas existentes */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {currentDocente.idiomas && currentDocente.idiomas.length > 0 ? (
-                      currentDocente.idiomas.map((idioma, index) => (
-                        <div key={index} className="flex items-center bg-white px-3 py-1 rounded-full border border-gray-200">
-                          <span>{idioma}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeIdioma(index)}
-                            className="ml-2 text-red-500 hover:text-red-700"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No hay idiomas registrados.</p>
-                    )}
-                  </div>
-                  
-                  {/* Formulario para nuevo idioma */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newIdioma}
-                      onChange={(e) => setNewIdioma(e.target.value)}
-                      placeholder="Ej: Español, Inglés, Francés..."
-                      className="flex-1 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={addIdioma}
-                      className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
-                    >
-                      <Plus size={16} /> 
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Experiencia Profesional */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Experiencia Profesional</h4>
-                  
-                  {/* Lista de experiencia existente */}
-                  <div className="space-y-2 mb-4">
-                    {currentDocente.experienciaProfesional && currentDocente.experienciaProfesional.length > 0 ? (
-                      currentDocente.experienciaProfesional.map((exp, index) => (
-                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                          <div>
-                            <span className="font-medium">{exp.cargo}</span>
-                            <div className="text-sm text-gray-600">
-                              {exp.institucion} {exp.periodo && `(${exp.periodo})`}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeExperiencia(index)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No hay experiencia profesional registrada.</p>
-                    )}
-                  </div>
-                  
-                  {/* Formulario para nueva experiencia */}
-                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="text"
-                        value={newExperiencia.cargo}
-                        onChange={(e) => setNewExperiencia({ ...newExperiencia, cargo: e.target.value })}
-                        placeholder="Cargo"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newExperiencia.institucion}
-                        onChange={(e) => setNewExperiencia({ ...newExperiencia, institucion: e.target.value })}
-                        placeholder="Institución"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newExperiencia.periodo}
-                        onChange={(e) => setNewExperiencia({ ...newExperiencia, periodo: e.target.value })}
-                        placeholder="Período (opcional)"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
+                    <div style={{
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 13.5,
+                      fontWeight: 500, color: 'var(--adm-ink)',
+                    }}>
+                      {formMode === 'create'
+                        ? 'Nuevo docente'
+                        : `${currentDocente.nombre} ${currentDocente.apellidos}`.trim() || 'Sin nombre'
+                      }
                     </div>
-                    <button
-                      type="button"
-                      onClick={addExperiencia}
-                      className="w-full p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors flex items-center justify-center"
-                    >
-                      <Plus size={16} className="mr-1" /> Añadir Experiencia
-                    </button>
                   </div>
-                </div>
-                
-                {/* Reconocimientos */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Reconocimientos</h4>
-                  
-                  {/* Lista de reconocimientos existentes */}
-                  <div className="space-y-2 mb-4">
-                    {currentDocente.reconocimientos && currentDocente.reconocimientos.length > 0 ? (
-                      currentDocente.reconocimientos.map((rec, index) => (
-                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                          <div>
-                            <span className="font-medium">{rec.titulo}</span>
-                            <div className="text-sm text-gray-600">
-                              {rec.otorgadoPor && `Otorgado por: ${rec.otorgadoPor}`} {rec.anio && `(${rec.anio})`}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeReconocimiento(index)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No hay reconocimientos registrados.</p>
-                    )}
-                  </div>
-                  
-                  {/* Formulario para nuevo reconocimiento */}
-                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="text"
-                        value={newReconocimiento.titulo}
-                        onChange={(e) => setNewReconocimiento({ ...newReconocimiento, titulo: e.target.value })}
-                        placeholder="Título del reconocimiento"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newReconocimiento.otorgadoPor}
-                        onChange={(e) => setNewReconocimiento({ ...newReconocimiento, otorgadoPor: e.target.value })}
-                        placeholder="Otorgado por (opcional)"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newReconocimiento.anio}
-                        onChange={(e) => setNewReconocimiento({ ...newReconocimiento, anio: e.target.value })}
-                        placeholder="Año (opcional)"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addReconocimiento}
-                      className="w-full p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors flex items-center justify-center"
-                    >
-                      <Plus size={16} className="mr-1" /> Añadir Reconocimiento
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Participación en Eventos */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-700 mb-4">Participación en Eventos</h4>
-                  
-                  {/* Lista de eventos existentes */}
-                  <div className="space-y-2 mb-4">
-                    {currentDocente.participacionEventos && currentDocente.participacionEventos.length > 0 ? (
-                      currentDocente.participacionEventos.map((evento, index) => (
-                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                          <div>
-                            <span className="font-medium">{evento.nombre}</span>
-                            <div className="text-sm text-gray-600">
-                              {evento.lugar} {evento.anio && `(${evento.anio})`}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeEvento(index)}
-                            className="text-red-500 hover:text-red-700 p-1"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No hay eventos registrados.</p>
-                    )}
-                  </div>
-                         {/* Campo para URL de video de YouTube */}
-<div className="mb-4">
-  <label className="block text-sm font-medium text-gray-600 mb-1 flex items-center">
-    <Youtube size={16} className="mr-1 text-red-600" />
-    URL de Video (YouTube)
-  </label>
-  <input
-    type="text"
-    name="videoUrl"
-    value={currentDocente.videoUrl || ''}
-    onChange={(e) => {
-      const url = e.target.value;
-      const embedUrl = getYoutubeEmbedUrl(url);
-      setCurrentDocente({
-        ...currentDocente,
-        videoUrl: e.target.value // Guardamos la URL original, no la de embed
-      });
-    }}
-    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-    placeholder="https://www.youtube.com/watch?v=..."
-  />
-  <p className="text-xs text-gray-500 mt-1">
-    Opcional. Ingresa la URL de un video de YouTube relacionado con el docente.
-  </p>
-  
-  {/* Previsualización del video */}
-  {currentDocente.videoUrl && (
-    <div className="mt-4">
-      <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
-        <iframe
-          src={getYoutubeEmbedUrl(currentDocente.videoUrl)}
-          className="absolute top-0 left-0 w-full h-full"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title="YouTube video preview"
-        />
-      </div>
-    </div>
-  )}
-</div>
-                  
-                  {/* Formulario para nuevo evento */}
-                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="text"
-                        value={newEvento.nombre}
-                        onChange={(e) => setNewEvento({ ...newEvento, nombre: e.target.value })}
-                        placeholder="Nombre del evento"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newEvento.lugar}
-                        onChange={(e) => setNewEvento({ ...newEvento, lugar: e.target.value })}
-                        placeholder="Lugar"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={newEvento.anio}
-                        onChange={(e) => setNewEvento({ ...newEvento, anio: e.target.value })}
-                        placeholder="Año (opcional)"
-                        className="p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addEvento}
-                      className="w-full p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors flex items-center justify-center"
-                    >
-                      <Plus size={16} className="mr-1" /> Añadir Evento
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Estado de publicación */}
-                <div className="mb-6 flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isPublished"
-                    checked={currentDocente.isPublished}
-                    onChange={handlePublishedChange}
-                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="isPublished" className="text-sm font-medium text-gray-600">
-                    Publicar (visible al público)
-                  </label>
-                </div>
-                
-                {/* Botones de acción */}
-                <div className="flex justify-end space-x-3 mt-6">
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="adm-btn adm-btn-secondary adm-btn-sm"
+                    style={{ padding: '5px 8px' }}
+                    title="Cerrar"
                   >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                      submitting ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {submitting ? (
-                      <span className="flex items-center">
-                        <Loader className="animate-spin mr-2" size={16} />
-                        Guardando...
-                      </span>
-                    ) : (
-                      <span>Guardar</span>
-                    )}
+                    <X size={12} />
                   </button>
                 </div>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Lista de docentes */}
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader className="animate-spin text-blue-600" size={32} />
-          <span className="ml-3 text-blue-600 font-medium">Cargando docentes...</span>
-        </div>
-      ) : filteredDocentes.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <User className="text-gray-400 mx-auto mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No hay docentes disponibles</p>
-          <p className="text-gray-400 text-sm mb-4">
-            {searchTerm ? 'No se encontraron docentes con ese término de búsqueda' : 'Los docentes que crees aparecerán aquí'}
-          </p>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="text-blue-600 hover:underline"
-            >
-              Limpiar búsqueda
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredDocentes.map((docente) => (
-            <div
-              key={docente._id}
-              className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow p-4"
-            >
-              <div className="flex items-start">
-                {docente.fotoPerfil ? (
-                  <div className="w-16 h-16 bg-gray-100 rounded-full mr-4 overflow-hidden flex-shrink-0">
-                    <img 
-                      src={docente.fotoPerfil} 
-                      alt={`${docente.nombre} ${docente.apellidos}`} 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 bg-gray-100 rounded-full mr-4 flex items-center justify-center flex-shrink-0">
-                    <User size={28} className="text-gray-400" />
-                  </div>
-                )}
-             
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-800 flex items-center">
-                        {docente.nombre} {docente.apellidos}
-                        {!docente.isPublished && (
-                          <span className="ml-2 px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">
-                            No publicado
-                          </span>
+
+                {/* Scrollable form body */}
+                <form onSubmit={handleSaveDocente}>
+                  <div style={{
+                    maxHeight: 'calc(100vh - 290px)',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'var(--adm-rule-dark) transparent',
+                    padding: '20px',
+                  }}>
+
+                    {/* ── Información básica ── */}
+                    <SectionTitle icon={User} label="Información básica" />
+
+                    <div className="adm-grid-2" style={{ marginBottom: 10 }}>
+                      <div className="adm-field">
+                        <label className="adm-label">Nombre</label>
+                        <input
+                          type="text" name="nombre" value={currentDocente.nombre}
+                          onChange={handleNameChange} className="adm-input"
+                          placeholder="Ej: Juan" required
+                        />
+                      </div>
+                      <div className="adm-field">
+                        <label className="adm-label">Apellidos</label>
+                        <input
+                          type="text" name="apellidos" value={currentDocente.apellidos}
+                          onChange={handleNameChange} className="adm-input"
+                          placeholder="Ej: Pérez García" required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="adm-grid-2" style={{ marginBottom: 10 }}>
+                      <div className="adm-field">
+                        <label className="adm-label">URL amigable</label>
+                        <input
+                          type="text" name="slug" value={currentDocente.slug}
+                          onChange={handleChange} className="adm-input"
+                          readOnly
+                          style={{ background: 'var(--adm-paper-3)', cursor: 'default', color: 'var(--adm-ink-3)' }}
+                          placeholder="auto-generado"
+                        />
+                      </div>
+                      <div className="adm-field">
+                        <label className="adm-label">Tipo de docente</label>
+                        <select
+                          name="tipo" value={currentDocente.tipo}
+                          onChange={handleChange}
+                          className="adm-input adm-select" required
+                        >
+                          <option value="residente">Docente Residente</option>
+                          <option value="no_residente">Docente No Residente</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="adm-field" style={{ marginBottom: 10 }}>
+                      <label className="adm-label">Cargo</label>
+                      <input
+                        type="text" name="cargo" value={currentDocente.cargo || ''}
+                        onChange={handleChange} className="adm-input"
+                        placeholder="Ej: Profesor de Matemáticas"
+                      />
+                    </div>
+
+                    <div className="adm-grid-2" style={{ marginBottom: 10 }}>
+                      <div className="adm-field">
+                        <label className="adm-label">Especialidad</label>
+                        <input
+                          type="text" name="especialidad" value={currentDocente.especialidad || ''}
+                          onChange={handleChange} className="adm-input"
+                          placeholder="Ej: Matemático e Investigador"
+                        />
+                      </div>
+                      <div className="adm-field">
+                        <label className="adm-label">Departamento</label>
+                        <input
+                          type="text" name="departamento" value={currentDocente.departamento || ''}
+                          onChange={handleChange} className="adm-input"
+                          placeholder="Ej: Facultad de Ciencias"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="adm-field" style={{ marginBottom: 20 }}>
+                      <label className="adm-label">Descripción general</label>
+                      <textarea
+                        name="descripcionGeneral" value={currentDocente.descripcionGeneral || ''}
+                        onChange={handleChange} className="adm-input"
+                        rows={4}
+                        placeholder="Breve biografía o descripción del docente..."
+                        style={{ resize: 'vertical', whiteSpace: 'pre-wrap' }}
+                      />
+                    </div>
+
+                    {/* ── Fotografía ── */}
+                    <SectionDivider icon={User} label="Fotografía del docente">
+                      <DocenteImgUploader
+                        onImageUploaded={handleImageUploaded}
+                        currentImageUrl={currentDocente.fotoPerfil}
+                        title="Fotografía del Docente"
+                      />
+                    </SectionDivider>
+
+                    {/* ── Formación académica ── */}
+                    <SectionDivider icon={GraduationCap} label="Formación académica">
+                      <div style={{ marginBottom: 8 }}>
+                        {(currentDocente.educacion || []).length === 0 ? (
+                          <div style={{
+                            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                            color: 'var(--adm-ink-4)', fontStyle: 'italic', marginBottom: 8,
+                          }}>Sin títulos registrados</div>
+                        ) : (
+                          (currentDocente.educacion || []).map((edu, idx) => (
+                            <ArrayItem
+                              key={idx}
+                              main={edu.titulo}
+                              sub={`${edu.institucion}${edu.anio ? ` · ${edu.anio}` : ''}`}
+                              onRemove={() => removeEducacion(idx)}
+                            />
+                          ))
                         )}
-                      </h3>
-                      <p className="text-blue-600 text-sm">
-                        {docente.cargo || 'Sin cargo asignado'}
-                      </p>
-                      <p className="text-gray-500 text-sm mt-1">
-                        {docente.departamento || 'Sin departamento asignado'}
-                      </p>
+                      </div>
+                      <AddFormBox onAdd={addEducacion} label="Añadir formación">
+                        <input
+                          type="text" value={newEducacion.titulo}
+                          onChange={(e) => setNewEducacion({ ...newEducacion, titulo: e.target.value })}
+                          placeholder="Título académico" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newEducacion.institucion}
+                          onChange={(e) => setNewEducacion({ ...newEducacion, institucion: e.target.value })}
+                          placeholder="Institución" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newEducacion.anio}
+                          onChange={(e) => setNewEducacion({ ...newEducacion, anio: e.target.value })}
+                          placeholder="Año (opcional)" className="adm-input"
+                        />
+                      </AddFormBox>
+                    </SectionDivider>
+
+                    {/* ── Idiomas ── */}
+                    <SectionDivider icon={Globe} label="Idiomas">
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                        {(currentDocente.idiomas || []).length === 0 ? (
+                          <div style={{
+                            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                            color: 'var(--adm-ink-4)', fontStyle: 'italic',
+                          }}>Sin idiomas registrados</div>
+                        ) : (
+                          (currentDocente.idiomas || []).map((idioma, idx) => (
+                            <div key={idx} style={{
+                              display: 'flex', alignItems: 'center', gap: 5,
+                              padding: '3px 8px', background: 'var(--adm-paper-2)',
+                              border: '1px solid var(--adm-rule)', borderRadius: 100,
+                              fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                              color: 'var(--adm-ink-2)',
+                            }}>
+                              {idioma}
+                              <button
+                                type="button" onClick={() => removeIdioma(idx)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--adm-ink-4)', padding: 0, display: 'flex' }}
+                              >
+                                <X size={11} />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <input
+                          type="text" value={newIdioma}
+                          onChange={(e) => setNewIdioma(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIdioma(); } }}
+                          placeholder="Ej: Español, Inglés, Francés..."
+                          className="adm-input" style={{ flex: 1 }}
+                        />
+                        <button
+                          type="button" onClick={addIdioma}
+                          className="adm-btn adm-btn-secondary adm-btn-sm"
+                          style={{ padding: '5px 10px' }}
+                        >
+                          <Plus size={11} />
+                        </button>
+                      </div>
+                    </SectionDivider>
+
+                    {/* ── Experiencia profesional ── */}
+                    <SectionDivider icon={Briefcase} label="Experiencia profesional">
+                      <div style={{ marginBottom: 8 }}>
+                        {(currentDocente.experienciaProfesional || []).length === 0 ? (
+                          <div style={{
+                            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                            color: 'var(--adm-ink-4)', fontStyle: 'italic', marginBottom: 8,
+                          }}>Sin experiencia registrada</div>
+                        ) : (
+                          (currentDocente.experienciaProfesional || []).map((exp, idx) => (
+                            <ArrayItem
+                              key={idx}
+                              main={exp.cargo}
+                              sub={`${exp.institucion}${exp.periodo ? ` · ${exp.periodo}` : ''}`}
+                              onRemove={() => removeExperiencia(idx)}
+                            />
+                          ))
+                        )}
+                      </div>
+                      <AddFormBox onAdd={addExperiencia} label="Añadir experiencia">
+                        <input
+                          type="text" value={newExperiencia.cargo}
+                          onChange={(e) => setNewExperiencia({ ...newExperiencia, cargo: e.target.value })}
+                          placeholder="Cargo" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newExperiencia.institucion}
+                          onChange={(e) => setNewExperiencia({ ...newExperiencia, institucion: e.target.value })}
+                          placeholder="Institución" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newExperiencia.periodo}
+                          onChange={(e) => setNewExperiencia({ ...newExperiencia, periodo: e.target.value })}
+                          placeholder="Período (opcional)" className="adm-input"
+                        />
+                      </AddFormBox>
+                    </SectionDivider>
+
+                    {/* ── Reconocimientos ── */}
+                    <SectionDivider icon={Award} label="Reconocimientos">
+                      <div style={{ marginBottom: 8 }}>
+                        {(currentDocente.reconocimientos || []).length === 0 ? (
+                          <div style={{
+                            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                            color: 'var(--adm-ink-4)', fontStyle: 'italic', marginBottom: 8,
+                          }}>Sin reconocimientos registrados</div>
+                        ) : (
+                          (currentDocente.reconocimientos || []).map((rec, idx) => (
+                            <ArrayItem
+                              key={idx}
+                              main={rec.titulo}
+                              sub={`${rec.otorgadoPor ? rec.otorgadoPor : ''}${rec.anio ? ` · ${rec.anio}` : ''}`}
+                              onRemove={() => removeReconocimiento(idx)}
+                            />
+                          ))
+                        )}
+                      </div>
+                      <AddFormBox onAdd={addReconocimiento} label="Añadir reconocimiento">
+                        <input
+                          type="text" value={newReconocimiento.titulo}
+                          onChange={(e) => setNewReconocimiento({ ...newReconocimiento, titulo: e.target.value })}
+                          placeholder="Título del reconocimiento" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newReconocimiento.otorgadoPor}
+                          onChange={(e) => setNewReconocimiento({ ...newReconocimiento, otorgadoPor: e.target.value })}
+                          placeholder="Otorgado por (opcional)" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newReconocimiento.anio}
+                          onChange={(e) => setNewReconocimiento({ ...newReconocimiento, anio: e.target.value })}
+                          placeholder="Año (opcional)" className="adm-input"
+                        />
+                      </AddFormBox>
+                    </SectionDivider>
+
+                    {/* ── Participación en eventos ── */}
+                    <SectionDivider icon={Calendar} label="Participación en eventos">
+                      <div style={{ marginBottom: 8 }}>
+                        {(currentDocente.participacionEventos || []).length === 0 ? (
+                          <div style={{
+                            fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                            color: 'var(--adm-ink-4)', fontStyle: 'italic', marginBottom: 8,
+                          }}>Sin eventos registrados</div>
+                        ) : (
+                          (currentDocente.participacionEventos || []).map((evt, idx) => (
+                            <ArrayItem
+                              key={idx}
+                              main={evt.nombre}
+                              sub={`${evt.lugar}${evt.anio ? ` · ${evt.anio}` : ''}`}
+                              onRemove={() => removeEvento(idx)}
+                            />
+                          ))
+                        )}
+                      </div>
+                      <AddFormBox onAdd={addEvento} label="Añadir evento">
+                        <input
+                          type="text" value={newEvento.nombre}
+                          onChange={(e) => setNewEvento({ ...newEvento, nombre: e.target.value })}
+                          placeholder="Nombre del evento" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newEvento.lugar}
+                          onChange={(e) => setNewEvento({ ...newEvento, lugar: e.target.value })}
+                          placeholder="Lugar" className="adm-input"
+                        />
+                        <input
+                          type="text" value={newEvento.anio}
+                          onChange={(e) => setNewEvento({ ...newEvento, anio: e.target.value })}
+                          placeholder="Año (opcional)" className="adm-input"
+                        />
+                      </AddFormBox>
+                    </SectionDivider>
+
+                    {/* ── Video YouTube ── */}
+                    <SectionDivider icon={Youtube} label="Video YouTube">
+                      <div className="adm-field" style={{ marginBottom: 10 }}>
+                        <label className="adm-label">URL del video</label>
+                        <input
+                          type="text" name="videoUrl" value={currentDocente.videoUrl || ''}
+                          onChange={handleChange} className="adm-input"
+                          placeholder="https://www.youtube.com/watch?v=..."
+                        />
+                      </div>
+                      {currentDocente.videoUrl && (
+                        <div style={{
+                          borderRadius: 6, overflow: 'hidden',
+                          aspectRatio: '16/9', background: '#000',
+                        }}>
+                          <iframe
+                            src={getYoutubeEmbedUrl(currentDocente.videoUrl)}
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title="YouTube preview"
+                          />
+                        </div>
+                      )}
+                    </SectionDivider>
+
+                    {/* ── Estado de publicación ── */}
+                    <div style={{ borderTop: '1px solid var(--adm-rule)', paddingTop: 16 }}>
+                      <SectionTitle icon={User} label="Estado de publicación" />
+                      <label style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 13, color: 'var(--adm-ink-2)',
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={currentDocente.isPublished}
+                          onChange={handlePublishedChange}
+                          style={{ width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
+                        />
+                        Publicar (visible al público)
+                      </label>
                     </div>
-                    
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditDocente(docente)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDocente(docente._id!)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+
                   </div>
-                  
-                  <div className="mt-2 flex items-center">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      docente.tipo === 'residente' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {docente.tipo === 'residente' ? 'Residente' : 'No Residente'}
-                    </span>
-                    
-                    {docente.educacion && docente.educacion.length > 0 && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        • {docente.educacion.length} títulos académicos
-                      </span>
-                    )}
-                    
-                    {docente.experienciaProfesional && docente.experienciaProfesional.length > 0 && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        • {docente.experienciaProfesional.length} exp. profesionales
-                      </span>
-                    )}
+
+                  {/* Footer actions */}
+                  <div style={{
+                    padding: '14px 20px',
+                    borderTop: '1px solid var(--adm-rule)',
+                    display: 'flex', gap: 8,
+                  }}>
+                    <button
+                      type="submit"
+                      className="adm-btn adm-btn-primary"
+                      disabled={submitting}
+                      style={{ flex: 1, justifyContent: 'center' }}
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader
+                            size={11}
+                            style={{ animation: 'adm-spin 0.7s linear infinite', flexShrink: 0 }}
+                          />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={11} /> Guardar
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="adm-btn adm-btn-secondary"
+                      onClick={handleCancel}
+                    >
+                      Cancelar
+                    </button>
                   </div>
-                </div>
+
+                </form>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
+
     </div>
   );
 };

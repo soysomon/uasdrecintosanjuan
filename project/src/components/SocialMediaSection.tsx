@@ -1,184 +1,200 @@
 // src/components/SocialMediaSection.tsx
-import React, { useEffect, useRef } from 'react';
-import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+// Redesign: sección institucional minimalista — editorial header + 4 columnas limpias.
+// Sin glassmorfismo ni puntos flotantes. Framer Motion para entradas suaves.
+import { motion } from 'framer-motion';
+import { Facebook, Twitter, Youtube, Instagram, ArrowRight } from 'lucide-react';
 
-// Registramos el plugin ScrollTrigger
-gsap.registerPlugin(ScrollTrigger);
-
-const socialLinks = [
-  { name: 'Facebook', url: 'https://www.facebook.com/uasdrecintosanjuan', icon: Facebook },
-  { name: 'Twitter', url: 'https://twitter.com/UASDSanJuan_', icon: Twitter },
-  { name: 'YouTube', url: 'https://www.youtube.com/channel/UCXk2XaQDLJlzZ3JYltFFP4Q', icon: Youtube },
-  { name: 'Instagram', url: 'https://www.instagram.com/uasdsanjuan/', icon: Instagram },
+const SOCIAL_LINKS = [
+  {
+    name:    'Facebook',
+    handle:  '@uasdrecintosanjuan',
+    url:     'https://www.facebook.com/uasdrecintosanjuan',
+    Icon:    Facebook,
+  },
+  {
+    name:    'Twitter / X',
+    handle:  '@UASDSanJuan_',
+    url:     'https://twitter.com/UASDSanJuan_',
+    Icon:    Twitter,
+  },
+  {
+    name:    'YouTube',
+    handle:  'UASD Recinto San Juan',
+    url:     'https://www.youtube.com/channel/UCXk2XaQDLJlzZ3JYltFFP4Q',
+    Icon:    Youtube,
+  },
+  {
+    name:    'Instagram',
+    handle:  '@uasdsanjuan',
+    url:     'https://www.instagram.com/uasdsanjuan/',
+    Icon:    Instagram,
+  },
 ];
 
+const containerVariants = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.10 } },
+};
+
+const itemVariants = {
+  hidden:  { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.64, ease: [0.16, 1, 0.3, 1] } },
+};
+
 export function SocialMediaSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const iconsRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const dotsRefs = useRef<SVGSVGElement[]>([]);
-
-  // Resetear los refs de los puntos
-  dotsRefs.current = [];
-
-  // Función para agregar los SVGs al array de refs
-  const addDotRef = (el: SVGSVGElement | null) => {
-    if (el && !dotsRefs.current.includes(el)) {
-      dotsRefs.current.push(el);
-    }
-  };
-
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    // Crear animación para el título y subtítulo
-    gsap.fromTo(
-      titleRef.current,
-      { y: 30, opacity: 0 },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 0.8, 
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 70%'
-        }
-      }
-    );
-
-    gsap.fromTo(
-      subtitleRef.current,
-      { y: 20, opacity: 0 },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 0.8, 
-        delay: 0.2,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 70%'
-        }
-      }
-    );
-
-    // Animación de los iconos sociales
-    gsap.fromTo(
-      '.social-item',
-      { y: 40, opacity: 0 },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 0.5, 
-        stagger: 0.1,
-        ease: 'back.out(1.2)',
-        scrollTrigger: {
-          trigger: iconsRef.current,
-          start: 'top 80%'
-        }
-      }
-    );
-
-    // Animación de los puntos de fondo
-    dotsRefs.current.forEach((dot, index) => {
-      // Animación inicial de opacidad
-      gsap.fromTo(
-        dot,
-        { opacity: 0 },
-        { 
-          opacity: 0.2 + (index % 3) * 0.1, 
-          duration: 1,
-          delay: index * 0.05,
-          ease: 'power1.inOut'
-        }
-      );
-
-      // Animación perpetua de movimiento
-      gsap.to(dot, {
-        y: `${(index % 2 === 0) ? '+=' : '-='}${10 + (index % 5) * 5}`,
-        x: `${(index % 3 === 0) ? '+=' : '-='}${5 + (index % 4) * 5}`,
-        rotation: (index % 2 === 0) ? 180 : -180,
-        repeat: -1,
-        yoyo: true,
-        duration: 3 + (index % 5),
-        ease: 'sine.inOut'
-      });
-    });
-
-    // Efecto hover para los iconos de redes sociales
-    const socialItems = document.querySelectorAll('.social-item');
-    socialItems.forEach(item => {
-      item.addEventListener('mouseenter', () => {
-        gsap.to(item.querySelector('.icon-container'), {
-          scale: 1.1,
-          duration: 0.3,
-          ease: 'power1.out'
-        });
-      });
-      
-      item.addEventListener('mouseleave', () => {
-        gsap.to(item.querySelector('.icon-container'), {
-          scale: 1,
-          duration: 0.3,
-          ease: 'power1.in'
-        });
-      });
-    });
-
-  }, []);
-
   return (
-    <section ref={sectionRef} className="relative py-24 overflow-hidden bg-[#003087]">
-      {/* Elementos decorativos de fondo */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <svg 
-            key={i}
-            ref={addDotRef}
-            className="absolute"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              opacity: 0,
-              width: `${10 + Math.random() * 20}px`,
-              height: `${10 + Math.random() * 20}px`,
-            }}
-            viewBox="0 0 100 100"
-          >
-            <circle cx="50" cy="50" r="50" fill="#ffffff" />
-          </svg>
-        ))}
-      </div>
+    <section
+      aria-labelledby="social-heading"
+      style={{ backgroundColor: '#FAFAF8', padding: 'clamp(4rem, 8vw, 6rem) 0' }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-        <div className="text-center mb-16">
-          <h2 ref={titleRef} className="text-4xl font-bold text-white">Síguenos en Redes Sociales</h2>
-          <p ref={subtitleRef} className="mt-4 text-xl text-blue-100 opacity-90">
+        {/* ── Section header ── */}
+        <div
+          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 mb-10"
+          style={{ borderBottom: '2px solid #0A0A14' }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p style={{
+              fontSize:      '0.625rem',
+              fontWeight:    700,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color:         '#003087',
+              margin:        '0 0 0.75rem 0',
+            }}>
+              Comunidad Digital
+            </p>
+            <h2
+              id="social-heading"
+              style={{
+                fontFamily:    '"Playfair Display", Georgia, serif',
+                fontStyle:     'italic',
+                fontSize:      'clamp(1.875rem, 3vw, 2.5rem)',
+                fontWeight:    700,
+                letterSpacing: '-0.028em',
+                lineHeight:    1.06,
+                color:         '#0A0A14',
+                margin:        0,
+              }}
+            >
+              Síguenos en Redes Sociales
+            </h2>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            style={{
+              fontSize:      '0.875rem',
+              color:         'rgba(10,10,20,0.46)',
+              margin:        0,
+              paddingBottom: '0.25rem',
+            }}
+          >
             Mantente conectado con nuestra comunidad universitaria
-          </p>
+          </motion.p>
         </div>
-        <div ref={iconsRef} className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-          {socialLinks.map((social, index) => (
-            <a
+
+        {/* ── Social link columns ── */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+          className="grid grid-cols-2 md:grid-cols-4"
+        >
+          {SOCIAL_LINKS.map((social, i) => (
+            <motion.a
               key={social.name}
+              variants={itemVariants}
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="social-item group relative flex flex-col items-center p-6 bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm rounded-lg border border-white border-opacity-20 transition-all duration-300 hover:bg-opacity-15"
+              className="group relative overflow-hidden"
+              style={{
+                display:       'flex',
+                flexDirection: 'column',
+                padding:       'clamp(1.5rem, 3vw, 2rem)',
+                paddingLeft:   i % 2 === 0 ? 0 : undefined,
+                borderLeft:    i > 0 ? '1px solid rgba(10,10,20,0.09)' : 'none',
+                textDecoration:'none',
+              }}
             >
-              <div className="icon-container p-4 mb-3 rounded-full bg-white bg-opacity-20 transition-all duration-300">
-                <social.icon className="w-8 h-8 text-white" />
+              {/* Gold top accent — slide en hover */}
+              <span
+                aria-hidden="true"
+                className="absolute top-0 left-0 right-0 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{ height: '2px', backgroundColor: '#C9940A' }}
+              />
+
+              {/* Icon + arrow row */}
+              <div style={{
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'space-between',
+                marginBottom:   '1.5rem',
+              }}>
+                <div
+                  style={{
+                    width:           '44px',
+                    height:          '44px',
+                    backgroundColor: 'rgba(0,48,135,0.07)',
+                    display:         'flex',
+                    alignItems:      'center',
+                    justifyContent:  'center',
+                    transition:      'background-color 0.22s ease',
+                  }}
+                  className="group-hover:!bg-[rgba(201,148,10,0.09)]"
+                >
+                  <social.Icon
+                    size={20}
+                    style={{ color: '#003087' }}
+                    aria-hidden="true"
+                  />
+                </div>
+
+                <ArrowRight
+                  size={14}
+                  className="transition-transform duration-300 ease-out group-hover:translate-x-1"
+                  style={{ color: '#C9940A', flexShrink: 0 }}
+                  aria-hidden="true"
+                />
               </div>
-              <h3 className="text-lg font-medium text-white">
+
+              {/* Platform name */}
+              <p style={{
+                fontSize:      '0.9375rem',
+                fontWeight:    700,
+                color:         '#0A0A14',
+                margin:        '0 0 0.3rem 0',
+                letterSpacing: '-0.012em',
+                lineHeight:    1.2,
+              }}>
                 {social.name}
-              </h3>
-            </a>
+              </p>
+
+              {/* Handle */}
+              <p style={{
+                fontSize:    '0.75rem',
+                color:       'rgba(10,10,20,0.42)',
+                margin:      0,
+                fontFamily:  '"JetBrains Mono", "Fira Mono", monospace',
+                letterSpacing: '0.01em',
+              }}>
+                {social.handle}
+              </p>
+            </motion.a>
           ))}
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );

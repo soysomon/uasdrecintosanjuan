@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — UASD Recinto San Juan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       VARIABLES
+    ════════════════════════════════════════════════════════════════ */
+    :root {
+      --ink:       #1a1a1a;
+      --ink-2:     #444;
+      --ink-3:     #888;
+      --ink-4:     #bbb;
+      --paper:     #faf9f7;
+      --paper-2:   #f3f1ee;
+      --paper-3:   #eceae6;
+      --rule:      #e0ddd8;
+      --rule-dark: #c8c4be;
+      --blue:      #0047FF;
+      --red:       #A31F34;
+      --green:     #2D6A2D;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESET & BASE
+    ════════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button, input, select, textarea { font-family: inherit; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LAYOUT — CSS Grid 3 zonas
+    ════════════════════════════════════════════════════════════════ */
+    .admin-shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 52px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       TOPBAR
+    ════════════════════════════════════════════════════════════════ */
+    .topbar {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 0 0;
+      border-bottom: 1px solid var(--rule);
+      background: var(--paper);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      width: 220px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-right: 1px solid var(--rule);
+      flex-shrink: 0;
+      gap: 10px;
+    }
+    .topbar-logo-mark {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 16px;
+      color: var(--ink);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+    .topbar-logo-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
+    .topbar-logo-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--rule);
+      flex-shrink: 0;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .topbar-link {
+      font-size: 12px;
+      color: var(--ink-3);
+      transition: color 0.15s;
+      cursor: pointer;
+    }
+    .topbar-link:hover { color: var(--ink); }
+    .topbar-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 2px;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+    }
+    .mob-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 14px;
+      height: 52px;
+      font-size: 18px;
+      color: var(--ink-2);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SIDEBAR — Animation 6 hover
+    ════════════════════════════════════════════════════════════════ */
+    .sidebar {
+      grid-column: 1;
+      grid-row: 2;
+      width: 220px;
+      border-right: 1px solid var(--rule);
+      background: var(--paper);
+      position: sticky;
+      top: 52px;
+      height: calc(100vh - 52px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar-inner { padding: 16px 0 48px; }
+    .nav-section { margin-bottom: 4px; }
+    .nav-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-4);
+      padding: 12px 20px 5px;
+      display: block;
+    }
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px;
+      cursor: pointer;
+      overflow: hidden;
+      user-select: none;
+    }
+    /* Animation 6 — background scaleX desde izquierda */
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--paper-3);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .nav-item:hover::before  { transform: scaleX(1); }
+    .nav-item.active::before { background: var(--ink); transform: scaleX(1); }
+    .nav-item-text {
+      font-size: 13px;
+      color: var(--ink-2);
+      position: relative;
+      z-index: 1;
+      transition: color 0.15s ease;
+    }
+    .nav-item:hover .nav-item-text { color: var(--ink); }
+    .nav-item.active .nav-item-text { color: var(--paper); }
+    .nav-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      background: var(--rule);
+      color: var(--ink-2);
+      padding: 2px 6px;
+      border-radius: 2px;
+      position: relative;
+      z-index: 1;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.15); color: var(--paper); }
+    .nav-sep { height: 1px; background: var(--rule); margin: 6px 20px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+    ════════════════════════════════════════════════════════════════ */
+    .main {
+      grid-column: 2;
+      grid-row: 2;
+      overflow-y: auto;
+      min-height: calc(100vh - 52px);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       PANELS — Animation 8 tab switch
+    ════════════════════════════════════════════════════════════════ */
+    .panel { display: none; padding: 40px 48px; min-height: calc(100vh - 52px); }
+    .panel.active { display: block; }
+    .panel.p-exit { display: block !important; animation: pExit 0.2s ease both; }
+    .panel.p-enter { animation: pEnter 0.35s cubic-bezier(0.19,1,0.22,1) 0.12s both; }
+    @keyframes pExit  { to   { opacity: 0; transform: translateY(-10px); } }
+    @keyframes pEnter { from { opacity: 0; transform: translateY(10px);  } }
+
+    /* ════════════════════════════════════════════════════════════════
+       PAGE HEADER — Animation 3 curtain reveal
+    ════════════════════════════════════════════════════════════════ */
+    .page-header {
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 36px;
+    }
+    .page-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+      margin-bottom: 10px;
+      display: block;
+    }
+    .page-title {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.15;
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(14px);
+    }
+    .page-title em { font-style: italic; }
+    .page-title.anim { animation: curtainReveal 0.7s cubic-bezier(0.76, 0, 0.24, 1) 0.1s both; }
+    @keyframes curtainReveal {
+      from { clip-path: inset(0 0 100% 0); transform: translateY(14px); }
+      to   { clip-path: inset(0 0 0% 0);   transform: translateY(0);    }
+    }
+    .page-sub {
+      margin-top: 7px;
+      font-size: 13px;
+      color: var(--ink-3);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.5s ease 0.55s, transform 0.5s ease 0.55s;
+    }
+    .page-sub.anim { opacity: 1; transform: translateY(0); }
+
+    /* ════════════════════════════════════════════════════════════════
+       SECTION BLOCK — Animation 1
+    ════════════════════════════════════════════════════════════════ */
+    .sblock {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .sblock.anim { animation: sEnter 0.45s cubic-bezier(0.19,1,0.22,1) both; }
+    @keyframes sEnter { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ════════════════════════════════════════════════════════════════
+       STATS ROW — Animation 4
+    ════════════════════════════════════════════════════════════════ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      margin-bottom: 40px;
+      overflow: hidden;
+    }
+    .stat-cell {
+      background: var(--paper);
+      padding: 22px 24px 18px;
+    }
+    .stat-value {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 38px;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--ink-3);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       ACTIVITY TABLE
+    ════════════════════════════════════════════════════════════════ */
+    .table-wrap {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .table-head {
+      display: grid;
+      gap: 12px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--paper-2);
+    }
+    .table-head span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+    }
+    .t-row {
+      display: grid;
+      gap: 12px;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--rule);
+      align-items: center;
+      transition: background 0.15s ease;
+    }
+    .t-row:last-child { border-bottom: none; }
+    .t-row:hover { background: var(--paper-2); }
+    .t-cell { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .t-cell-muted { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+    .act-3col { grid-template-columns: 1fr 130px 100px; }
+    .act-2col { grid-template-columns: 1fr 100px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       BADGES / CHIPS
+    ════════════════════════════════════════════════════════════════ */
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 7px;
+      border-radius: 2px;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .chip-noticia    { background: rgba(0,71,255,0.07);   color: var(--blue);  }
+    .chip-evento     { background: rgba(45,106,45,0.08);  color: var(--green); }
+    .chip-aviso      { background: rgba(163,31,52,0.08);  color: var(--red);   }
+    .chip-comunicado { background: rgba(136,136,136,0.1); color: var(--ink-2); }
+    .chip-created    { background: rgba(45,106,45,0.08);  color: var(--green); }
+    .chip-modified   { background: rgba(0,71,255,0.07);   color: var(--blue);  }
+    .chip-deleted    { background: rgba(163,31,52,0.08);  color: var(--red);   }
+    .chip-pub        { background: rgba(45,106,45,0.08);  color: var(--green); }
+    .chip-draft      { background: rgba(136,136,136,0.1); color: var(--ink-3); }
+    .chip-admin      { background: rgba(0,71,255,0.07);   color: var(--blue);  }
+    .chip-editor     { background: rgba(136,136,136,0.1); color: var(--ink-2); }
+
+    /* ════════════════════════════════════════════════════════════════
+       BUTTONS
+    ════════════════════════════════════════════════════════════════ */
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 2px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .btn-primary   { background: var(--ink); color: var(--paper); }
+    .btn-primary:hover { background: #333; }
+    .btn-secondary { background: transparent; border: 1px solid var(--rule-dark); color: var(--ink); }
+    .btn-secondary:hover { background: var(--paper-2); }
+    .btn-danger    { background: transparent; color: var(--red); border: 1px solid rgba(163,31,52,0.25); }
+    .btn-danger:hover { background: rgba(163,31,52,0.05); }
+    .btn-uasd      { background: var(--blue); color: #fff; }
+    .btn-uasd:hover { background: #0035cc; }
+    .btn-sm { padding: 6px 12px; font-size: 11px; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .icon-btn {
+      width: 28px; height: 28px;
+      border-radius: 2px;
+      border: 1px solid var(--rule);
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      font-size: 13px;
+      color: var(--ink-2);
+      flex-shrink: 0;
+    }
+    .icon-btn:hover { background: var(--paper-2); border-color: var(--rule-dark); }
+    .icon-btn.del:hover { background: rgba(163,31,52,0.05); border-color: rgba(163,31,52,0.3); color: var(--red); }
+
+    /* ════════════════════════════════════════════════════════════════
+       FORM FIELDS — Animation 5
+    ════════════════════════════════════════════════════════════════ */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .fgroup {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .fgroup.anim { animation: fEnter 0.45s cubic-bezier(0.19,1,0.22,1) both; }
+    @keyframes fEnter { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    .fgroup label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--ink-3);
+    }
+    .fgroup input,
+    .fgroup select,
+    .fgroup textarea {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--paper);
+      padding: 9px 11px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .fgroup input::placeholder,
+    .fgroup textarea::placeholder { color: var(--ink-4); }
+    .fgroup input:focus,
+    .fgroup select:focus,
+    .fgroup textarea:focus {
+      outline: none;
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(26,26,26,0.06);
+    }
+    .fgroup textarea { resize: vertical; min-height: 90px; }
+    .field-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-4);
+      letter-spacing: 0.5px;
+    }
+    .form-divider { height: 1px; background: var(--rule); margin: 28px 0; }
+    .form-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DYNAMIC SECTIONS (Crear Noticia)
+    ════════════════════════════════════════════════════════════════ */
+    .dyn-section {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .dyn-section-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--paper-2);
+      border-bottom: 1px solid var(--rule);
+    }
+    .dyn-section-hdr span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+    }
+    .dyn-section-body { padding: 18px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       UPLOAD ZONES — Animation 7
+    ════════════════════════════════════════════════════════════════ */
+    .upload-zone {
+      border: 1px dashed var(--rule-dark);
+      border-radius: 2px;
+      background: var(--paper-2);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+    .upload-zone:hover { border-color: var(--ink); background: var(--paper-3); }
+    .upload-zone.dragover { border-color: var(--ink); background: var(--paper-3); transform: scale(1.015); }
+    .upload-icon { font-size: 20px; opacity: 0.35; line-height: 1; }
+    .upload-text { font-size: 13px; color: var(--ink-2); }
+    .upload-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    input[type="file"] { display: none; }
+    .upload-zones-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       NEWS LIST — Animation 2
+    ════════════════════════════════════════════════════════════════ */
+    .list-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      max-width: 280px;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      padding: 8px 11px;
+      font-size: 13px;
+      background: var(--paper);
+      color: var(--ink);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-input::placeholder { color: var(--ink-4); }
+    .search-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(26,26,26,0.06); }
+    .filter-select {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      padding: 8px 10px;
+      font-size: 12px;
+      background: var(--paper);
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .filter-select:focus { outline: none; border-color: var(--ink); }
+    .news-head { grid-template-columns: 1fr 110px 100px 90px 72px; }
+    .news-r    { grid-template-columns: 1fr 110px 100px 90px 72px; }
+    .news-row {
+      opacity: 0;
+      transform: translateX(-12px);
+      transition: background 0.15s ease;
+    }
+    .news-row.anim { animation: rowIn 0.4s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+    .news-row:hover { background: var(--paper-2); }
+    @keyframes rowIn { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
+    .actions-cell { display: flex; gap: 5px; }
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0 0;
+    }
+    .pg-info {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-3);
+    }
+    .pg-btns { display: flex; gap: 4px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       SLIDES EDITOR
+    ════════════════════════════════════════════════════════════════ */
+    .slides-layout { display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
+    .slide-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .slide-thumb {
+      width: 82px; height: 56px;
+      border-radius: 2px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .slide-thumb:hover { transform: translateY(-1px); }
+    .slide-thumb.active { border-color: var(--ink); }
+    .slide-thumb-inner {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 9px;
+      color: rgba(255,255,255,0.6);
+    }
+    .st1 .slide-thumb-inner { background: #1a3a5c; }
+    .st2 .slide-thumb-inner { background: #2d4a2d; }
+    .st3 .slide-thumb-inner { background: #3a1a1a; }
+    .st4 .slide-thumb-inner { background: #1a2a4a; }
+    .st5 .slide-thumb-inner { background: #2a1a3a; }
+    .st6 .slide-thumb-inner { background: #3a3a1a; }
+    .st7 .slide-thumb-inner { background: #1a3a3a; }
+    .st8 .slide-thumb-inner { background: #3a2a1a; }
+    .config-panel {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .config-panel-hdr {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--paper-2);
+    }
+    .config-panel-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       AUDIT PANEL — sliding right
+    ════════════════════════════════════════════════════════════════ */
+    .audit-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 199;
+    }
+    .audit-overlay.open { display: block; }
+    .audit-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 280px;
+      background: var(--ink);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.19,1,0.22,1);
+    }
+    .audit-panel.open { transform: translateX(0); }
+    .audit-toggle {
+      position: fixed;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      z-index: 201;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 14px 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 2px 0 0 2px;
+      transition: right 0.4s cubic-bezier(0.19,1,0.22,1), background 0.15s;
+    }
+    .audit-toggle:hover { background: #333; }
+    .audit-panel.open + .audit-toggle,
+    .audit-panel.open ~ .audit-toggle { right: 280px; }
+    .audit-hdr {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .audit-hdr-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.4);
+    }
+    .audit-close {
+      background: none; border: none;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer; font-size: 16px;
+      line-height: 1; padding: 2px;
+      transition: color 0.15s;
+    }
+    .audit-close:hover { color: rgba(255,255,255,0.85); }
+    .audit-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .audit-item {
+      padding: 11px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .audit-item:last-child { border-bottom: none; }
+    .audit-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      display: inline-block;
+      margin-bottom: 5px;
+    }
+    .tag-added   { background: rgba(62,255,110,0.14); color: #3EFF6E; }
+    .tag-changed { background: rgba(255,215,0,0.14);  color: #FFD700; }
+    .tag-deleted { background: rgba(255,77,109,0.14); color: #FF4D6D; }
+    .audit-text { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+    .audit-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: rgba(255,255,255,0.28);
+      margin-top: 4px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       MISC UTILS
+    ════════════════════════════════════════════════════════════════ */
+    .flex  { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-8  { gap: 8px; }
+    .gap-12 { gap: 12px; }
+    .mt-8   { margin-top: 8px;  }
+    .mt-16  { margin-top: 16px; }
+    .mt-24  { margin-top: 24px; }
+    .mt-32  { margin-top: 32px; }
+    .mb-8   { margin-bottom: 8px;  }
+    .mb-16  { margin-bottom: 16px; }
+    .mb-24  { margin-bottom: 24px; }
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+      display: block;
+      margin-bottom: 14px;
+    }
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESPONSIVE — ≤ 900px
+    ════════════════════════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .admin-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        top: 52px; left: -220px; bottom: 0;
+        z-index: 150;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+      }
+      .sidebar.open { left: 0; }
+      .topbar-logo { border-right: none; }
+      .mob-toggle { display: flex; align-items: center; }
+      .main { grid-column: 1; }
+      .panel { padding: 24px 20px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      .slides-layout { grid-template-columns: 1fr; }
+      .upload-zones-grid { grid-template-columns: 1fr; }
+      .news-head,
+      .news-r { grid-template-columns: 1fr 100px 72px; }
+      .hide-mob { display: none !important; }
+    }
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .btn-row { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Audit overlay -->
+<div class="audit-overlay" id="auditOverlay"></div>
+
+<div class="admin-shell">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TOPBAR
+  ══════════════════════════════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <button class="mob-toggle" id="mobToggle">☰</button>
+      <span class="topbar-logo-mark">UASD</span>
+      <div class="topbar-logo-divider"></div>
+      <span class="topbar-logo-sub">Panel de<br>Administración</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/" class="topbar-link">← Ver sitio</a>
+      <span class="topbar-link">Ayuda</span>
+      <div class="topbar-avatar" title="Administrador">AD</div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════════════════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="nav-section">
+        <span class="nav-section-label">Contenido</span>
+        <div class="nav-item active" data-panel="dashboard">
+          <span class="nav-item-text">Dashboard</span>
+        </div>
+        <div class="nav-item" data-panel="crear-noticia">
+          <span class="nav-item-text">Crear Noticia</span>
+        </div>
+        <div class="nav-item" data-panel="admin-noticias">
+          <span class="nav-item-text">Administrar Noticias</span>
+          <span class="nav-badge">147</span>
+        </div>
+      </div>
+
+      <div class="nav-sep"></div>
+
+      <div class="nav-section">
+        <span class="nav-section-label">Multimedia</span>
+        <div class="nav-item" data-panel="editor-slides">
+          <span class="nav-item-text">Editor de Slides</span>
+        </div>
+        <div class="nav-item" data-panel="editor-memorias">
+          <span class="nav-item-text">Editor de Memorias</span>
+        </div>
+      </div>
+
+      <div class="nav-sep"></div>
+
+      <div class="nav-section">
+        <span class="nav-section-label">Administración</span>
+        <div class="nav-item" data-panel="estados">
+          <span class="nav-item-text">Estados Financieros</span>
+        </div>
+        <div class="nav-item" data-panel="docentes">
+          <span class="nav-item-text">Editor de Docentes</span>
+        </div>
+      </div>
+
+      <div class="nav-sep"></div>
+
+      <div class="nav-section">
+        <span class="nav-section-label">Sistema</span>
+        <div class="nav-item" data-panel="seguridad">
+          <span class="nav-item-text">Seguridad</span>
+        </div>
+        <div class="nav-item" data-panel="usuarios">
+          <span class="nav-item-text">Usuarios</span>
+        </div>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ─────────────────────────────────────────── -->
+    <section class="panel active" id="dashboard">
+      <div class="page-header sblock">
+        <span class="page-label">Panel de Administración</span>
+        <h1 class="page-title">Dashboard <em>general</em></h1>
+        <p class="page-sub">Estado actual del sistema · UASD Recinto San Juan</p>
+      </div>
+
+      <!-- Stats — Animation 4 -->
+      <div class="stats-row sblock">
+        <div class="stat-cell">
+          <div class="stat-value" data-count="147">0</div>
+          <div class="stat-label">Noticias publicadas</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value" data-count="8">0</div>
+          <div class="stat-label">Slides activos</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value" data-count="43">0</div>
+          <div class="stat-label">Docentes registrados</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value" data-count="12">0</div>
+          <div class="stat-label">Memorias institucionales</div>
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="sblock">
+        <span class="section-label">Actividad reciente</span>
+        <div class="table-wrap">
+          <div class="table-head act-3col">
+            <span>Descripción</span>
+            <span>Tipo</span>
+            <span>Tiempo</span>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">Apertura del Período Académico 2025-2026</div>
+            <div><span class="chip chip-created">Creado</span></div>
+            <div class="t-cell-muted">hace 2 h</div>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">Slide principal actualizado</div>
+            <div><span class="chip chip-modified">Modificado</span></div>
+            <div class="t-cell-muted">hace 5 h</div>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">Docente: Dra. María García registrada</div>
+            <div><span class="chip chip-created">Añadido</span></div>
+            <div class="t-cell-muted">ayer</div>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">Noticia de bienvenida 2024 eliminada</div>
+            <div><span class="chip chip-deleted">Eliminado</span></div>
+            <div class="t-cell-muted">ayer</div>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">Memoria Institucional 2024 subida</div>
+            <div><span class="chip chip-created">Añadido</span></div>
+            <div class="t-cell-muted">hace 3 días</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="sblock mt-32">
+        <span class="section-label">Acciones rápidas</span>
+        <div class="btn-row">
+          <button class="btn btn-uasd" onclick="switchPanel('crear-noticia')">+ Nueva noticia</button>
+          <button class="btn btn-secondary" onclick="switchPanel('editor-slides')">Editar slides</button>
+          <button class="btn btn-secondary" onclick="switchPanel('editor-memorias')">Subir memoria</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CREAR NOTICIA ─────────────────────────────────────── -->
+    <section class="panel" id="crear-noticia">
+      <div class="page-header sblock">
+        <span class="page-label">Contenido</span>
+        <h1 class="page-title">Crear <em>noticia</em></h1>
+        <p class="page-sub">Complete todos los campos. Los cambios no guardados se perderán.</p>
+      </div>
+
+      <!-- Campos principales -->
+      <div class="sblock">
+        <span class="form-section-label">Información principal</span>
+        <div class="form-grid">
+          <div class="fgroup full">
+            <label>Título</label>
+            <input type="text" placeholder="Ingrese el título de la noticia…" />
+          </div>
+          <div class="fgroup">
+            <label>Categoría</label>
+            <select>
+              <option value="">Seleccionar…</option>
+              <option>Noticia</option>
+              <option>Evento</option>
+              <option>Aviso</option>
+              <option>Comunicado</option>
+            </select>
+          </div>
+          <div class="fgroup">
+            <label>Fecha de publicación</label>
+            <input type="date" />
+          </div>
+          <div class="fgroup full">
+            <label>Extracto</label>
+            <textarea placeholder="Resumen breve que aparecerá en la lista de noticias…"></textarea>
+            <span class="field-hint">Máx. 200 caracteres recomendados</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- Secciones dinámicas -->
+      <div class="sblock">
+        <div class="flex justify-between items-center mb-16">
+          <span class="form-section-label" style="margin-bottom:0">Secciones de contenido</span>
+          <button class="btn btn-secondary btn-sm" id="addSectionBtn">+ Añadir sección</button>
+        </div>
+        <div id="dynamicSections">
+          <div class="dyn-section">
+            <div class="dyn-section-hdr">
+              <span>Sección 01</span>
+              <button class="icon-btn del" title="Eliminar sección">✕</button>
+            </div>
+            <div class="dyn-section-body">
+              <div class="form-grid">
+                <div class="fgroup full">
+                  <label>Subtítulo de sección</label>
+                  <input type="text" placeholder="Opcional…" />
+                </div>
+                <div class="fgroup full">
+                  <label>Contenido</label>
+                  <textarea style="min-height:120px" placeholder="Texto de la sección…"></textarea>
+                </div>
+              </div>
+              <div class="mt-16">
+                <label class="fgroup" style="margin-bottom:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink-3)">Imagen de sección</span></label>
+                <div class="upload-zone" onclick="this.querySelector('input').click()">
+                  <span class="upload-icon">↑</span>
+                  <span class="upload-text">Arrastra una imagen o haz clic</span>
+                  <span class="upload-hint">JPG · PNG · WebP · máx. 5 MB</span>
+                  <input type="file" accept="image/*">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dyn-section">
+            <div class="dyn-section-hdr">
+              <span>Sección 02</span>
+              <button class="icon-btn del" title="Eliminar sección">✕</button>
+            </div>
+            <div class="dyn-section-body">
+              <div class="form-grid">
+                <div class="fgroup full">
+                  <label>Subtítulo de sección</label>
+                  <input type="text" placeholder="Opcional…" />
+                </div>
+                <div class="fgroup full">
+                  <label>Contenido</label>
+                  <textarea style="min-height:120px" placeholder="Texto de la sección…"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- Archivos adjuntos -->
+      <div class="sblock">
+        <span class="form-section-label">Archivos multimedia</span>
+        <div class="upload-zones-grid">
+          <div>
+            <div class="fgroup" style="margin-bottom:8px"><label>Imagen destacada</label></div>
+            <div class="upload-zone" onclick="this.querySelector('input').click()">
+              <span class="upload-icon">↑</span>
+              <span class="upload-text">Imagen principal</span>
+              <span class="upload-hint">JPG · PNG · WebP</span>
+              <input type="file" accept="image/*">
+            </div>
+          </div>
+          <div>
+            <div class="fgroup" style="margin-bottom:8px"><label>Documento PDF</label></div>
+            <div class="upload-zone" onclick="this.querySelector('input').click()">
+              <span class="upload-icon">↑</span>
+              <span class="upload-text">Adjuntar PDF</span>
+              <span class="upload-hint">PDF · máx. 20 MB</span>
+              <input type="file" accept=".pdf">
+            </div>
+          </div>
+          <div>
+            <div class="fgroup" style="margin-bottom:8px"><label>Video</label></div>
+            <div class="upload-zone" onclick="this.querySelector('input').click()">
+              <span class="upload-icon">↑</span>
+              <span class="upload-text">Subir video</span>
+              <span class="upload-hint">MP4 · máx. 100 MB</span>
+              <input type="file" accept="video/*">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <div class="sblock">
+        <div class="btn-row">
+          <button class="btn btn-uasd">Publicar noticia</button>
+          <button class="btn btn-secondary">Guardar borrador</button>
+          <button class="btn btn-danger">Descartar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ADMINISTRAR NOTICIAS ──────────────────────────────── -->
+    <section class="panel" id="admin-noticias">
+      <div class="page-header sblock">
+        <span class="page-label">Contenido</span>
+        <h1 class="page-title">Administrar <em>noticias</em></h1>
+        <p class="page-sub">147 noticias publicadas · busca, filtra, edita o elimina</p>
+      </div>
+
+      <div class="sblock">
+        <div class="list-toolbar">
+          <input class="search-input" type="search" placeholder="Buscar por título…" id="newsSearch" />
+          <select class="filter-select" id="catFilter">
+            <option value="">Todas las categorías</option>
+            <option value="Noticia">Noticia</option>
+            <option value="Evento">Evento</option>
+            <option value="Aviso">Aviso</option>
+            <option value="Comunicado">Comunicado</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn btn-uasd btn-sm" onclick="switchPanel('crear-noticia')">+ Nueva</button>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-head news-head">
+            <span>Título</span>
+            <span>Categoría</span>
+            <span class="hide-mob">Fecha</span>
+            <span class="hide-mob">Estado</span>
+            <span>Acciones</span>
+          </div>
+
+          <div id="newsTableBody">
+            <div class="t-row news-r news-row">
+              <div class="t-cell">UASD San Juan inicia Período Académico 2025-2026</div>
+              <div><span class="chip chip-noticia">Noticia</span></div>
+              <div class="t-cell-muted hide-mob">15 Ene 2025</div>
+              <div class="hide-mob"><span class="chip chip-pub">Publicado</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+            <div class="t-row news-r news-row">
+              <div class="t-cell">II Congreso de Investigación Universitaria</div>
+              <div><span class="chip chip-evento">Evento</span></div>
+              <div class="t-cell-muted hide-mob">10 Ene 2025</div>
+              <div class="hide-mob"><span class="chip chip-pub">Publicado</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+            <div class="t-row news-r news-row">
+              <div class="t-cell">Aviso: Cambio en horario de admisiones</div>
+              <div><span class="chip chip-aviso">Aviso</span></div>
+              <div class="t-cell-muted hide-mob">08 Ene 2025</div>
+              <div class="hide-mob"><span class="chip chip-pub">Publicado</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+            <div class="t-row news-r news-row">
+              <div class="t-cell">Comunicado sobre nuevas instalaciones del campus</div>
+              <div><span class="chip chip-comunicado">Comunicado</span></div>
+              <div class="t-cell-muted hide-mob">05 Ene 2025</div>
+              <div class="hide-mob"><span class="chip chip-pub">Publicado</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+            <div class="t-row news-r news-row">
+              <div class="t-cell">Premio Nacional a la Excelencia Académica 2024</div>
+              <div><span class="chip chip-noticia">Noticia</span></div>
+              <div class="t-cell-muted hide-mob">02 Ene 2025</div>
+              <div class="hide-mob"><span class="chip chip-pub">Publicado</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+            <div class="t-row news-r news-row">
+              <div class="t-cell">Semana de la Ciencia y la Tecnología 2024</div>
+              <div><span class="chip chip-evento">Evento</span></div>
+              <div class="t-cell-muted hide-mob">28 Dic 2024</div>
+              <div class="hide-mob"><span class="chip chip-draft">Borrador</span></div>
+              <div class="actions-cell"><button class="icon-btn" title="Editar">✏</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pagination">
+          <span class="pg-info">Mostrando 1–6 de 147</span>
+          <div class="pg-btns">
+            <button class="btn btn-secondary btn-sm" disabled>← Anterior</button>
+            <button class="btn btn-secondary btn-sm">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── EDITOR SLIDES ─────────────────────────────────────── -->
+    <section class="panel" id="editor-slides">
+      <div class="page-header sblock">
+        <span class="page-label">Multimedia</span>
+        <h1 class="page-title">Editor de <em>slides</em></h1>
+        <p class="page-sub">8 slides activos · haz clic en un slide para editar su configuración</p>
+      </div>
+
+      <div class="sblock slides-layout">
+        <!-- Strip + preview -->
+        <div>
+          <span class="section-label">Slides activos</span>
+          <div class="slide-strip">
+            <div class="slide-thumb st1 active" onclick="selectSlide(this,1)"><div class="slide-thumb-inner">01</div></div>
+            <div class="slide-thumb st2" onclick="selectSlide(this,2)"><div class="slide-thumb-inner">02</div></div>
+            <div class="slide-thumb st3" onclick="selectSlide(this,3)"><div class="slide-thumb-inner">03</div></div>
+            <div class="slide-thumb st4" onclick="selectSlide(this,4)"><div class="slide-thumb-inner">04</div></div>
+            <div class="slide-thumb st5" onclick="selectSlide(this,5)"><div class="slide-thumb-inner">05</div></div>
+            <div class="slide-thumb st6" onclick="selectSlide(this,6)"><div class="slide-thumb-inner">06</div></div>
+            <div class="slide-thumb st7" onclick="selectSlide(this,7)"><div class="slide-thumb-inner">07</div></div>
+            <div class="slide-thumb st8" onclick="selectSlide(this,8)"><div class="slide-thumb-inner">08</div></div>
+          </div>
+
+          <div style="border:1px solid var(--rule);border-radius:2px;overflow:hidden;margin-bottom:20px">
+            <div style="background:#1a3a5c;height:180px;display:flex;align-items:center;justify-content:center">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px" id="slidePreviewLabel">Vista previa · Slide 01</span>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="fgroup">
+              <label>Imagen del slide</label>
+              <div class="upload-zone" onclick="this.querySelector('input').click()">
+                <span class="upload-icon">↑</span>
+                <span class="upload-text">Reemplazar imagen</span>
+                <span class="upload-hint">JPG · PNG · 1920×680px</span>
+                <input type="file" accept="image/*">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Config panel -->
+        <div class="config-panel">
+          <div class="config-panel-hdr" id="slideConfigTitle">Configuración · Slide 01</div>
+          <div class="config-panel-body">
+            <div class="fgroup">
+              <label>Título</label>
+              <input type="text" value="Bienvenidos al Período 2025-2026" />
+            </div>
+            <div class="fgroup">
+              <label>Subtítulo</label>
+              <input type="text" value="UASD Recinto San Juan" />
+            </div>
+            <div class="fgroup">
+              <label>Texto del botón CTA</label>
+              <input type="text" value="Conocer más" />
+            </div>
+            <div class="fgroup">
+              <label>URL del botón</label>
+              <input type="url" value="/noticias/apertura-2025" />
+            </div>
+            <div class="fgroup">
+              <label>Orden</label>
+              <input type="number" value="1" min="1" max="20" />
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-uasd btn-sm">Guardar cambios</button>
+              <button class="btn btn-secondary btn-sm">Resetear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── EDITOR MEMORIAS ───────────────────────────────────── -->
+    <section class="panel" id="editor-memorias">
+      <div class="page-header sblock">
+        <span class="page-label">Multimedia</span>
+        <h1 class="page-title">Editor de <em>memorias</em></h1>
+        <p class="page-sub">Gestión de memorias institucionales y de postgrado</p>
+      </div>
+
+      <div class="sblock">
+        <div class="flex justify-between items-center mb-16">
+          <span class="section-label" style="margin-bottom:0">Memorias registradas</span>
+          <div class="btn-row">
+            <button class="btn btn-uasd btn-sm">+ Subir memoria</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head" style="grid-template-columns:1fr 70px 90px 72px">
+            <span>Título</span><span>Año</span><span>Tipo</span><span>Acciones</span>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 70px 90px 72px">
+            <div class="t-cell">Memoria Institucional 2024</div>
+            <div class="t-cell-muted">2024</div>
+            <div><span class="chip chip-noticia">Institucional</span></div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar PDF">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 70px 90px 72px">
+            <div class="t-cell">Memoria Institucional 2023</div>
+            <div class="t-cell-muted">2023</div>
+            <div><span class="chip chip-noticia">Institucional</span></div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar PDF">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 70px 90px 72px">
+            <div class="t-cell">Memoria Postgrado 2024</div>
+            <div class="t-cell-muted">2024</div>
+            <div><span class="chip chip-evento">Postgrado</span></div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar PDF">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 70px 90px 72px">
+            <div class="t-cell">Memoria Postgrado 2023</div>
+            <div class="t-cell-muted">2023</div>
+            <div><span class="chip chip-evento">Postgrado</span></div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar PDF">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 70px 90px 72px">
+            <div class="t-cell">Memoria Institucional 2022</div>
+            <div class="t-cell-muted">2022</div>
+            <div><span class="chip chip-noticia">Institucional</span></div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar PDF">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="sblock">
+        <span class="form-section-label">Subir nueva memoria</span>
+        <div class="form-grid">
+          <div class="fgroup">
+            <label>Título</label>
+            <input type="text" placeholder="Memoria Institucional 2025…" />
+          </div>
+          <div class="fgroup">
+            <label>Año</label>
+            <input type="number" placeholder="2025" min="2000" max="2030" />
+          </div>
+          <div class="fgroup">
+            <label>Tipo</label>
+            <select><option>Institucional</option><option>Postgrado</option></select>
+          </div>
+          <div class="fgroup full">
+            <label>Archivo PDF</label>
+            <div class="upload-zone" onclick="this.querySelector('input').click()">
+              <span class="upload-icon">↑</span>
+              <span class="upload-text">Arrastra el PDF o haz clic</span>
+              <span class="upload-hint">PDF · máx. 50 MB</span>
+              <input type="file" accept=".pdf">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row mt-16">
+          <button class="btn btn-uasd">Subir memoria</button>
+          <button class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ESTADOS FINANCIEROS ───────────────────────────────── -->
+    <section class="panel" id="estados">
+      <div class="page-header sblock">
+        <span class="page-label">Administración</span>
+        <h1 class="page-title">Estados <em>financieros</em></h1>
+        <p class="page-sub">Documentos de transparencia financiera institucional</p>
+      </div>
+
+      <div class="sblock">
+        <div class="flex justify-between items-center mb-16">
+          <span class="section-label" style="margin-bottom:0">Documentos registrados</span>
+          <button class="btn btn-uasd btn-sm">+ Subir estado</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head" style="grid-template-columns:1fr 90px 100px 72px">
+            <span>Título</span><span>Período</span><span>Publicado</span><span>Acciones</span>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 100px 72px">
+            <div class="t-cell">Estados Financieros 2024</div>
+            <div class="t-cell-muted">Dic 2024</div>
+            <div class="t-cell-muted">15 Feb 2025</div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 100px 72px">
+            <div class="t-cell">Estados Financieros 2023</div>
+            <div class="t-cell-muted">Dic 2023</div>
+            <div class="t-cell-muted">20 Feb 2024</div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 100px 72px">
+            <div class="t-cell">Estados Financieros 2022</div>
+            <div class="t-cell-muted">Dic 2022</div>
+            <div class="t-cell-muted">10 Mar 2023</div>
+            <div class="actions-cell"><button class="icon-btn" title="Descargar">↓</button><button class="icon-btn del" title="Eliminar">✕</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── EDITOR DOCENTES ───────────────────────────────────── -->
+    <section class="panel" id="docentes">
+      <div class="page-header sblock">
+        <span class="page-label">Administración</span>
+        <h1 class="page-title">Editor de <em>docentes</em></h1>
+        <p class="page-sub">43 docentes registrados · residentes y no residentes</p>
+      </div>
+
+      <div class="sblock">
+        <div class="list-toolbar">
+          <input class="search-input" type="search" placeholder="Buscar docente…" />
+          <select class="filter-select">
+            <option>Todos</option><option>Residente</option><option>No Residente</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn btn-uasd btn-sm">+ Nuevo docente</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head" style="grid-template-columns:1fr 160px 110px 72px">
+            <span>Nombre</span><span>Área</span><span>Tipo</span><span>Acciones</span>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 160px 110px 72px">
+            <div class="t-cell">Dr. Carlos A. Pérez</div>
+            <div class="t-cell">Ciencias Exactas</div>
+            <div><span class="chip chip-pub">Residente</span></div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 160px 110px 72px">
+            <div class="t-cell">Dra. María García López</div>
+            <div class="t-cell">Humanidades</div>
+            <div><span class="chip chip-pub">Residente</span></div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 160px 110px 72px">
+            <div class="t-cell">Ing. José R. Martínez</div>
+            <div class="t-cell">Ingeniería</div>
+            <div><span class="chip chip-draft">No Residente</span></div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 160px 110px 72px">
+            <div class="t-cell">Lic. Ana M. López</div>
+            <div class="t-cell">Economía</div>
+            <div><span class="chip chip-pub">Residente</span></div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 160px 110px 72px">
+            <div class="t-cell">Dr. Roberto E. Díaz</div>
+            <div class="t-cell">Ciencias Médicas</div>
+            <div><span class="chip chip-draft">No Residente</span></div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SEGURIDAD ─────────────────────────────────────────── -->
+    <section class="panel" id="seguridad">
+      <div class="page-header sblock">
+        <span class="page-label">Sistema</span>
+        <h1 class="page-title">Seguridad <em>del sistema</em></h1>
+        <p class="page-sub">Gestión de acceso y auditoría de sesiones</p>
+      </div>
+
+      <div class="sblock">
+        <span class="section-label">Sesiones activas</span>
+        <div class="table-wrap">
+          <div class="table-head act-3col">
+            <span>Usuario</span><span>IP / Dispositivo</span><span>Inicio sesión</span>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">admin@uasd.edu.do</div>
+            <div class="t-cell-muted">192.168.1.10 · Chrome / macOS</div>
+            <div class="t-cell-muted">hace 12 min</div>
+          </div>
+          <div class="t-row act-3col">
+            <div class="t-cell">editor@uasd.edu.do</div>
+            <div class="t-cell-muted">192.168.1.24 · Firefox / Windows</div>
+            <div class="t-cell-muted">hace 1 h</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sblock mt-32">
+        <span class="section-label">Configuración de acceso</span>
+        <div class="form-grid">
+          <div class="fgroup">
+            <label>Tiempo de sesión (minutos)</label>
+            <input type="number" value="120" min="30" max="480" />
+            <span class="field-hint">Sesión se cierra automáticamente después de inactividad</span>
+          </div>
+          <div class="fgroup">
+            <label>Intentos antes de bloqueo</label>
+            <input type="number" value="5" min="3" max="10" />
+          </div>
+        </div>
+        <div class="btn-row mt-16">
+          <button class="btn btn-uasd">Guardar configuración</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── USUARIOS ──────────────────────────────────────────── -->
+    <section class="panel" id="usuarios">
+      <div class="page-header sblock">
+        <span class="page-label">Sistema</span>
+        <h1 class="page-title">Gestión de <em>usuarios</em></h1>
+        <p class="page-sub">Control de acceso al panel de administración</p>
+      </div>
+
+      <div class="sblock">
+        <div class="flex justify-between items-center mb-16">
+          <span class="section-label" style="margin-bottom:0">Usuarios activos</span>
+          <button class="btn btn-uasd btn-sm">+ Crear usuario</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head" style="grid-template-columns:1fr 90px 120px 72px">
+            <span>Email</span><span>Rol</span><span>Último acceso</span><span>Acciones</span>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 120px 72px">
+            <div class="t-cell">admin@uasd.edu.do</div>
+            <div><span class="chip chip-admin">Admin</span></div>
+            <div class="t-cell-muted">hace 12 min</div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 120px 72px">
+            <div class="t-cell">editor@uasd.edu.do</div>
+            <div><span class="chip chip-editor">Editor</span></div>
+            <div class="t-cell-muted">hace 1 h</div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+          <div class="t-row" style="grid-template-columns:1fr 90px 120px 72px">
+            <div class="t-cell">contenido@uasd.edu.do</div>
+            <div><span class="chip chip-editor">Editor</span></div>
+            <div class="t-cell-muted">ayer</div>
+            <div class="actions-cell"><button class="icon-btn">✏</button><button class="icon-btn del">✕</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="sblock">
+        <span class="form-section-label">Crear nuevo usuario</span>
+        <div class="form-grid">
+          <div class="fgroup">
+            <label>Email institucional</label>
+            <input type="email" placeholder="nombre@uasd.edu.do" />
+          </div>
+          <div class="fgroup">
+            <label>Rol</label>
+            <select><option>Editor</option><option>Administrador</option></select>
+          </div>
+          <div class="fgroup">
+            <label>Contraseña temporal</label>
+            <input type="password" placeholder="Mínimo 8 caracteres" />
+          </div>
+          <div class="fgroup">
+            <label>Confirmar contraseña</label>
+            <input type="password" placeholder="Repetir contraseña" />
+          </div>
+        </div>
+        <div class="btn-row mt-16">
+          <button class="btn btn-uasd">Crear usuario</button>
+          <button class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /admin-shell -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     AUDIT PANEL — sliding from right
+══════════════════════════════════════════════════════════════ -->
+<div class="audit-panel" id="auditPanel">
+  <div class="audit-hdr">
+    <span class="audit-hdr-label">Registro de cambios</span>
+    <button class="audit-close" id="auditClose">✕</button>
+  </div>
+  <div class="audit-list">
+    <div class="audit-item">
+      <span class="audit-tag tag-added">Añadido</span>
+      <div class="audit-text">Noticia: Apertura del Período Académico 2025-2026</div>
+      <div class="audit-time">hace 2 h · admin@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-changed">Cambiado</span>
+      <div class="audit-text">Slide 01 — título actualizado a "Bienvenidos 2025"</div>
+      <div class="audit-time">hace 5 h · admin@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-added">Añadido</span>
+      <div class="audit-text">Docente: Dra. María García López — Humanidades</div>
+      <div class="audit-time">ayer · editor@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-deleted">Eliminado</span>
+      <div class="audit-text">Noticia: Bienvenida al período 2023-2024</div>
+      <div class="audit-time">ayer · admin@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-added">Añadido</span>
+      <div class="audit-text">Memoria Institucional 2024 — PDF subido</div>
+      <div class="audit-time">hace 3 días · admin@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-changed">Cambiado</span>
+      <div class="audit-text">Configuración de sesión — timeout modificado a 120 min</div>
+      <div class="audit-time">hace 4 días · admin@uasd.edu.do</div>
+    </div>
+    <div class="audit-item">
+      <span class="audit-tag tag-added">Añadido</span>
+      <div class="audit-text">Usuario: contenido@uasd.edu.do — Rol Editor</div>
+      <div class="audit-time">hace 1 semana · admin@uasd.edu.do</div>
+    </div>
+  </div>
+</div>
+
+<button class="audit-toggle" id="auditToggle">Cambios ↑</button>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script>
+  /* ════ TAB SWITCHING — Animation 8 ════ */
+  let currentPanel = 'dashboard';
+
+  function switchPanel(id) {
+    if (id === currentPanel) return;
+    const curr = document.getElementById(currentPanel);
+    const next = document.getElementById(id);
+    if (!next) return;
+
+    // Update sidebar
+    document.querySelectorAll('.nav-item').forEach(n =>
+      n.classList.toggle('active', n.dataset.panel === id)
+    );
+
+    // Exit: opacity 0 + translateY(-10px) in 0.2s
+    curr.classList.add('p-exit');
+    curr.classList.remove('active');
+    curr.addEventListener('animationend', () => curr.classList.remove('p-exit'), { once: true });
+
+    // Enter: opacity 0→1 + translateY(10px→0) in 0.35s delay 0.12s
+    setTimeout(() => {
+      next.classList.add('active', 'p-enter');
+      next.addEventListener('animationend', () => {
+        next.classList.remove('p-enter');
+        triggerAnims(next);
+      }, { once: true });
+    }, 180);
+
+    currentPanel = id;
+
+    // Close mobile sidebar
+    document.getElementById('sidebar').classList.remove('open');
+  }
+
+  /* ════ TRIGGER PANEL ANIMATIONS ════ */
+  function triggerAnims(panel) {
+    // Animation 3 — curtain reveal on page titles
+    panel.querySelectorAll('.page-title').forEach(el => {
+      el.classList.remove('anim');
+      void el.offsetWidth;
+      el.classList.add('anim');
+    });
+    panel.querySelectorAll('.page-sub').forEach(el => {
+      el.classList.remove('anim');
+      void el.offsetWidth;
+      el.classList.add('anim');
+    });
+
+    // Animation 1 — section blocks stagger (80ms each)
+    panel.querySelectorAll('.sblock').forEach((el, i) => {
+      el.classList.remove('anim');
+      setTimeout(() => {
+        void el.offsetWidth;
+        el.classList.add('anim');
+      }, Math.min(i * 80, 350));
+    });
+
+    // Animation 5 — form fields stagger (60ms each)
+    panel.querySelectorAll('.fgroup').forEach((el, i) => {
+      el.classList.remove('anim');
+      setTimeout(() => {
+        void el.offsetWidth;
+        el.classList.add('anim');
+      }, Math.min(i * 60 + 120, 480));
+    });
+
+    // Animation 2 — news list rows stagger (50ms each)
+    panel.querySelectorAll('.news-row').forEach((el, i) => {
+      el.classList.remove('anim');
+      setTimeout(() => {
+        void el.offsetWidth;
+        el.classList.add('anim');
+      }, Math.min(i * 50 + 100, 450));
+    });
+
+    // Animation 4 — stats counter
+    panel.querySelectorAll('[data-count]').forEach(el => {
+      animateCounter(el, parseInt(el.dataset.count, 10));
+    });
+  }
+
+  /* ════ STATS COUNTER — Animation 4 ════ */
+  function animateCounter(el, target, duration = 1600) {
+    const easeOutExpo = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(easeOutExpo(p) * target);
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ════ UPLOAD ZONES — Animation 7 ════ */
+  document.querySelectorAll('.upload-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      const file = e.dataTransfer?.files[0];
+      if (file) {
+        const hint = zone.querySelector('.upload-hint');
+        const text = zone.querySelector('.upload-text');
+        if (text) text.textContent = file.name;
+        if (hint) hint.textContent = (file.size / 1024).toFixed(0) + ' KB';
+      }
+    });
+    const input = zone.querySelector('input[type="file"]');
+    if (input) input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      const text = zone.querySelector('.upload-text');
+      const hint = zone.querySelector('.upload-hint');
+      if (text) text.textContent = file.name;
+      if (hint) hint.textContent = (file.size / 1024).toFixed(0) + ' KB · listo';
+    });
+  });
+
+  /* ════ AUDIT PANEL ════ */
+  const auditPanel   = document.getElementById('auditPanel');
+  const auditToggle  = document.getElementById('auditToggle');
+  const auditClose   = document.getElementById('auditClose');
+  const auditOverlay = document.getElementById('auditOverlay');
+
+  function setAudit(open) {
+    auditPanel.classList.toggle('open', open);
+    auditOverlay.classList.toggle('open', open);
+  }
+  auditToggle.addEventListener('click', () => setAudit(!auditPanel.classList.contains('open')));
+  auditClose.addEventListener('click',  () => setAudit(false));
+  auditOverlay.addEventListener('click', () => setAudit(false));
+
+  /* ════ MOBILE SIDEBAR ════ */
+  document.getElementById('mobToggle').addEventListener('click', () =>
+    document.getElementById('sidebar').classList.toggle('open')
+  );
+
+  /* ════ SIDEBAR NAV CLICKS ════ */
+  document.querySelectorAll('.nav-item[data-panel]').forEach(item =>
+    item.addEventListener('click', () => switchPanel(item.dataset.panel))
+  );
+
+  /* ════ ESCAPE KEY ════ */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') setAudit(false);
+  });
+
+  /* ════ SLIDES EDITOR ════ */
+  function selectSlide(el, num) {
+    document.querySelectorAll('.slide-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('slideConfigTitle').textContent = `Configuración · Slide 0${num}`;
+    document.getElementById('slidePreviewLabel').textContent = `Vista previa · Slide 0${num}`;
+  }
+
+  /* ════ DYNAMIC SECTIONS (Crear Noticia) ════ */
+  let secCount = 2;
+  document.getElementById('addSectionBtn').addEventListener('click', () => {
+    secCount++;
+    const div = document.createElement('div');
+    div.className = 'dyn-section';
+    div.innerHTML = `
+      <div class="dyn-section-hdr">
+        <span>Sección 0${secCount}</span>
+        <button class="icon-btn del" title="Eliminar sección" onclick="this.closest('.dyn-section').remove()">✕</button>
+      </div>
+      <div class="dyn-section-body">
+        <div class="form-grid">
+          <div class="fgroup full">
+            <label>Subtítulo de sección</label>
+            <input type="text" placeholder="Opcional…" />
+          </div>
+          <div class="fgroup full">
+            <label>Contenido</label>
+            <textarea style="min-height:120px" placeholder="Texto de la sección…"></textarea>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('dynamicSections').appendChild(div);
+    // Animate entrance
+    div.style.opacity = '0';
+    div.style.transform = 'translateY(12px)';
+    div.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      div.style.opacity = '1';
+      div.style.transform = 'translateY(0)';
+    }));
+  });
+
+  // Section delete buttons (existing)
+  document.querySelectorAll('.dyn-section-hdr .icon-btn.del').forEach(btn =>
+    btn.addEventListener('click', () => btn.closest('.dyn-section').remove())
+  );
+
+  /* ════ NEWS SEARCH (live filter) ════ */
+  const newsSearch = document.getElementById('newsSearch');
+  const catFilter  = document.getElementById('catFilter');
+  function filterNews() {
+    const q   = newsSearch.value.toLowerCase();
+    const cat = catFilter.value;
+    document.querySelectorAll('#newsTableBody .t-row').forEach(row => {
+      const title    = row.querySelector('.t-cell')?.textContent.toLowerCase() || '';
+      const category = row.querySelector('.chip')?.textContent.trim() || '';
+      const matchQ   = !q   || title.includes(q);
+      const matchC   = !cat || category.toLowerCase().includes(cat.toLowerCase());
+      row.style.display = (matchQ && matchC) ? '' : 'none';
+    });
+  }
+  if (newsSearch) newsSearch.addEventListener('input', filterNews);
+  if (catFilter)  catFilter.addEventListener('change', filterNews);
+
+  /* ════ INITIAL LOAD ════ */
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => triggerAnims(document.getElementById('dashboard')), 200);
+  });
+</script>
+</body>
+</html>

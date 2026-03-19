@@ -1,26 +1,36 @@
+// src/pages/MemoriasPage.tsx
+// Redesign: layout editorial minimalista — lista ordenada alfabéticamente.
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, ChevronRight, Youtube, Loader } from 'lucide-react';
+import { FileText, ArrowRight, Loader } from 'lucide-react';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import API_ROUTES from '../config/api';
 import { MemoriaItem } from '../components/MemoriasManager';
 
+const ITEM_VARIANTS = {
+  hidden:  { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.50, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+  }),
+};
+
 const MemoriasPage: React.FC = () => {
-  const [memorias, setMemorias] = useState<MemoriaItem[]>([]);
+  const [memorias, setMemorias]   = useState<MemoriaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]         = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMemorias = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(API_ROUTES.MEMORIAS);
-        
-        // Filtrar solo las memorias publicadas y ordenarlas
         setMemorias(
-          response.data
-            .filter((m: MemoriaItem) => m.isPublished)
-            .sort((a: MemoriaItem, b: MemoriaItem) => a.order - b.order)
+          (response.data as MemoriaItem[])
+            .filter((m) => m.isPublished)
+            .sort((a, b) => a.title.localeCompare(b.title, 'es', { sensitivity: 'base' }))
         );
         setError(null);
       } catch (err) {
@@ -30,87 +40,246 @@ const MemoriasPage: React.FC = () => {
         setIsLoading(false);
       }
     };
-
     fetchMemorias();
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-36">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Memorias Institucionales</h1>
-          <div className="h-1 w-32 bg-blue-600 mx-auto mb-8"></div>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Documentación histórica y reportes de los diferentes departamentos y unidades 
+    <div style={{ backgroundColor: 'var(--color-surface)', minHeight: '100vh', paddingTop: '108px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 clamp(1.25rem, 4vw, 2.5rem)' }}>
+
+        {/* ── Encabezado ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            padding:      'clamp(3rem, 6vw, 4.5rem) 0 2rem',
+            borderBottom: '2px solid var(--color-text-primary)',
+          }}
+        >
+          <p style={{
+            fontSize:      '0.5625rem',
+            fontWeight:    700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color:         'var(--color-primary)',
+            marginBottom:  '0.75rem',
+          }}>
+            UASD · Recinto San Juan
+          </p>
+          <h1 style={{
+            fontFamily:    '"Playfair Display", Georgia, serif',
+            fontStyle:     'italic',
+            fontSize:      'clamp(2.5rem, 5vw, 3.75rem)',
+            fontWeight:    700,
+            letterSpacing: '-0.03em',
+            lineHeight:    1.05,
+            color:         'var(--color-text-primary)',
+            marginBottom:  '1.25rem',
+          }}>
+            Memorias Institucionales
+          </h1>
+          <p style={{
+            fontSize:   '0.9375rem',
+            lineHeight: 1.7,
+            color:      'var(--color-text-secondary)',
+            maxWidth:   '56ch',
+          }}>
+            Documentación histórica y reportes de los diferentes departamentos y unidades
             de la Universidad Autónoma de Santo Domingo, Recinto San Juan.
           </p>
-        </div>
+        </motion.div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader className="animate-spin text-blue-600" size={32} />
-            <span className="ml-3 text-blue-600 font-medium">Cargando memorias...</span>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 p-6 rounded-lg text-center">
-            <FileText className="text-red-400 mx-auto mb-4" size={48} />
-            <h2 className="text-xl font-semibold text-red-600 mb-2">Error al cargar las memorias</h2>
-            <p className="text-red-500">{error}</p>
-          </div>
-        ) : memorias.length === 0 ? (
-          <div className="bg-white p-12 rounded-lg shadow-lg text-center">
-            <FileText className="text-gray-400 mx-auto mb-4" size={64} />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-4">No hay memorias disponibles</h2>
-            <p className="text-gray-500">Las memorias institucionales estarán disponibles próximamente.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {memorias.map((memoria) => (
-              <Link
-                key={memoria._id}
-                to={`/memorias/${memoria.slug}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
-              >
-                <div className="p-6 flex-grow">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">{memoria.title}</h2>
-                  {memoria.description && (
-                    <p className="text-gray-600 mb-4 text-sm">{memoria.description}</p>
-                  )}
-                  
-                  <div className="flex items-center mt-2 text-sm text-gray-500">
-                    {memoria.pdfUrl && (
-                      <span className="flex items-center mr-4">
-                        <FileText size={14} className="mr-1 text-blue-600" />
-                        PDF
-                      </span>
-                    )}
-                    {memoria.videoUrl && (
-                      <span className="flex items-center">
-                        <svg 
-                          className="w-3.5 h-3.5 mr-1 text-red-600" 
-                          fill="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"></path>
-                        </svg>
-                        Video
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="px-6 py-3 bg-gray-50 flex justify-between items-center">
-                  <span className="text-xs text-gray-500">
-                    Actualizado: {new Date(memoria.updatedAt || '').toLocaleDateString()}
-                  </span>
-                  <span className="text-blue-600 flex items-center text-sm font-medium">
-                    Ver detalles <ChevronRight size={16} className="ml-1" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        {/* ── Cuerpo ── */}
+        <div style={{ padding: '2rem 0 5rem' }}>
+
+          {isLoading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '3rem 0' }}>
+              <Loader
+                size={20}
+                className="animate-spin"
+                style={{ color: 'var(--color-primary)' }}
+              />
+              <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                Cargando memorias…
+              </span>
+            </div>
+          )}
+
+          {!isLoading && error && (
+            <div style={{
+              padding:      '2.5rem',
+              border:       '1px solid #fca5a5',
+              backgroundColor: '#fff5f5',
+              textAlign:    'center',
+            }}>
+              <FileText size={36} style={{ color: '#f87171', margin: '0 auto 1rem' }} />
+              <p style={{ fontSize: '0.9375rem', color: '#dc2626' }}>{error}</p>
+            </div>
+          )}
+
+          {!isLoading && !error && memorias.length === 0 && (
+            <div style={{
+              padding:   '4rem 0',
+              textAlign: 'center',
+              borderTop: '1px solid var(--color-border-subtle)',
+            }}>
+              <FileText size={40} style={{ color: 'var(--color-text-muted)', margin: '0 auto 1rem' }} />
+              <p style={{ fontSize: '0.9375rem', color: 'var(--color-text-muted)' }}>
+                Las memorias institucionales estarán disponibles próximamente.
+              </p>
+            </div>
+          )}
+
+          {!isLoading && !error && memorias.length > 0 && (
+            <>
+              {/* Contador */}
+              <p style={{
+                fontSize:      '0.625rem',
+                fontWeight:    600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color:         'var(--color-text-muted)',
+                marginBottom:  '0',
+              }}>
+                {memorias.length} {memorias.length === 1 ? 'memoria' : 'memorias'} · Orden alfabético
+              </p>
+
+              {/* Lista */}
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {memorias.map((memoria, i) => (
+                  <motion.li
+                    key={memoria._id}
+                    custom={i}
+                    variants={ITEM_VARIANTS}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: '-24px' }}
+                    style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+                  >
+                    <Link
+                      to={`/memorias/${memoria.slug}`}
+                      className="group"
+                      style={{
+                        display:        'flex',
+                        alignItems:     'center',
+                        justifyContent: 'space-between',
+                        gap:            '1.5rem',
+                        padding:        'clamp(1rem, 2.5vw, 1.375rem) 0',
+                        textDecoration: 'none',
+                        position:       'relative',
+                        overflow:       'hidden',
+                      }}
+                    >
+                      {/* Hover sweep */}
+                      <span
+                        aria-hidden="true"
+                        className="group-hover:[transform:translateX(0)]"
+                        style={{
+                          position:        'absolute',
+                          inset:           0,
+                          backgroundColor: 'rgba(0, 48, 135, 0.035)',
+                          transform:       'translateX(-101%)',
+                          transition:      'transform 0.28s cubic-bezier(0.16,1,0.3,1)',
+                          pointerEvents:   'none',
+                        }}
+                      />
+
+                      {/* Izquierda: índice + título + descripción */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', flex: 1, minWidth: 0 }}>
+                        <span style={{
+                          fontSize:      '0.5rem',
+                          fontWeight:    800,
+                          letterSpacing: '0.12em',
+                          color:         'var(--color-primary)',
+                          minWidth:      '1.75rem',
+                          paddingTop:    '0.25rem',
+                        }}>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{
+                            fontFamily:    '"Playfair Display", Georgia, serif',
+                            fontSize:      'clamp(1rem, 1.75vw, 1.1875rem)',
+                            fontWeight:    600,
+                            color:         'var(--color-text-primary)',
+                            margin:        0,
+                            lineHeight:    1.25,
+                            whiteSpace:    'nowrap',
+                            overflow:      'hidden',
+                            textOverflow:  'ellipsis',
+                          }}>
+                            {memoria.title}
+                          </p>
+                          {memoria.description && (
+                            <p style={{
+                              fontSize:     '0.8125rem',
+                              color:        'var(--color-text-muted)',
+                              margin:       '0.3rem 0 0',
+                              lineHeight:   1.5,
+                              overflow:     'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace:   'nowrap',
+                            }}>
+                              {memoria.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Derecha: badges + flecha */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                        {memoria.pdfUrl && (
+                          <span style={{
+                            display:       'inline-flex',
+                            alignItems:    'center',
+                            gap:           '0.3rem',
+                            fontSize:      '0.5625rem',
+                            fontWeight:    700,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            color:         'var(--color-primary)',
+                            border:        '1px solid var(--color-primary)',
+                            padding:       '0.2rem 0.5rem',
+                          }}>
+                            <FileText size={10} />
+                            PDF
+                          </span>
+                        )}
+                        {memoria.videoUrl && (
+                          <span style={{
+                            display:       'inline-flex',
+                            alignItems:    'center',
+                            gap:           '0.3rem',
+                            fontSize:      '0.5625rem',
+                            fontWeight:    700,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            color:         '#dc2626',
+                            border:        '1px solid #dc2626',
+                            padding:       '0.2rem 0.5rem',
+                          }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                            </svg>
+                            Video
+                          </span>
+                        )}
+                        <ArrowRight
+                          size={15}
+                          className="transition-transform duration-300 ease-out group-hover:translate-x-1"
+                          style={{ color: 'var(--color-text-muted)' }}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </>
+          )}
+
+        </div>
       </div>
     </div>
   );

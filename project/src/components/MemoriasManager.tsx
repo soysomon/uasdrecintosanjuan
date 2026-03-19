@@ -1,21 +1,24 @@
+// src/components/MemoriasManager.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit, Check, AlertTriangle, FileText, Youtube, Loader, X } from 'lucide-react';
+import {
+  Plus, Trash2, Edit2, Check, AlertTriangle,
+  FileText, Youtube, Loader, X, ChevronUp, ChevronDown,
+} from 'lucide-react';
 import MemoriasPdfUploader from './MemoriasPdfUploader';
 import API_ROUTES from '../config/api';
 
-// Tipo para cada sección de Memorias
-// Interfaces para secciones de contenido
+/* ─── Types (unchanged) ─────────────────────────────── */
+
 export interface ContentSection {
   sectionType: 'text' | 'stats' | 'table' | 'gallery' | 'timeline' | 'list' | 'quote' | 'contact';
   title?: string;
-  content: any; // Definir interfaces específicas para cada tipo
+  content: any;
   order: number;
 }
 
-// Tipo para cada sección de Memorias
 export interface MemoriaItem {
   _id?: string;
   title: string;
@@ -26,1133 +29,707 @@ export interface MemoriaItem {
   videoUrl: string;
   order: number;
   isPublished: boolean;
-  contentSections?: ContentSection[]; // Nueva propiedad
+  contentSections?: ContentSection[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-const MemoriasManager: React.FC = () => {
-  const [memorias, setMemorias] = useState<MemoriaItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [currentMemoria, setCurrentMemoria] = useState<MemoriaItem>({
-    title: '',
-  slug: '',
-  description: '',
-  pdfUrl: '',
-  videoUrl: '',
-  order: 0,
-  isPublished: true,
-  contentSections: [] // Inicializar con array vacío
-});
-  const [submitting, setSubmitting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+/* ─── Helpers ────────────────────────────────────────── */
 
-  // Función para validar URLs de PDF
-  const validatePdf = async (url: string): Promise<boolean> => {
-    if (!url) return false;
-    
-    // Para URLs de Cloudinary, verificar el formato
-    if (url.includes('cloudinary.com')) {
-      // Verificar si la URL tiene el formato de una URL de Cloudinary válida
-      const cloudinaryPattern = /^https:\/\/res\.cloudinary\.com\/([^/]+)\/(.+)$/;
-      return cloudinaryPattern.test(url);
-    }
-    
-    // Para otros PDFs, asumir que son válidos
-    return true;
-  };
+const generateSlug = (title: string) =>
+  title.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
 
-  useEffect(() => {
-    fetchMemorias();
-  }, []);
-
-  // Función para obtener todas las memorias
-  const fetchMemorias = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(API_ROUTES.MEMORIAS);
-      setMemorias(res.data);
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      toast.error('Error al cargar las memorias', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
-      console.error('Error fetching memorias:', err);
-    }
-  };
-
-  // Generar un slug a partir del título
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w ]+/g, '')
-      .replace(/ +/g, '-');
-  };
-
-  // Actualizar el campo slug cuando cambia el título
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    const slug = generateSlug(title);
-    setCurrentMemoria({
-      ...currentMemoria,
-      title,
-      slug
-    });
-  };
-
-  // Manejar cambios en el formulario
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setCurrentMemoria({
-      ...currentMemoria,
-      [name]: value
-    });
-  };
-
-  // Manejar cambios en el estado de publicación
-  const handlePublishedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentMemoria({
-      ...currentMemoria,
-      isPublished: e.target.checked
-    });
-  };
-
-  // Preparar formulario para crear nueva memoria
-  const handleNewMemoria = () => {
-    setCurrentMemoria({
-      title: '',
-      slug: '',
-      description: '',
-      pdfUrl: '',
-      videoUrl: '',
-      order: memorias.length + 1,
-      isPublished: true
-    });
-    setFormMode('create');
-    setShowForm(true);
-  };
-
-  // Preparar formulario para editar memoria existente
-  const handleEditMemoria = (memoria: MemoriaItem) => {
-    setCurrentMemoria(memoria);
-    setFormMode('edit');
-    setShowForm(true);
-  };
-
-  // Cancelar y cerrar formulario
-  const handleCancel = () => {
-    setShowForm(false);
-  };
-
-  // Guardar memoria (crear o actualizar)
-  const handleSaveMemoria = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentMemoria.title || !currentMemoria.slug) {
-      toast.error('El título es obligatorio', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
-      return;
-    }
-
-    // Validar PDF si existe una URL
-    if (currentMemoria.pdfUrl) {
-      const isValidPdf = await validatePdf(currentMemoria.pdfUrl);
-      if (!isValidPdf) {
-        toast.error('El PDF proporcionado no es válido o no está accesible', {
-          icon: <AlertTriangle className="text-red-500" size={18} />
-        });
-        return;
-      }
-    }
-
-    setSubmitting(true);
-    
-    try {
-      if (formMode === 'create') {
-        // Crear nueva memoria
-        await axios.post(API_ROUTES.MEMORIAS, currentMemoria);
-        toast.success('Memoria creada correctamente', {
-          icon: <Check className="text-green-500" size={18} />
-        });
-      } else {
-        // Actualizar memoria existente
-        await axios.put(API_ROUTES.MEMORIAS_BY_ID(currentMemoria._id!), currentMemoria);
-        toast.success('Memoria actualizada correctamente', {
-          icon: <Check className="text-green-500" size={18} />
-        });
-      }
-      
-      setSubmitting(false);
-      setShowForm(false);
-      fetchMemorias(); // Recargar la lista después de guardar
-    } catch (err) {
-      setSubmitting(false);
-      toast.error('Error al guardar la memoria', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
-      console.error('Error saving memoria:', err);
-    }
-  };
-
-  // Eliminar memoria
-  const handleDeleteMemoria = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta memoria?')) {
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      await axios.delete(API_ROUTES.MEMORIAS_BY_ID(id));
-      
-      toast.success('Memoria eliminada correctamente', {
-        icon: <Check className="text-green-500" size={18} />
-      });
-      
-      fetchMemorias(); // Recargar la lista después de eliminar
-    } catch (err) {
-      setLoading(false);
-      toast.error('Error al eliminar la memoria', {
-        icon: <AlertTriangle className="text-red-500" size={18} />
-      });
-      console.error('Error deleting memoria:', err);
-    }
-  };
-
-  // Extraer ID de video de YouTube de una URL
-  const getYoutubeEmbedUrl = (url: string) => {
-    if (!url) return '';
-    
-    // Si ya es una URL de embed, la devolvemos tal cual
-    if (url.includes('/embed/')) return url;
-    
-    // Intentamos extraer el ID del video
-    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    const match = url.match(regExp);
-    const videoId = (match && match[7].length === 11) ? match[7] : null;
-    
-    if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-    
-    // Si no podemos extraer el ID, devolvemos la URL original
-    return url;
-  };
-
-  // Manejar cambios en la URL de YouTube
-  const handleYoutubeUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    const embedUrl = getYoutubeEmbedUrl(url);
-    
-    setCurrentMemoria({
-      ...currentMemoria,
-      videoUrl: embedUrl
-    });
-  };
-
-  // Actualizar URL del PDF
-  const handlePdfUploaded = (url: string, publicId: string) => {
-    setCurrentMemoria({
-      ...currentMemoria,
-      pdfUrl: url,
-      pdfPublicId: publicId  // Guardar el ID público
-    });
-  };
-
-
-  // Renderizado de previsualización de YouTube
-  const renderYoutubePreview = () => {
-    if (!currentMemoria.videoUrl) return null;
-    
-    return (
-      <div className="mt-4">
-        <div className="relative pt-[56.25%] bg-black rounded-lg overflow-hidden">
-          <iframe
-            src={currentMemoria.videoUrl}
-            className="absolute top-0 left-0 w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="YouTube video preview"
-          />
-        </div>
-      </div>
-    );
-  };
-
-// Componente para gestionar secciones de contenido
-const ContentSectionsManager: React.FC<{
-  sections: ContentSection[];
-  onChange: (sections: ContentSection[]) => void;
-}> = ({ sections, onChange }) => {
-  const [selectedType, setSelectedType] = useState<ContentSection['sectionType']>('text');
-  
-  // Añadir nueva sección
-const addSection = () => {
-  const newSection: ContentSection = {
-    sectionType: selectedType,
-    title: '',
-    content: getDefaultContentForType(selectedType),
-    order: sections.length,
-  };
-  
-  onChange([...sections, newSection]);
+const getYoutubeEmbedUrl = (url: string) => {
+  if (!url) return '';
+  if (url.includes('/embed/')) return url;
+  const regExp = /^.*((youtu\.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = match && match[7].length === 11 ? match[7] : null;
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
 };
-  
-  // Obtener contenido predeterminado según el tipo
-  const getDefaultContentForType = (type: ContentSection['sectionType']): any => {
-    switch (type) {
-      case 'text':
-        return { text: '' };
-      case 'stats':
-        return { items: [{ label: '', value: '', description: '' }] };
-      case 'table':
-        return { headers: ['Columna 1', 'Columna 2'], rows: [['', '']] };
-      case 'gallery':
-        return { images: [{ url: '', caption: '' }] };
-      case 'timeline':
-        return { events: [{ date: '', title: '', description: '' }] };
-      case 'list':
-        return { items: [{ title: '', description: '' }] };
-      case 'quote':
-        return { text: '', author: '', position: '' };
-      case 'contact':
-        return { 
-          address: '', 
-          phone: '', 
-          email: '', 
-          schedule: '', 
-          website: '' 
-        };
-      default:
-        return {};
-    }
+
+const validatePdf = (url: string): boolean => {
+  if (!url) return false;
+  if (url.includes('cloudinary.com')) {
+    return /^https:\/\/res\.cloudinary\.com\/([^/]+)\/(.+)$/.test(url);
+  }
+  return true;
+};
+
+const EMPTY_MEMORIA: Omit<MemoriaItem, 'order'> = {
+  title: '', slug: '', description: '',
+  pdfUrl: '', videoUrl: '', isPublished: true, contentSections: [],
+};
+
+/* ─── Section content defaults ───────────────────────── */
+
+const defaultContent = (type: ContentSection['sectionType']): any => {
+  switch (type) {
+    case 'text':     return { text: '' };
+    case 'stats':    return { items: [{ label: '', value: '', description: '' }] };
+    case 'table':    return { headers: ['Columna 1', 'Columna 2'], rows: [['', '']] };
+    case 'gallery':  return { images: [{ url: '', caption: '' }] };
+    case 'timeline': return { events: [{ date: '', title: '', description: '' }] };
+    case 'list':     return { items: [{ title: '', description: '' }] };
+    case 'quote':    return { text: '', author: '', position: '' };
+    case 'contact':  return { address: '', phone: '', email: '', schedule: '', website: '' };
+    default:         return {};
+  }
+};
+
+/* ─── Sub-editors ─────────────────────────────────────── */
+
+const SubField: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div style={{ marginBottom: 12 }}>
+    <label className="adm-label">{label}</label>
+    {children}
+  </div>
+);
+
+const TextSectionEditor: React.FC<{ content: any; onChange: (c: any) => void }> = ({ content, onChange }) => (
+  <SubField label="Texto">
+    <textarea
+      className="adm-input adm-textarea"
+      value={content.text || ''}
+      onChange={(e) => onChange({ ...content, text: e.target.value })}
+      placeholder="Ingrese el texto para esta sección..."
+    />
+  </SubField>
+);
+
+const StatsSectionEditor: React.FC<{ content: any; onChange: (c: any) => void }> = ({ content, onChange }) => {
+  const items = content.items || [];
+  const update = (i: number, patch: any) => {
+    const next = [...items];
+    next[i] = { ...next[i], ...patch };
+    onChange({ ...content, items: next });
   };
-  
-  // Eliminar una sección
-  const removeSection = (index: number) => {
-    const newSections = [...sections];
-    newSections.splice(index, 1);
-    
-    // Reordenar
-    const reorderedSections = newSections.map((section, i) => ({
-      ...section,
-      order: i
-    }));
-    
-    onChange(reorderedSections);
-  };
-  
-  // Mover una sección arriba o abajo
-  const moveSection = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) || 
-      (direction === 'down' && index === sections.length - 1)
-    ) {
-      return;
-    }
-    
-    const newSections = [...sections];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
-    // Intercambiar posiciones
-    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
-    
-    // Actualizar órdenes
-    const reorderedSections = newSections.map((section, i) => ({
-      ...section,
-      order: i
-    }));
-    
-    onChange(reorderedSections);
-  };
-  
-  // Actualizar una sección
-  const updateSection = (index: number, updates: Partial<ContentSection>) => {
-    const newSections = [...sections];
-    newSections[index] = {
-      ...newSections[index],
-      ...updates
-    };
-    
-    onChange(newSections);
-  };
-  
-  // Actualizar el contenido de una sección
-  const updateSectionContent = (index: number, content: any) => {
-    updateSection(index, { content });
-  };
-  
-  // Renderizar el editor específico según el tipo
-const renderSectionEditor = (section: ContentSection, index: number) => {
+  const add = () => onChange({ ...content, items: [...items, { label: '', value: '', description: '' }] });
+  const remove = (i: number) => onChange({ ...content, items: items.filter((_: any, idx: number) => idx !== i) });
+
+  return (
+    <div>
+      {items.map((item: any, i: number) => (
+        <div key={i} className="adm-card" style={{ padding: '12px 14px', marginBottom: 10, position: 'relative' }}>
+          <button type="button" onClick={() => remove(i)}
+            style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--adm-ink-3)' }}>
+            <X size={13} />
+          </button>
+          <div className="adm-grid-2" style={{ marginBottom: 8 }}>
+            <SubField label="Etiqueta">
+              <input className="adm-input" value={item.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Ej: Estudiantes" />
+            </SubField>
+            <SubField label="Valor">
+              <input className="adm-input" value={item.value} onChange={(e) => update(i, { value: e.target.value })} placeholder="Ej: 1,500+" />
+            </SubField>
+          </div>
+          <SubField label="Descripción">
+            <input className="adm-input" value={item.description} onChange={(e) => update(i, { description: e.target.value })} placeholder="Descripción adicional (opcional)" />
+          </SubField>
+        </div>
+      ))}
+      <button type="button" onClick={add} className="adm-btn adm-btn-secondary adm-btn-sm">
+        <Plus size={12} /> Añadir estadística
+      </button>
+    </div>
+  );
+};
+
+const TimelineSectionEditor: React.FC<{ content: any; onChange: (c: any) => void }> = ({ content, onChange }) => {
+  const events = content.events || [];
+  const update = (i: number, patch: any) => { const n = [...events]; n[i] = { ...n[i], ...patch }; onChange({ ...content, events: n }); };
+  const add = () => onChange({ ...content, events: [...events, { date: '', title: '', description: '' }] });
+  const remove = (i: number) => onChange({ ...content, events: events.filter((_: any, idx: number) => idx !== i) });
+
+  return (
+    <div>
+      {events.map((ev: any, i: number) => (
+        <div key={i} className="adm-card" style={{ padding: '12px 14px', marginBottom: 10, position: 'relative' }}>
+          <button type="button" onClick={() => remove(i)}
+            style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--adm-ink-3)' }}>
+            <X size={13} />
+          </button>
+          <div className="adm-grid-2" style={{ marginBottom: 8 }}>
+            <SubField label="Fecha / Período">
+              <input className="adm-input" value={ev.date} onChange={(e) => update(i, { date: e.target.value })} placeholder="Ej: 2018-2020" />
+            </SubField>
+            <SubField label="Título">
+              <input className="adm-input" value={ev.title} onChange={(e) => update(i, { title: e.target.value })} placeholder="Ej: Nombre del coordinador" />
+            </SubField>
+          </div>
+          <SubField label="Descripción">
+            <textarea className="adm-input adm-textarea" style={{ minHeight: 60 }} value={ev.description} onChange={(e) => update(i, { description: e.target.value })} placeholder="Descripción del evento o período" />
+          </SubField>
+        </div>
+      ))}
+      <button type="button" onClick={add} className="adm-btn adm-btn-secondary adm-btn-sm">
+        <Plus size={12} /> Añadir evento
+      </button>
+    </div>
+  );
+};
+
+const ListSectionEditor: React.FC<{ content: any; onChange: (c: any) => void }> = ({ content, onChange }) => {
+  const items = content.items || [];
+  const update = (i: number, patch: any) => { const n = [...items]; n[i] = { ...n[i], ...patch }; onChange({ ...content, items: n }); };
+  const add = () => onChange({ ...content, items: [...items, { title: '', description: '' }] });
+  const remove = (i: number) => onChange({ ...content, items: items.filter((_: any, idx: number) => idx !== i) });
+
+  return (
+    <div>
+      {items.map((item: any, i: number) => (
+        <div key={i} className="adm-card" style={{ padding: '12px 14px', marginBottom: 10, position: 'relative' }}>
+          <button type="button" onClick={() => remove(i)}
+            style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--adm-ink-3)' }}>
+            <X size={13} />
+          </button>
+          <SubField label="Título del elemento">
+            <input className="adm-input" value={item.title} onChange={(e) => update(i, { title: e.target.value })} placeholder="Ej: Apoyo Psicológico" />
+          </SubField>
+          <SubField label="Descripción">
+            <textarea className="adm-input adm-textarea" style={{ minHeight: 60 }} value={item.description} onChange={(e) => update(i, { description: e.target.value })} placeholder="Descripción detallada" />
+          </SubField>
+        </div>
+      ))}
+      <button type="button" onClick={add} className="adm-btn adm-btn-secondary adm-btn-sm">
+        <Plus size={12} /> Añadir elemento
+      </button>
+    </div>
+  );
+};
+
+const ContactSectionEditor: React.FC<{ content: any; onChange: (c: any) => void }> = ({ content, onChange }) => {
+  const f = (field: string, value: string) => onChange({ ...content, [field]: value });
+  const fields: { key: string; label: string; placeholder: string }[] = [
+    { key: 'address',  label: 'Dirección',         placeholder: 'Edificio Administrativo, 2do nivel' },
+    { key: 'phone',    label: 'Teléfono',           placeholder: '(809) XXX-XXXX Ext. 123' },
+    { key: 'email',    label: 'Correo electrónico', placeholder: 'correo@sanjuan.uasd.edu.do' },
+    { key: 'schedule', label: 'Horario de atención',placeholder: 'Lunes a Viernes 8:00 AM - 4:00 PM' },
+    { key: 'website',  label: 'Sitio web',          placeholder: 'https://sanjuan.uasd.edu.do' },
+  ];
+  return (
+    <div>
+      {fields.map(({ key, label, placeholder }) => (
+        <SubField key={key} label={label}>
+          <input className="adm-input" type={key === 'email' ? 'email' : 'text'}
+            value={content[key] || ''} onChange={(e) => f(key, e.target.value)} placeholder={placeholder} />
+        </SubField>
+      ))}
+    </div>
+  );
+};
+
+/* ─── ContentSectionsManager ──────────────────────────── */
+
+const SECTION_TYPES: { value: ContentSection['sectionType']; label: string }[] = [
+  { value: 'text',     label: 'Texto' },
+  { value: 'stats',    label: 'Estadísticas' },
+  { value: 'table',    label: 'Tabla' },
+  { value: 'gallery',  label: 'Galería' },
+  { value: 'timeline', label: 'Cronología' },
+  { value: 'list',     label: 'Lista' },
+  { value: 'quote',    label: 'Cita / Testimonio' },
+  { value: 'contact',  label: 'Contacto' },
+];
+
+const renderSectionEditor = (section: ContentSection, index: number, update: (i: number, c: any) => void) => {
+  const onChange = (content: any) => update(index, content);
   switch (section.sectionType) {
-    case 'text':
-      return (
-        <TextSectionEditor 
-          content={section.content} 
-          onChange={(content) => updateSectionContent(index, content)} 
-        />
-      );
-    case 'stats':
-      return (
-        <StatsSectionEditor 
-          content={section.content} 
-          onChange={(content) => updateSectionContent(index, content)} 
-        />
-      );
-    case 'timeline':
-      return (
-        <TimelineSectionEditor 
-          content={section.content} 
-          onChange={(content) => updateSectionContent(index, content)} 
-        />
-      );
-    case 'list':
-      return (
-        <ListSectionEditor 
-          content={section.content} 
-          onChange={(content) => updateSectionContent(index, content)} 
-        />
-      );
-    case 'contact':
-      return (
-        <ContactSectionEditor 
-          content={section.content} 
-          onChange={(content) => updateSectionContent(index, content)} 
-        />
-      );
-    // Otros casos para table, gallery, quote...
+    case 'text':     return <TextSectionEditor content={section.content} onChange={onChange} />;
+    case 'stats':    return <StatsSectionEditor content={section.content} onChange={onChange} />;
+    case 'timeline': return <TimelineSectionEditor content={section.content} onChange={onChange} />;
+    case 'list':     return <ListSectionEditor content={section.content} onChange={onChange} />;
+    case 'contact':  return <ContactSectionEditor content={section.content} onChange={onChange} />;
     default:
       return (
-        <div className="p-4 bg-gray-100 rounded">
-          <p className="text-sm text-gray-500">
-            Editor para {section.sectionType} no implementado aún.
-          </p>
+        <div style={{ padding: '12px 14px', background: 'var(--adm-paper-2)', borderRadius: 6, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--adm-ink-3)' }}>
+          Editor para "{section.sectionType}" no implementado aún.
         </div>
       );
   }
 };
-  
+
+const ContentSectionsManager: React.FC<{
+  sections: ContentSection[];
+  onChange: (s: ContentSection[]) => void;
+}> = ({ sections, onChange }) => {
+  const [selectedType, setSelectedType] = useState<ContentSection['sectionType']>('text');
+
+  const add = () => {
+    onChange([...sections, { sectionType: selectedType, title: '', content: defaultContent(selectedType), order: sections.length }]);
+  };
+
+  const remove = (i: number) => {
+    onChange(sections.filter((_, idx) => idx !== i).map((s, idx) => ({ ...s, order: idx })));
+  };
+
+  const move = (i: number, dir: 'up' | 'down') => {
+    const target = dir === 'up' ? i - 1 : i + 1;
+    if (target < 0 || target >= sections.length) return;
+    const next = [...sections];
+    [next[i], next[target]] = [next[target], next[i]];
+    onChange(next.map((s, idx) => ({ ...s, order: idx })));
+  };
+
+  const updateTitle = (i: number, title: string) => {
+    const next = [...sections];
+    next[i] = { ...next[i], title };
+    onChange(next);
+  };
+
+  const updateContent = (i: number, content: any) => {
+    const next = [...sections];
+    next[i] = { ...next[i], content };
+    onChange(next);
+  };
+
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-medium text-gray-700 mb-3">
-        Secciones de Contenido
-      </h3>
-      
+    <div style={{ marginBottom: 20 }}>
+      <hr className="adm-divider" />
+      <div style={{ marginBottom: 14 }}>
+        <label className="adm-label">Secciones de contenido</label>
+      </div>
+
       {sections.length === 0 ? (
-        <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
-          <p className="text-gray-500 mb-2">No hay secciones de contenido</p>
-          <p className="text-sm text-gray-400">
-            Añade secciones para mostrar contenido adicional
-          </p>
+        <div style={{
+          padding: '24px 16px', textAlign: 'center',
+          background: 'var(--adm-paper-2)',
+          border: '1.5px dashed var(--adm-rule-dark)',
+          borderRadius: 8, marginBottom: 14,
+        }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--adm-ink-3)' }}>
+            Sin secciones de contenido adicional
+          </span>
         </div>
       ) : (
-        <div className="space-y-4 mb-4">
-          {sections.map((section, index) => (
-  <div 
-    key={index} 
-    className="border border-gray-200 rounded-lg p-4 bg-white"
-  >
-    <div className="flex justify-between items-center mb-3">
-      <div className="flex items-center">
-        <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium mr-2">
-          {section.sectionType}
-        </div>
-        <input
-          type="text"
-          value={section.title || ''}
-          onChange={(e) => updateSection(index, { title: e.target.value })}
-          placeholder="Título de la sección (opcional)"
-          className="border-gray-300 rounded-md text-sm p-1 focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-      
-      <div className="flex space-x-1">
-        <button
-          type="button"
-          onClick={() => moveSection(index, 'up')}
-          disabled={index === 0}
-          className={`p-1 rounded ${index === 0 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-100'}`}
-          title="Mover arriba"
-        >
-          ↑
-        </button>
-        <button
-          type="button"
-          onClick={() => moveSection(index, 'down')}
-          disabled={index === sections.length - 1}
-          className={`p-1 rounded ${index === sections.length - 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-100'}`}
-          title="Mover abajo"
-        >
-          ↓
-        </button>
-        <button
-          type="button"
-          onClick={() => removeSection(index)}
-          className="p-1 text-red-500 hover:bg-red-50 rounded"
-          title="Eliminar sección"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    </div>
-    
-    {renderSectionEditor(section, index)}
-  </div>
-))}{sections.map((section, index) => (
-            <div 
-              key={index} 
-              className="border border-gray-200 rounded-lg p-4 bg-white"
-            >
-              
-              {renderSectionEditor(section, index)}
+        <div style={{ marginBottom: 12 }}>
+          {sections.map((section, i) => (
+            <div key={i} className="adm-card" style={{ marginBottom: 10, padding: 0, overflow: 'hidden' }}>
+              {/* Section header */}
+              <div className="adm-card-header" style={{ padding: '10px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                  <span className="adm-badge adm-badge-default">{section.sectionType}</span>
+                  <input
+                    type="text"
+                    value={section.title || ''}
+                    onChange={(e) => updateTitle(i, e.target.value)}
+                    placeholder="Título de la sección (opcional)"
+                    className="adm-input"
+                    style={{ flex: 1, padding: '5px 9px', fontSize: 12.5 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                  <button type="button" onClick={() => move(i, 'up')} disabled={i === 0}
+                    className="adm-btn adm-btn-secondary adm-btn-sm" style={{ padding: '4px 7px' }} title="Subir">
+                    <ChevronUp size={11} />
+                  </button>
+                  <button type="button" onClick={() => move(i, 'down')} disabled={i === sections.length - 1}
+                    className="adm-btn adm-btn-secondary adm-btn-sm" style={{ padding: '4px 7px' }} title="Bajar">
+                    <ChevronDown size={11} />
+                  </button>
+                  <button type="button" onClick={() => remove(i)}
+                    className="adm-btn adm-btn-danger adm-btn-sm" style={{ padding: '4px 7px' }} title="Eliminar sección">
+                    <Trash2 size={11} />
+                  </button>
+                </div>
+              </div>
+              {/* Section editor */}
+              <div style={{ padding: '14px 16px' }}>
+                {renderSectionEditor(section, i, updateContent)}
+              </div>
             </div>
           ))}
         </div>
       )}
-      
-      <div className="flex items-center space-x-2">
+
+      {/* Add section row */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value as ContentSection['sectionType'])}
-          className="border-gray-300 rounded-md text-sm p-2 pr-8 focus:ring-blue-500 focus:border-blue-500"
+          className="adm-input adm-select"
+          style={{ width: 'auto', minWidth: 160 }}
         >
-          <option value="text">Texto</option>
-          <option value="stats">Estadísticas</option>
-          <option value="table">Tabla</option>
-          <option value="gallery">Galería</option>
-          <option value="timeline">Cronología</option>
-          <option value="list">Lista</option>
-          <option value="quote">Cita/Testimonio</option>
-          <option value="contact">Contacto</option>
+          {SECTION_TYPES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
-        
-        <button
-          type="button"
-          onClick={addSection}
-          className="flex items-center bg-blue-50 text-blue-600 px-3 py-2 rounded hover:bg-blue-100 transition-colors text-sm"
-        >
-          <Plus size={16} className="mr-1" />
-          Añadir Sección
+        <button type="button" onClick={add} className="adm-btn adm-btn-secondary adm-btn-sm">
+          <Plus size={12} /> Añadir sección
         </button>
       </div>
     </div>
   );
 };
 
-// Editor para secciones de texto (implementar primero)
-const TextSectionEditor: React.FC<{
-  content: any;
-  onChange: (content: any) => void;
-}> = ({ content, onChange }) => {
-  return (
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <textarea
-        value={content.text || ''}
-        onChange={(e) => onChange({ ...content, text: e.target.value })}
-        placeholder="Ingrese el texto para esta sección..."
-        className="w-full border-gray-300 rounded-md p-3 focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"
-      />
-    </div>
-  );
-};
+/* ─── Main component ─────────────────────────────────── */
 
-// Editor para secciones de estadísticas
-const StatsSectionEditor: React.FC<{
-  content: any;
-  onChange: (content: any) => void;
-}> = ({ content, onChange }) => {
-  const addItem = () => {
-    const newItems = [...content.items, { label: '', value: '', description: '' }];
-    onChange({ ...content, items: newItems });
-  };
-  
-  const removeItem = (index: number) => {
-    const newItems = [...content.items];
-    newItems.splice(index, 1);
-    onChange({ ...content, items: newItems });
-  };
-  
-  const updateItem = (index: number, updates: any) => {
-    const newItems = [...content.items];
-    newItems[index] = { ...newItems[index], ...updates };
-    onChange({ ...content, items: newItems });
-  };
-  
-  return (
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <div className="space-y-4">
-        {content.items.map((item: any, index: number) => (
-          <div key={index} className="bg-white p-3 rounded border border-gray-200 relative">
-            <button
-              type="button"
-              onClick={() => removeItem(index)}
-              className="absolute right-2 top-2 text-red-500 hover:bg-red-50 p-1 rounded"
-            >
-              <X size={14} />
-            </button>
-            
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Etiqueta
-                </label>
-                <input
-                  type="text"
-                  value={item.label}
-                  onChange={(e) => updateItem(index, { label: e.target.value })}
-                  placeholder="Ej: Estudiantes"
-                  className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Valor
-                </label>
-                <input
-                  type="text"
-                  value={item.value}
-                  onChange={(e) => updateItem(index, { value: e.target.value })}
-                  placeholder="Ej: 1,500+"
-                  className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Descripción
-              </label>
-              <input
-                type="text"
-                value={item.description}
-                onChange={(e) => updateItem(index, { description: e.target.value })}
-                placeholder="Descripción adicional (opcional)"
-                className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <button
-        type="button"
-        onClick={addItem}
-        className="mt-3 flex items-center text-sm text-blue-600 hover:text-blue-800"
-      >
-        <Plus size={14} className="mr-1" />
-        Añadir Estadística
-      </button>
-    </div>
-  );
-};
+const MemoriasManager: React.FC = () => {
+  const [memorias, setMemorias]         = useState<MemoriaItem[]>([]);
+  const [loading, setLoading]           = useState(false);
+  const [submitting, setSubmitting]     = useState(false);
+  const [showForm, setShowForm]         = useState(false);
+  const [formMode, setFormMode]         = useState<'create' | 'edit'>('create');
+  const [current, setCurrent]           = useState<MemoriaItem>({ ...EMPTY_MEMORIA, order: 0 });
 
-// Editor para secciones de cronología (timeline)
-const TimelineSectionEditor: React.FC<{
-  content: any;
-  onChange: (content: any) => void;
-}> = ({ content, onChange }) => {
-  const events = content.events || [];
-  
-  const addEvent = () => {
-    const newEvents = [...events, { date: '', title: '', description: '' }];
-    onChange({ ...content, events: newEvents });
-  };
-  
-  const removeEvent = (index: number) => {
-    const newEvents = [...events];
-    newEvents.splice(index, 1);
-    onChange({ ...content, events: newEvents });
-  };
-  
-  const updateEvent = (index: number, updates: any) => {
-    const newEvents = [...events];
-    newEvents[index] = { ...newEvents[index], ...updates };
-    onChange({ ...content, events: newEvents });
-  };
-  
-  return (
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <div className="space-y-4">
-        {events.map((event: any, index: number) => (
-          <div key={index} className="bg-white p-3 rounded border border-gray-200 relative">
-            <button
-              type="button"
-              onClick={() => removeEvent(index)}
-              className="absolute right-2 top-2 text-red-500 hover:bg-red-50 p-1 rounded"
-            >
-              <X size={14} />
-            </button>
-            
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Fecha/Período
-                </label>
-                <input
-                  type="text"
-                  value={event.date}
-                  onChange={(e) => updateEvent(index, { date: e.target.value })}
-                  placeholder="Ej: 2018-2020"
-                  className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Título
-                </label>
-                <input
-                  type="text"
-                  value={event.title}
-                  onChange={(e) => updateEvent(index, { title: e.target.value })}
-                  placeholder="Ej: Nombre del coordinador"
-                  className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Descripción
-              </label>
-              <textarea
-                value={event.description}
-                onChange={(e) => updateEvent(index, { description: e.target.value })}
-                placeholder="Descripción del evento o período"
-                className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <button
-        type="button"
-        onClick={addEvent}
-        className="mt-3 flex items-center text-sm text-blue-600 hover:text-blue-800"
-      >
-        <Plus size={14} className="mr-1" />
-        Añadir Evento
-      </button>
-    </div>
-  );
-};
+  useEffect(() => { fetchMemorias(); }, []);
 
-// Editor para secciones de lista
-const ListSectionEditor: React.FC<{
-  content: any;
-  onChange: (content: any) => void;
-}> = ({ content, onChange }) => {
-  const items = content.items || [];
-  
-  const addItem = () => {
-    const newItems = [...items, { title: '', description: '' }];
-    onChange({ ...content, items: newItems });
+  /* ── API ── */
+  const fetchMemorias = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(API_ROUTES.MEMORIAS);
+      setMemorias(res.data);
+    } catch {
+      toast.error('Error al cargar las memorias', {
+        icon: <AlertTriangle size={16} style={{ color: 'var(--adm-red)' }} />,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  const removeItem = (index: number) => {
-    const newItems = [...items];
-    newItems.splice(index, 1);
-    onChange({ ...content, items: newItems });
-  };
-  
-  const updateItem = (index: number, updates: any) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], ...updates };
-    onChange({ ...content, items: newItems });
-  };
-  
-  return (
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <div className="space-y-4">
-        {items.map((item: any, index: number) => (
-          <div key={index} className="bg-white p-3 rounded border border-gray-200 relative">
-            <button
-              type="button"
-              onClick={() => removeItem(index)}
-              className="absolute right-2 top-2 text-red-500 hover:bg-red-50 p-1 rounded"
-            >
-              <X size={14} />
-            </button>
-            
-            <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Título del Elemento
-              </label>
-              <input
-                type="text"
-                value={item.title}
-                onChange={(e) => updateItem(index, { title: e.target.value })}
-                placeholder="Ej: Apoyo Psicológico"
-                className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                Descripción
-              </label>
-              <textarea
-                value={item.description}
-                onChange={(e) => updateItem(index, { description: e.target.value })}
-                placeholder="Descripción detallada"
-                className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <button
-        type="button"
-        onClick={addItem}
-        className="mt-3 flex items-center text-sm text-blue-600 hover:text-blue-800"
-      >
-        <Plus size={14} className="mr-1" />
-        Añadir Elemento
-      </button>
-    </div>
-  );
-};
 
-// Editor para sección de contacto
-const ContactSectionEditor: React.FC<{
-  content: any;
-  onChange: (content: any) => void;
-}> = ({ content, onChange }) => {
-  const handleChange = (field: string, value: string) => {
-    onChange({ ...content, [field]: value });
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!current.title || !current.slug) {
+      toast.error('El título es obligatorio', { icon: <AlertTriangle size={16} style={{ color: 'var(--adm-red)' }} /> });
+      return;
+    }
+    if (current.pdfUrl && !validatePdf(current.pdfUrl)) {
+      toast.error('El PDF proporcionado no es válido', { icon: <AlertTriangle size={16} style={{ color: 'var(--adm-red)' }} /> });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      if (formMode === 'create') {
+        await axios.post(API_ROUTES.MEMORIAS, current);
+        toast.success('Memoria creada correctamente', { icon: <Check size={16} style={{ color: 'var(--adm-green)' }} /> });
+      } else {
+        await axios.put(API_ROUTES.MEMORIAS_BY_ID(current._id!), current);
+        toast.success('Memoria actualizada correctamente', { icon: <Check size={16} style={{ color: 'var(--adm-green)' }} /> });
+      }
+      setShowForm(false);
+      fetchMemorias();
+    } catch {
+      toast.error('Error al guardar la memoria', { icon: <AlertTriangle size={16} style={{ color: 'var(--adm-red)' }} /> });
+    } finally {
+      setSubmitting(false);
+    }
   };
-  
-  return (
-    <div className="p-4 bg-gray-50 rounded-lg">
-      <div className="space-y-4">
-        <div className="bg-white p-3 rounded border border-gray-200">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Dirección
-          </label>
-          <input
-            type="text"
-            value={content.address || ''}
-            onChange={(e) => handleChange('address', e.target.value)}
-            placeholder="Ej: Edificio Administrativo, 2do nivel, UASD Recinto San Juan"
-            className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        
-        <div className="bg-white p-3 rounded border border-gray-200">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Teléfono
-          </label>
-          <input
-            type="text"
-            value={content.phone || ''}
-            onChange={(e) => handleChange('phone', e.target.value)}
-            placeholder="Ej: (809) XXX-XXXX Ext. 123"
-            className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        
-        <div className="bg-white p-3 rounded border border-gray-200">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Correo Electrónico
-          </label>
-          <input
-            type="email"
-            value={content.email || ''}
-            onChange={(e) => handleChange('email', e.target.value)}
-            placeholder="Ej: bienestarestudiantil@sanjuan.uasd.edu.do"
-            className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        
-        <div className="bg-white p-3 rounded border border-gray-200">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Horario de Atención
-          </label>
-          <input
-            type="text"
-            value={content.schedule || ''}
-            onChange={(e) => handleChange('schedule', e.target.value)}
-            placeholder="Ej: Lunes a Viernes 8:00 AM - 4:00 PM"
-            className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        
-        <div className="bg-white p-3 rounded border border-gray-200">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Sitio Web
-          </label>
-          <input
-            type="text"
-            value={content.website || ''}
-            onChange={(e) => handleChange('website', e.target.value)}
-            placeholder="Ej: https://sanjuan.uasd.edu.do/bienestar"
-            className="w-full text-sm border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta memoria?')) return;
+    setLoading(true);
+    try {
+      await axios.delete(API_ROUTES.MEMORIAS_BY_ID(id));
+      toast.success('Memoria eliminada correctamente', { icon: <Check size={16} style={{ color: 'var(--adm-green)' }} /> });
+      fetchMemorias();
+    } catch {
+      setLoading(false);
+      toast.error('Error al eliminar la memoria', { icon: <AlertTriangle size={16} style={{ color: 'var(--adm-red)' }} /> });
+    }
+  };
 
+  /* ── Form helpers ── */
+  const openCreate = () => {
+    setCurrent({ ...EMPTY_MEMORIA, order: memorias.length + 1 });
+    setFormMode('create');
+    setShowForm(true);
+  };
+
+  const openEdit = (m: MemoriaItem) => {
+    setCurrent(m);
+    setFormMode('edit');
+    setShowForm(true);
+  };
+
+  const patch = (key: keyof MemoriaItem, value: any) =>
+    setCurrent((prev) => ({ ...prev, [key]: value }));
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value;
+    setCurrent((prev) => ({ ...prev, title, slug: generateSlug(title) }));
+  };
+
+  const handleYoutubeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    patch('videoUrl', getYoutubeEmbedUrl(e.target.value));
+  };
+
+  /* ── Render ── */
   return (
-    <div className="bg-white shadow-xl rounded-2xl p-8 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-          <FileText className="mr-2 text-blue-600" size={22} />
-          Gestión de Memorias
-        </h2>
-        
-        <button
-          onClick={handleNewMemoria}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={18} className="mr-1" /> 
-          Nueva Memoria
+    <div className="adm-section-enter">
+
+      {/* ── Action row ── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <button onClick={openCreate} className="adm-btn adm-btn-primary adm-btn-sm">
+          <Plus size={13} /> Nueva memoria
         </button>
       </div>
-      
-      {/* Formulario para crear/editar */}
+
+      {/* ── Form (slide-down) ── */}
       <AnimatePresence>
         {showForm && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden', marginBottom: 20 }}
           >
-            <form onSubmit={handleSaveMemoria} className="border border-gray-200 rounded-lg p-6 mb-8">
-              <h3 className="text-xl font-medium text-gray-700 mb-4">
-                {formMode === 'create' ? 'Crear Nueva Memoria' : 'Editar Memoria'}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Título
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={currentMemoria.title}
-                    onChange={handleTitleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ej: Postgrado, UCOTESIS, etc."
-                    required
-                  />
+            <form onSubmit={handleSave}>
+              <div className="adm-card">
+                {/* Card header */}
+                <div className="adm-card-header">
+                  <span className="adm-card-title">
+                    {formMode === 'create' ? 'Nueva memoria' : `Editando: ${current.title}`}
+                  </span>
+                  <span className="adm-badge adm-badge-default">
+                    {formMode === 'create' ? 'Creación' : 'Edición'}
+                  </span>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    URL Amigable
-                  </label>
-                  <input
-                    type="text"
-                    name="slug"
-                    value={currentMemoria.slug}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                    placeholder="generado-automaticamente"
-                    readOnly
+
+                <div className="adm-card-body">
+                  {/* Title + slug */}
+                  <div className="adm-grid-2">
+                    <div className="adm-field">
+                      <label className="adm-label">Título</label>
+                      <input
+                        type="text"
+                        className="adm-input"
+                        value={current.title}
+                        onChange={handleTitleChange}
+                        placeholder="Ej: Postgrado, UCOTESIS"
+                        required
+                      />
+                    </div>
+                    <div className="adm-field">
+                      <label className="adm-label">URL amigable (slug)</label>
+                      <input
+                        type="text"
+                        className="adm-input"
+                        value={current.slug}
+                        onChange={(e) => patch('slug', e.target.value)}
+                        placeholder="generado-automaticamente"
+                        style={{ background: 'var(--adm-paper-2)', color: 'var(--adm-ink-3)' }}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="adm-field">
+                    <label className="adm-label">Descripción</label>
+                    <textarea
+                      className="adm-input adm-textarea"
+                      value={current.description}
+                      onChange={(e) => patch('description', e.target.value)}
+                      placeholder="Breve descripción de esta sección de memorias"
+                    />
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="adm-field">
+                    <label className="adm-label">
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <Youtube size={11} style={{ color: '#ff0000' }} />
+                        URL de video (YouTube)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      className="adm-input"
+                      value={current.videoUrl}
+                      onChange={handleYoutubeChange}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                    {current.videoUrl && (
+                      <div style={{ marginTop: 10, borderRadius: 8, overflow: 'hidden', aspectRatio: '16/9', background: '#000' }}>
+                        <iframe
+                          src={current.videoUrl}
+                          style={{ width: '100%', height: '100%', border: 'none' }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title="Vista previa YouTube"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PDF */}
+                  <div className="adm-field">
+                    <label className="adm-label">Documento PDF</label>
+                    <MemoriasPdfUploader
+                      onPdfUploaded={(url, publicId) => {
+                        patch('pdfUrl', url);
+                        patch('pdfPublicId', publicId);
+                      }}
+                      currentPdfUrl={current.pdfUrl}
+                      title=""
+                    />
+                  </div>
+
+                  {/* Content sections */}
+                  <ContentSectionsManager
+                    sections={current.contentSections || []}
+                    onChange={(sections) => patch('contentSections', sections)}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Generado automáticamente del título
-                  </p>
+
+                  {/* Published toggle */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <input
+                      type="checkbox"
+                      id="isPublished"
+                      checked={current.isPublished}
+                      onChange={(e) => patch('isPublished', e.target.checked)}
+                      style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--adm-ink)' }}
+                    />
+                    <label
+                      htmlFor="isPublished"
+                      style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'var(--adm-ink-2)', cursor: 'pointer' }}
+                    >
+                      Publicar (visible al público)
+                    </label>
+                  </div>
+
+                  {/* Form actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      className="adm-btn adm-btn-secondary adm-btn-sm"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="adm-btn adm-btn-primary adm-btn-sm"
+                    >
+                      {submitting ? (
+                        <><Loader size={12} className="animate-spin" /> Guardando...</>
+                      ) : (
+                        <><Check size={12} /> Guardar</>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  name="description"
-                  value={currentMemoria.description}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                  placeholder="Breve descripción de esta sección de memorias"
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-1 flex items-center">
-                  <Youtube size={16} className="mr-1 text-red-600" />
-                  URL de Video (YouTube)
-                </label>
-                <input
-                  type="text"
-                  name="videoUrl"
-                  value={currentMemoria.videoUrl}
-                  onChange={handleYoutubeUrlChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Ingresa la URL del video de YouTube
-                </p>
-                
-                {renderYoutubePreview()}
-              </div>
-              
-              <MemoriasPdfUploader
-  onPdfUploaded={handlePdfUploaded}
-  currentPdfUrl={currentMemoria.pdfUrl}
-  title="Documento PDF"
-/>
-
-{/* Editor de secciones de contenido */}
-<ContentSectionsManager 
-  sections={currentMemoria.contentSections || []}
-  onChange={(sections) => setCurrentMemoria({...currentMemoria, contentSections: sections})}
-/>
-
-<div className="mb-6 flex items-center">
-  <input
-    type="checkbox"
-    id="isPublished"
-    checked={currentMemoria.isPublished}
-    onChange={handlePublishedChange}
-    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-  />
-  <label htmlFor="isPublished" className="text-sm font-medium text-gray-600">
-    Publicar (visible al público)
-  </label>
-</div>
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                    submitting ? 'opacity-70 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {submitting ? (
-                    <span className="flex items-center">
-                      <Loader className="animate-spin mr-2" size={16} />
-                      Guardando...
-                    </span>
-                  ) : (
-                    <span>Guardar</span>
-                  )}
-                </button>
               </div>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Lista de memorias */}
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader className="animate-spin text-blue-600" size={32} />
-          <span className="ml-3 text-blue-600 font-medium">Cargando memorias...</span>
-        </div>
-      ) : memorias.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <FileText className="text-gray-400 mx-auto mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No hay memorias disponibles</p>
-          <p className="text-gray-400 text-sm mb-4">Las memorias que crees aparecerán aquí</p>
-          <button
-            onClick={handleNewMemoria}
-            className="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={18} className="mr-1" /> 
-            Crear Primera Memoria
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {memorias.map((memoria) => (
-            <div
-              key={memoria._id}
-              className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow p-4"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 flex items-center">
-                    {memoria.title}
-                    {!memoria.isPublished && (
-                      <span className="ml-2 px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">
-                        No publicado
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    {memoria.description || 'Sin descripción'}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditMemoria(memoria)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMemoria(memoria._id!)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {memoria.videoUrl && (
-                  <div className="flex items-start space-x-2">
-                    <Youtube size={18} className="text-red-600 mt-1" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Video</p>
-                      <a 
-                        href={memoria.videoUrl.replace('/embed/', '/watch?v=')} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline truncate block max-w-xs"
-                      >
-                        Ver en YouTube
-                      </a>
-                    </div>
-                  </div>
-                )}
-                
-                {memoria.pdfUrl && (
-                  <div className="flex items-start space-x-2">
-                    <FileText size={18} className="text-blue-600 mt-1" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Documento PDF</p>
-                      <a 
-                        href={memoria.pdfUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline truncate block max-w-xs"
-                      >
-                        Ver documento
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="mt-3 text-xs text-gray-400">
-                Última actualización: {new Date(memoria.updatedAt!).toLocaleDateString()}
-              </div>
+
+      {/* ── List ── */}
+      <div className="adm-card" style={{ padding: 0, overflow: 'hidden' }}>
+
+        {loading && (
+          <div style={{ padding: '52px 24px', textAlign: 'center' }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--adm-ink-4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Cargando...
+            </span>
+          </div>
+        )}
+
+        {!loading && memorias.length === 0 && (
+          <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <FileText size={28} style={{ color: 'var(--adm-ink-4)', margin: '0 auto 12px', display: 'block' }} />
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: 'var(--adm-ink-3)', marginBottom: 16 }}>
+              No hay memorias disponibles
             </div>
-          ))}
-        </div>
-      )}
+            <button onClick={openCreate} className="adm-btn adm-btn-secondary adm-btn-sm">
+              <Plus size={12} /> Crear primera memoria
+            </button>
+          </div>
+        )}
+
+        {!loading && memorias.map((memoria, i) => (
+          <motion.div
+            key={memoria._id}
+            initial={{ opacity: 0, y: 7 }}
+            animate={{ opacity: 1, y: 0, transition: { delay: i * 0.04, duration: 0.22, ease: [0.16, 1, 0.3, 1] } }}
+            style={{
+              display: 'flex', alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              padding: '14px 20px',
+              borderBottom: i < memorias.length - 1 ? '1px solid var(--adm-rule)' : 'none',
+              transition: 'background 0.12s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--adm-paper-2)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          >
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0, marginRight: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: 'var(--adm-ink)' }}>
+                  {memoria.title}
+                </span>
+                {!memoria.isPublished && (
+                  <span className="adm-badge adm-badge-default">No publicado</span>
+                )}
+                {memoria.isPublished && (
+                  <span className="adm-badge adm-badge-green">Publicado</span>
+                )}
+              </div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: 'var(--adm-ink-3)', marginBottom: 6 }}>
+                {memoria.description || 'Sin descripción'}
+              </div>
+              {/* Links row */}
+              <div style={{ display: 'flex', gap: 14 }}>
+                {memoria.videoUrl && (
+                  <a
+                    href={memoria.videoUrl.replace('/embed/', '/watch?v=')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--adm-ink-3)', letterSpacing: '0.04em', textDecoration: 'none' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--adm-ink)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--adm-ink-3)')}
+                  >
+                    <Youtube size={11} style={{ color: '#ff0000' }} /> YouTube
+                  </a>
+                )}
+                {memoria.pdfUrl && (
+                  <a
+                    href={memoria.pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--adm-ink-3)', letterSpacing: '0.04em', textDecoration: 'none' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--adm-ink)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--adm-ink-3)')}
+                  >
+                    <FileText size={11} /> PDF
+                  </a>
+                )}
+              </div>
+              {memoria.updatedAt && (
+                <div style={{ marginTop: 4, fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: 'var(--adm-ink-4)', letterSpacing: '0.04em' }}>
+                  Actualizado: {new Date(memoria.updatedAt).toLocaleDateString('es-ES')}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0, paddingTop: 2 }}>
+              <button
+                type="button"
+                onClick={() => openEdit(memoria)}
+                className="adm-btn adm-btn-secondary adm-btn-sm"
+                title="Editar"
+              >
+                <Edit2 size={11} /> Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(memoria._id!)}
+                className="adm-btn adm-btn-danger adm-btn-sm"
+                title="Eliminar"
+                style={{ padding: '5px 9px' }}
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };

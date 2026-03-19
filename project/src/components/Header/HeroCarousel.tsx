@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_ROUTES from '../../config/api';
+import { getCache, setCache, preloadImageUrl } from '../../utils/apiCache';
 
 // Definición de interfaces
 interface Slide {
@@ -105,7 +106,9 @@ const MobileSlide: React.FC<SlideProps> = ({
                   alt={slides[currentSlide].title}
                   className="w-full h-auto object-contain object-center"
                   onError={() => setImageError(true)}
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority={currentSlide === 0 ? 'high' : 'auto'}
+                  decoding="async"
                 />
               )}
               {slides[currentSlide].displayMode === 'hover' && (
@@ -300,7 +303,9 @@ const DesktopSlide: React.FC<SlideProps> = ({
                   alt={slides[currentSlide].title}
                   className="w-full h-full object-cover object-center"
                   onError={() => setImageError(true)}
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority={currentSlide === 0 ? 'high' : 'auto'}
+                  decoding="async"
                 />
               )}
               {slides[currentSlide].displayMode === 'hover' && (
@@ -497,26 +502,38 @@ const HeroCarousel: React.FC = () => {
 
   useEffect(() => {
     const fetchSlides = async () => {
+      // ── Cache hit: render instantly, no network wait ──
+      const cached = getCache<Slide[]>('slides');
+      if (cached && cached.length > 0) {
+        setSlides(cached);
+        // Preload next slide image in background
+        if (cached.length > 1) preloadImageUrl(cached[1].image);
+        return;
+      }
+
       try {
         const res = await axios.get(API_ROUTES.SLIDES);
-        console.log('Respuesta de la API:', res.data);
         if (res.data.length > 0) {
-          const formattedSlides = res.data.map((slide: any) => ({
-            title: slide.title,
-            subtitle: slide.subtitle || "",
+          const formattedSlides: Slide[] = res.data.map((slide: any) => ({
+            title:       slide.title,
+            subtitle:    slide.subtitle || '',
             description: slide.description,
-            cta: slide.cta,
-            image: slide.image || '/images/fallback.jpg',
-            color: slide.color,
-            order: slide.order,
+            cta:         slide.cta,
+            image:       slide.image || '/images/fallback.jpg',
+            color:       slide.color,
+            order:       slide.order,
             displayMode: slide.displayMode || 'normal',
           }));
           setSlides(formattedSlides);
-          if (currentSlide >= formattedSlides.length) {
-            setCurrentSlide(0);
+          // Cache for 5 minutes
+          setCache('slides', formattedSlides, 300_000);
+          // Preload first 2 slides immediately
+          preloadImageUrl(formattedSlides[0]?.image);
+          if (formattedSlides.length > 1) {
+            setTimeout(() => preloadImageUrl(formattedSlides[1].image), 300);
           }
+          if (currentSlide >= formattedSlides.length) setCurrentSlide(0);
         } else {
-          console.warn('La API no devolvió slides, usando defaultSlides');
           setSlides(defaultSlides);
         }
       } catch (err) {

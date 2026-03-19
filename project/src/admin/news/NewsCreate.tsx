@@ -1,40 +1,47 @@
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { NewsService } from './NewsService';
 import ImageManager from '../../components/ImageManager';
 import EstadosFinancierosPdfUploader from '../../components/EstadosFinancierosPdfUploader';
-import { Plus, X } from 'lucide-react';
-import API_ROUTES from '../../config/api';
+import { Plus, X, Send, Loader2, FileText, Calendar, Tag } from 'lucide-react';
 import { Section, NewsImage, ImageDisplayOptions } from '../../types/news';
 
+/* ─── Animation variants ─────────────────────────────────────────── */
+const pageVariants = {
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] } },
+  exit:    { opacity: 0, transition: { duration: 0.15 } },
+};
+
+const sectionVariants = {
+  initial: { opacity: 0, y: 16, scale: 0.985 },
+  animate: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+  },
+  exit: {
+    opacity: 0, scale: 0.96, y: -8,
+    transition: { duration: 0.2, ease: 'easeIn' },
+  },
+};
+
+/* ─── Component ─────────────────────────────────────────────────── */
 const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
-  const [title, setTitle] = useState('');
+  const [title,    setTitle]    = useState('');
   const [sections, setSections] = useState<Section[]>([
-    {
-      id: Date.now().toString(),
-      images: [],
-      text: '',
-      videoUrl: '',
-      pdf: undefined,
-    },
+    { id: Date.now().toString(), images: [], text: '', videoUrl: '', pdf: undefined },
   ]);
-  const [date, setDate] = useState('');
+  const [date,     setDate]     = useState('');
   const [category, setCategory] = useState('General');
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState<{ [sectionId: string]: number | undefined }>({});
   const formRef = useRef<HTMLDivElement>(null);
 
+  /* ── Section handlers (logic unchanged) ── */
   const handleAddSection = () => {
     setSections([
       ...sections,
-      {
-        id: Date.now().toString(),
-        images: [],
-        text: '',
-        videoUrl: '',
-        pdf: undefined,
-      },
+      { id: Date.now().toString(), images: [], text: '', videoUrl: '', pdf: undefined },
     ]);
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -46,107 +53,44 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
       toast.error('Debe haber al menos una sección.');
       return;
     }
-    setSections(sections.filter((section) => section.id !== sectionId));
+    setSections(sections.filter((s) => s.id !== sectionId));
   };
 
   const handleSectionChange = (sectionId: string, field: keyof Section, value: any) => {
-    setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId ? { ...section, [field]: value } : section
-      )
+    setSections((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, [field]: value } : s))
     );
   };
 
-  const handleUploadImage = async (sectionId: string, file: File) => {
+  /* ── Image upload complete: receives final S3 URL from ImageManager ── */
+  const handleImageUploadComplete = (sectionId: string, url: string, publicId: string) => {
     const id = Date.now().toString();
-    const blobUrl = URL.createObjectURL(file);
-
-    setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
           ? {
-              ...section,
+              ...s,
               images: [
-                ...section.images,
+                ...s.images,
                 {
                   id,
-                  url: blobUrl,
-                  publicId: '',
-                  displayOptions: {
-                    size: 'medium',
-                    alignment: 'center',
-                    cropMode: 'cover',
-                    caption: '',
-                  },
+                  url,
+                  publicId,
+                  displayOptions: { size: 'medium', alignment: 'center', cropMode: 'cover', caption: '' },
                 },
               ],
             }
-          : section
+          : s
       )
     );
-
-    setUploadingImages((prev) => ({ ...prev, [sectionId]: 0 }));
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch(API_ROUTES.UPLOAD_IMAGE, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al subir la imagen');
-      }
-
-      setSections((prevSections) =>
-        prevSections.map((section) =>
-          section.id === sectionId
-            ? {
-                ...section,
-                images: section.images.map((image) =>
-                  image.id === id
-                    ? {
-                        ...image,
-                        url: data.imageUrl,
-                        publicId: data.public_id,
-                      }
-                    : image
-                ),
-              }
-            : section
-        )
-      );
-    } catch (err) {
-      console.error('Error en handleUploadImage:', err);
-      setSections((prevSections) =>
-        prevSections.map((section) =>
-          section.id === sectionId
-            ? {
-                ...section,
-                images: section.images.filter((image) => image.id !== id),
-              }
-            : section
-        )
-      );
-      toast.error('Error al subir la imagen.');
-    } finally {
-      setUploadingImages((prev) => ({ ...prev, [sectionId]: undefined }));
-      URL.revokeObjectURL(blobUrl);
-    }
   };
 
   const handleRemoveImage = (sectionId: string, imageId: string) => {
-    setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              images: section.images.filter((image) => image.id !== imageId),
-            }
-          : section
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, images: s.images.filter((img) => img.id !== imageId) }
+          : s
       )
     );
   };
@@ -157,68 +101,79 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
     setting: keyof ImageDisplayOptions,
     value: any
   ) => {
-    setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
           ? {
-              ...section,
-              images: section.images.map((image) =>
-                image.id === imageId
-                  ? {
-                      ...image,
-                      displayOptions: {
-                        ...image.displayOptions,
-                        [setting]: value,
-                      },
-                    }
-                  : image
+              ...s,
+              images: s.images.map((img) =>
+                img.id === imageId
+                  ? { ...img, displayOptions: { ...img.displayOptions, [setting]: value } }
+                  : img
               ),
             }
-          : section
+          : s
       )
     );
   };
 
   const handlePdfUploaded = (sectionId: string, url: string, publicId: string) => {
-    setSections((prevSections) =>
-      prevSections.map((section) =>
-        section.id === sectionId
-          ? { ...section, pdf: url ? { url, publicId } : undefined }
-          : section
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, pdf: url ? { url, publicId } : undefined }
+          : s
       )
     );
   };
 
+  /* ── Move image to index 0 (make portada) ── */
+  const handleSetPortada = (sectionId: string, imageId: string) => {
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? {
+              ...s,
+              images: [
+                s.images.find((img) => img.id === imageId)!,
+                ...s.images.filter((img) => img.id !== imageId),
+              ],
+            }
+          : s
+      )
+    );
+  };
+
+  /* ── Submit (logic unchanged) ── */
   const handleAddNews = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (sections.some((section) => !section.text.trim())) {
+    if (sections.some((s) => !s.text.trim())) {
       toast.error('Todas las secciones deben tener texto.');
       return;
     }
-    if (sections.some((section) => section.images.some((image) => image.url.startsWith('blob:')))) {
+    if (sections.some((s) => s.images.some((img) => img.url.startsWith('blob:')))) {
       toast.error('Algunas imágenes no se han subido correctamente.');
       return;
     }
     setSubmitting(true);
     try {
-      const cleanedSections = sections.map(({ id, ...section }) => ({
-        text: section.text,
-        videoUrl: section.videoUrl || '',
-        images: section.images.map(({ id, ...image }) => ({
-          url: image.url,
-          publicId: image.publicId || '',
+      const cleanedSections = sections.map(({ id, ...s }) => ({
+        text:     s.text,
+        videoUrl: s.videoUrl || '',
+        images:   s.images.map(({ id, ...img }) => ({
+          url:       img.url,
+          publicId:  img.publicId || '',
           displayOptions: {
-            size: image.displayOptions.size || 'medium',
-            alignment: image.displayOptions.alignment || 'center',
-            cropMode: image.displayOptions.cropMode || 'cover',
-            caption: image.displayOptions.caption || '',
+            size:      img.displayOptions.size      || 'medium',
+            alignment: img.displayOptions.alignment || 'center',
+            cropMode:  img.displayOptions.cropMode  || 'cover',
+            caption:   img.displayOptions.caption   || '',
           },
         })),
-        pdf: section.pdf ? { url: section.pdf.url, publicId: section.pdf.publicId } : undefined,
+        pdf: s.pdf ? { url: s.pdf.url, publicId: s.pdf.publicId } : undefined,
       }));
 
-      const newsData = { title, sections: cleanedSections, date, category };
-      await NewsService.createNews(newsData);
+      await NewsService.createNews({ title, sections: cleanedSections, date, category });
       toast.success('Noticia publicada con éxito!');
       onSuccess();
       setTitle('');
@@ -233,132 +188,263 @@ const NewsCreate: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
     }
   };
 
+  /* ─── JSX ─────────────────────────────────────────────────────── */
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white shadow-xl rounded-2xl p-8 max-w-5xl mx-auto"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
     >
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Publicar Nueva Noticia</h2>
-      <form onSubmit={handleAddNews} className="space-y-6">
-        <div>
-          <label className="block text-gray-700 text-sm font-medium mb-2">Título</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Título de la noticia"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-        <div ref={formRef}>
-          {sections.map((section) => (
-            <div
-              key={section.id}
-              className="relative border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-800">Sección</h3>
-                {sections.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSection(section.id)}
-                    className="text-red-500 hover:text-red-700"
-                    aria-label="Eliminar sección"
-                  >
-                    <X size={20} />
-                  </button>
-                )}
-              </div>
-              <ImageManager
-                section={section}
-                onUpload={(file) => handleUploadImage(section.id, file)}
-                onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
-                onSettingsChange={(imageId, setting, value) =>
-                  handleImageSettingsChange(section.id, imageId, setting, value)
-                }
-                uploadProgress={uploadingImages[section.id]}
-              />
-              <EstadosFinancierosPdfUploader
-                onPdfUploaded={(url, publicId) => handlePdfUploaded(section.id, url, publicId)}
-                currentPdfUrl={section.pdf?.url}
-                title="Documento PDF (Opcional)"
-              />
-              <div className="mt-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Texto</label>
-                <textarea
-                  value={section.text}
-                  onChange={(e) => handleSectionChange(section.id, 'text', e.target.value)}
-                  placeholder="Contenido de la sección"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[150px]"
-                  required
-                />
-              </div>
-              <div className="mt-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  URL de Video (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={section.videoUrl || ''}
-                  onChange={(e) => handleSectionChange(section.id, 'videoUrl', e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={handleAddSection}
-            className="flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
-            <Plus size={20} className="mr-2" />
-            Agregar Sección
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">Fecha</label>
+      <form onSubmit={handleAddNews}>
+
+        {/* ── Title card ────────────────────────────────────────── */}
+        <div className="adm-card" style={{ marginBottom: 16 }}>
+          <div className="adm-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <FileText size={14} style={{ color: 'var(--adm-ink-3)' }} />
+            <span style={{ fontFamily: 'var(--adm-font-mono)', fontSize: 11, letterSpacing: '0.06em', color: 'var(--adm-ink-3)', textTransform: 'uppercase' }}>
+              Noticia
+            </span>
+            <span style={{
+              marginLeft: 'auto',
+              fontFamily: 'var(--adm-font-mono)',
+              fontSize: 10,
+              background: 'var(--adm-paper-2)',
+              border: '1px solid var(--adm-rule)',
+              borderRadius: 4,
+              padding: '2px 8px',
+              color: 'var(--adm-ink-3)',
+            }}>
+              {sections.length} {sections.length === 1 ? 'sección' : 'secciones'}
+            </span>
+          </div>
+          <div className="adm-card-body">
+            <label className="adm-label">Título de la noticia</label>
             <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Escribe el título aquí..."
+              className="adm-input"
+              style={{ fontSize: 15, fontWeight: 500 }}
               required
             />
           </div>
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">Categoría</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="General">General</option>
-              <option value="Académico">Académico</option>
-              <option value="Cultura">Cultura</option>
-              <option value="Deportes">Deportes</option>
-              <option value="Eventos">Eventos</option>
-            </select>
+        </div>
+
+        {/* ── Sections list ─────────────────────────────────────── */}
+        <div ref={formRef}>
+          <AnimatePresence initial={false}>
+            {sections.map((section, idx) => (
+              <motion.div
+                key={section.id}
+                variants={sectionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                layout
+                className="adm-card"
+                style={{ marginBottom: 16 }}
+              >
+                {/* Section header */}
+                <div className="adm-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="adm-section-num">{idx + 1}</span>
+                  <span style={{ fontFamily: 'var(--adm-font-mono)', fontSize: 11, letterSpacing: '0.06em', color: 'var(--adm-ink-3)', textTransform: 'uppercase' }}>
+                    Sección {idx + 1}
+                  </span>
+                  {sections.length > 1 && (
+                    <motion.button
+                      type="button"
+                      onClick={() => handleRemoveSection(section.id)}
+                      aria-label="Eliminar sección"
+                      whileHover={{ scale: 1.12 }}
+                      whileTap={{ scale: 0.88 }}
+                      style={{
+                        marginLeft: 'auto',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 26,
+                        height: 26,
+                        border: '1px solid var(--adm-rule)',
+                        borderRadius: 6,
+                        background: 'transparent',
+                        color: 'var(--adm-ink-3)',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'border-color 0.15s, color 0.15s',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--adm-red)';
+                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--adm-red)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--adm-rule)';
+                        (e.currentTarget as HTMLButtonElement).style.color = 'var(--adm-ink-3)';
+                      }}
+                    >
+                      <X size={12} />
+                    </motion.button>
+                  )}
+                </div>
+
+                {/* Section body */}
+                <div className="adm-card-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                  {/* Images */}
+                  <div>
+                    <label className="adm-label">Imágenes</label>
+                    <ImageManager
+                      section={section}
+                      sectionIndex={idx}
+                      onUploadComplete={(url, publicId) =>
+                        handleImageUploadComplete(section.id, url, publicId)
+                      }
+                      onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
+                      onSettingsChange={(imageId, setting, value) =>
+                        handleImageSettingsChange(section.id, imageId, setting, value)
+                      }
+                      onSetPortada={(imageId) => handleSetPortada(section.id, imageId)}
+                    />
+                  </div>
+
+                  {/* PDF */}
+                  <div>
+                    <label className="adm-label">Documento adjunto</label>
+                    <EstadosFinancierosPdfUploader
+                      onPdfUploaded={(url, publicId) => handlePdfUploaded(section.id, url, publicId)}
+                      currentPdfUrl={section.pdf?.url}
+                      title="PDF opcional"
+                    />
+                  </div>
+
+                  {/* Text */}
+                  <div>
+                    <label className="adm-label">Contenido de texto</label>
+                    <textarea
+                      value={section.text}
+                      onChange={(e) => handleSectionChange(section.id, 'text', e.target.value)}
+                      placeholder="Escribe el contenido de esta sección..."
+                      className="adm-textarea"
+                      style={{ minHeight: 140 }}
+                      required
+                    />
+                  </div>
+
+                  {/* Video URL */}
+                  <div>
+                    <label className="adm-label">URL de video <span style={{ fontWeight: 400, color: 'var(--adm-ink-4)' }}>(opcional)</span></label>
+                    <input
+                      type="text"
+                      value={section.videoUrl || ''}
+                      onChange={(e) => handleSectionChange(section.id, 'videoUrl', e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className="adm-input"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* ── Add section button ────────────────────────────────── */}
+        <motion.button
+          type="button"
+          onClick={handleAddSection}
+          className="adm-add-section"
+          whileHover={{ scale: 1.015 }}
+          whileTap={{ scale: 0.975 }}
+          style={{ marginBottom: 16 }}
+        >
+          <Plus size={14} />
+          Añadir sección
+        </motion.button>
+
+        {/* ── Meta card (date + category) ───────────────────────── */}
+        <div className="adm-card" style={{ marginBottom: 20 }}>
+          <div className="adm-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Tag size={14} style={{ color: 'var(--adm-ink-3)' }} />
+            <span style={{ fontFamily: 'var(--adm-font-mono)', fontSize: 11, letterSpacing: '0.06em', color: 'var(--adm-ink-3)', textTransform: 'uppercase' }}>
+              Metadatos
+            </span>
+          </div>
+          <div className="adm-card-body">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label className="adm-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={11} />
+                  Fecha de publicación
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="adm-input"
+                  required
+                />
+              </div>
+              <div>
+                <label className="adm-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Tag size={11} />
+                  Categoría
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="adm-select"
+                >
+                  <option value="General">General</option>
+                  <option value="Académico">Académico</option>
+                  <option value="Cultura">Cultura</option>
+                  <option value="Deportes">Deportes</option>
+                  <option value="Eventos">Eventos</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <button
+
+        {/* ── Submit ───────────────────────────────────────────── */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <motion.button
             type="submit"
             disabled={submitting}
-            className={`px-6 py-3 rounded-lg text-white font-medium transition-colors ${
-              submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className="adm-btn adm-btn-primary"
+            whileHover={submitting ? {} : { scale: 1.03 }}
+            whileTap={submitting   ? {} : { scale: 0.96 }}
+            style={{ minWidth: 160, justifyContent: 'center', gap: 8 }}
           >
-            {submitting ? 'Publicando...' : 'Publicar Noticia'}
-          </button>
+            <AnimatePresence mode="wait" initial={false}>
+              {submitting ? (
+                <motion.span
+                  key="loading"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.15 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <Loader2 size={14} style={{ animation: 'adm-spin 0.8s linear infinite' }} />
+                  Publicando...
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="idle"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ duration: 0.15 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <Send size={13} />
+                  Publicar noticia
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
+
       </form>
     </motion.div>
   );

@@ -103,11 +103,11 @@ export function PostgraduatePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Untouched */}
-      <div className="relative bg-[#2f2382] py-24">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface)' }}>
+      {/* Hero Section */}
+      <div className="relative py-24" style={{ backgroundColor: 'var(--color-primary)' }}>
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2f2382]/95 to-[#2f2382]/70" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, var(--color-primary) 95%, rgba(0,48,135,0.7))' }} />
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 transform -translate-x-1/2 -translate-y-1/2 rotate-45" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 transform translate-x-1/3 translate-y-1/3 rounded-full" />
         </div>
@@ -125,7 +125,7 @@ export function PostgraduatePage() {
 
       {/* Search and Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--color-surface)', boxShadow: 'var(--shadow-medium)' }}>
           <div className="flex flex-col gap-6">
             {/* Faculty Filters */}
             <div className="flex flex-wrap gap-2">
@@ -133,11 +133,11 @@ export function PostgraduatePage() {
                 <button
                   key={index}
                   onClick={() => setSelectedFaculty(faculty)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    selectedFaculty === faculty
-                      ? 'bg-[#2f2382] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={selectedFaculty === faculty
+                    ? { backgroundColor: 'var(--color-primary)', color: '#ffffff' }
+                    : { backgroundColor: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)' }
+                  }
                 >
                   {faculty}
                 </button>
@@ -146,11 +146,12 @@ export function PostgraduatePage() {
 
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }} />
               <input
                 type="text"
                 placeholder="Buscar programa de postgrado..."
-                className="w-full pl-12 pr-4 py-3 rounded-lg border-gray-200 focus:border-[#2f2382] focus:ring-[#2f2382] transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-lg transition-all"
+                style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -164,12 +165,20 @@ export function PostgraduatePage() {
         {categories.map(category => (
           groupedPrograms[category.id].length > 0 && (
             <div key={category.id} className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">{category.title}</h2>
+              <h2
+                className="text-2xl font-bold mb-6"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {category.title}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {groupedPrograms[category.id].map(program => (
                   <div
                     key={program.id}
-                    className="group cursor-pointer bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    className="group cursor-pointer rounded-xl overflow-hidden transition-all duration-300"
+                    style={{ backgroundColor: 'var(--color-surface)', boxShadow: 'var(--shadow-subtle)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-elevated)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-subtle)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
                     onClick={() => handleProgramClick(program)}
                   >
                     <div className="relative aspect-w-16 aspect-h-9">
@@ -181,40 +190,53 @@ export function PostgraduatePage() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                       {program.status === 'coming-soon' && (
-                        <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
+                        <div
+                          className="absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium"
+                          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary-dark)' }}
+                        >
                           Próximamente
                         </div>
                       )}
                     </div>
                     <div className="p-5">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{program.title}</h3>
-                      <p className="text-sm text-gray-500 mb-3">{program.faculty}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
+                      <h3
+                        className="text-base font-semibold mb-2 line-clamp-2"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        {program.title}
+                      </h3>
+                      <p className="text-sm mb-3" style={{ color: 'var(--color-text-muted)' }}>{program.faculty}</p>
+                      <div
+                        className="flex items-center justify-between text-sm mb-4"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
                           <span>{program.duration}</span>
                         </div>
-                        <div className="flex items-center">
-                          <GraduationCap className="w-4 h-4 mr-1" />
+                        <div className="flex items-center gap-1">
+                          <GraduationCap className="w-4 h-4" />
                           <span>{program.credits} cr.</span>
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-[#2f2382] border border-[#2f2382] rounded-lg hover:bg-[#2f2382]/10 transition-colors">
-                          <BookOpen className="w-4 h-4 mr-1" />
+                        <button
+                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                          style={{ color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-primary-subtle)'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                        >
+                          <BookOpen className="w-4 h-4" />
                           Ver Plan
                         </button>
                         <a
                           href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                            program.status === 'active' || program.status === 'development'
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-yellow-400 hover:bg-yellow-500'
-                          }`}
+                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                          style={{ backgroundColor: program.status === 'coming-soon' ? 'var(--color-accent)' : 'var(--color-primary)' }}
                         >
-                          <ArrowRight className="w-4 h-4 mr-1" />
+                          <ArrowRight className="w-4 h-4" />
                           Inscribirme
                         </a>
                       </div>
@@ -230,7 +252,10 @@ export function PostgraduatePage() {
       {/* Program Details Modal */}
       {selectedProgram && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div
+            className="rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            style={{ backgroundColor: 'var(--color-surface)' }}
+          >
             <div className="relative">
               <div className="relative h-64">
                 <img
@@ -242,60 +267,62 @@ export function PostgraduatePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <button
                   onClick={() => setSelectedProgram(null)}
-                  className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-full"
+                  className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full transition-colors"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
               <div className="p-8">
                 <div className="max-w-3xl mx-auto">
-                  <h2 className="text-3xl font-bold text-[#2f2382] mb-2">{selectedProgram.title}</h2>
-                  <p className="text-gray-600 mb-6">{selectedProgram.description}</p>
+                  <h2
+                    className="text-3xl font-bold mb-2"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    {selectedProgram.title}
+                  </h2>
+                  <p className="mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+                    {selectedProgram.description}
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-6 h-6 text-[#2f2382]" />
-                        <div>
-                          <p className="text-sm text-gray-500">Duración</p>
-                          <p className="font-semibold">{selectedProgram.duration}</p>
+                    {[
+                      { Icon: Clock, label: 'Duración', value: selectedProgram.duration },
+                      { Icon: GraduationCap, label: 'Créditos', value: String(selectedProgram.credits) },
+                      { Icon: Building2, label: 'Facultad', value: selectedProgram.faculty },
+                    ].map(({ Icon, label, value }) => (
+                      <div
+                        key={label}
+                        className="p-4 rounded-lg"
+                        style={{ backgroundColor: 'var(--color-surface-alt)' }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
+                          <div>
+                            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
+                            <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{value}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <GraduationCap className="w-6 h-6 text-[#2f2382]" />
-                        <div>
-                          <p className="text-sm text-gray-500">Créditos</p>
-                          <p className="font-semibold">{selectedProgram.credits}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Building2 className="w-6 h-6 text-[#2f2382]" />
-                        <div>
-                          <p className="text-sm text-gray-500">Facultad</p>
-                          <p className="font-semibold">{selectedProgram.faculty}</p>
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <button className="flex-1 flex items-center justify-center px-6 py-3 rounded-lg border border-[#2f2382] text-[#2f2382] hover:bg-[#2f2382]/10 transition-colors">
-                      <BookOpen className="w-5 h-5 mr-2" />
+                    <button
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-colors"
+                      style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-primary-subtle)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                    >
+                      <BookOpen className="w-5 h-5" />
                       Ver Plan de Estudios
                     </button>
                     <a
                       href="https://postgrado.uasd.edu.do/oferta-curricular/?programa%5B%5D=maestria"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex-1 flex items-center justify-center px-6 py-3 text-white rounded-lg transition-colors ${
-                        selectedProgram.status === 'active' || selectedProgram.status === 'development'
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-yellow-400 hover:bg-yellow-500'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white rounded-lg transition-colors"
+                      style={{ backgroundColor: selectedProgram.status === 'coming-soon' ? 'var(--color-accent)' : 'var(--color-primary)' }}
                     >
-                      <ArrowRight className="w-5 h-5 mr-2" />
+                      <ArrowRight className="w-5 h-5" />
                       Inscribirme Ahora
                     </a>
                   </div>

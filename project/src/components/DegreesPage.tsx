@@ -1,33 +1,45 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import humanidadesLogo from '../img/logos-facultades/facultad-humanidades.svg';
-import educacionLogo from '../img/logos-facultades/facultad-educacion.svg';
-import economiaLogo from '../img/logos-facultades/facultad-economia.svg';
-import juridicasLogo from '../img/logos-facultades/facultad-juridicas.svg';
-import saludLogo from '../img/logos-facultades/facultad-medicina.svg';
-import cienciasLogo from '../img/logos-facultades/facultad-ciencias.svg';
-import agronomicasLogo from '../img/logos-facultades/facultad-agronomia.svg';
-import ingenieriaLogo from '../img/logos-facultades/facultad-ingenieria.svg';
+// src/components/DegreesPage.tsx
+// Redesign: moderno, minimalista — colores y logos de facultad preservados.
+// Pensums como botones externos; búsqueda funcional; acordeón limpio.
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, ExternalLink, Clock, BookOpen, Search } from 'lucide-react';
+import humanidadesLogo  from '../img/logos-facultades/facultad-humanidades.svg';
+import educacionLogo    from '../img/logos-facultades/facultad-educacion.svg';
+import economiaLogo     from '../img/logos-facultades/facultad-economia.svg';
+import juridicasLogo    from '../img/logos-facultades/facultad-juridicas.svg';
+import saludLogo        from '../img/logos-facultades/facultad-medicina.svg';
+import cienciasLogo     from '../img/logos-facultades/facultad-ciencias.svg';
+import agronomicasLogo  from '../img/logos-facultades/facultad-agronomia.svg';
+import ingenieriaLogo   from '../img/logos-facultades/facultad-ingenieria.svg';
 
-// Interfaces
+/* ── Types ───────────────────────────────────────────── */
+
+interface Pensum {
+  label: string;
+  url:   string;
+}
+
 interface Career {
-  id: string;
-  name: string;
-  duration: string;
-  credits: number;
+  id:          string;
+  name:        string;
+  duration:    string;
+  credits:     number;
   description: string;
-  imageUrl: string;
+  imageUrl:    string;
+  pensums:     Pensum[];
 }
 
 interface Faculty {
-  id: string;
-  name: string;
-  color: string;
-  logoUrl: string;
-  careers: Career[];
+  id:       string;
+  name:     string;
+  color:    string;
+  logoUrl:  string;
+  careers:  Career[];
 }
 
-// Datos de las facultades y carreras
+/* ── Data ────────────────────────────────────────────── */
+
 const facultiesData: Faculty[] = [
   {
     id: 'humanidades',
@@ -42,6 +54,9 @@ const facultiesData: Faculty[] = [
         credits: 180,
         description: 'Formación integral en el estudio de la literatura, lingüística y teoría de la comunicación.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Letras.jpg',
+        pensums: [
+          { label: 'Pensum P-LET', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-LET&plan=000012&nivel=GR' },
+        ],
       },
       {
         id: 'comunicacion-social',
@@ -50,6 +65,9 @@ const facultiesData: Faculty[] = [
         credits: 195,
         description: 'Desarrollo de competencias periodísticas y comunicacionales para medios tradicionales y digitales.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Comunicaci%C3%B3n+Social.jpg',
+        pensums: [
+          { label: 'Pensum P-CSPE', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-CSPE&plan=000012&nivel=GR' },
+        ],
       },
     ],
   },
@@ -66,6 +84,10 @@ const facultiesData: Faculty[] = [
         credits: 175,
         description: 'Formación de docentes para la enseñanza en niveles básicos del sistema educativo nacional.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Educaci%C3%B3n+B%C3%A1sica.jpg',
+        pensums: [
+          { label: 'Pensum P-EDBA (24355)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-EDBA&plan=201420&nivel=GR' },
+          { label: 'Pensum P-EDUB (30955)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-EDUB&plan=201120&nivel=GR' },
+        ],
       },
       {
         id: 'educacion-fisica',
@@ -74,6 +96,10 @@ const facultiesData: Faculty[] = [
         credits: 170,
         description: 'Preparación para la enseñanza de actividades físicas, deportivas y recreativas.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Educaci%C3%B3n+F%C3%ADsica.jpg',
+        pensums: [
+          { label: 'Pensum P-EDFD (Ed. Física y Deporte)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-EDFD&plan=201420&nivel=GR' },
+          { label: 'Pensum P-EDFI (Ed. Física)',            url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-EDFI&plan=201120&nivel=GR' },
+        ],
       },
       {
         id: 'educacion-inicial',
@@ -82,6 +108,10 @@ const facultiesData: Faculty[] = [
         credits: 175,
         description: 'Formación para la educación en etapas tempranas del desarrollo infantil.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Educaci%C3%B3n+Inicial.jpg',
+        pensums: [
+        { label: 'Pensum (30954 - P-EDUI)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-EDUI&plan=201120&nivel=GR' },
+
+        ],
       },
       {
         id: 'orientacion-academica',
@@ -90,6 +120,9 @@ const facultiesData: Faculty[] = [
         credits: 180,
         description: 'Desarrollo de competencias para guiar el proceso de aprendizaje y desarrollo personal del estudiante.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Educaci%C3%B3n+(Menci%C3%B3n+Orientaci%C3%B3n+Acad%C3%A9mica).jpg',
+        pensums: [
+           { label: '', url: '' },
+        ],
       },
     ],
   },
@@ -106,6 +139,9 @@ const facultiesData: Faculty[] = [
         credits: 190,
         description: 'Formación en gestión y dirección empresarial para el desarrollo socioeconómico.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Administraci%C3%B3n+de+Empresas.jpg',
+        pensums: [
+           { label: 'Pensum (50201 - P-ADME)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-ADME&plan=000013&nivel=GR' },
+        ],
       },
       {
         id: 'mercadotecnia',
@@ -114,6 +150,9 @@ const facultiesData: Faculty[] = [
         credits: 185,
         description: 'Estudio de estrategias para la comercialización de productos y servicios en diversos mercados.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Mercadotecnia.jpg',
+        pensums: [
+           { label: 'Pensum (50203 - P-MERC)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-MERC&plan=000013&nivel=GR' },
+        ],
       },
       {
         id: 'ciencias-politicas',
@@ -122,6 +161,9 @@ const facultiesData: Faculty[] = [
         credits: 195,
         description: 'Análisis de sistemas políticos, gobernanza y relaciones de poder en la sociedad.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Ciencias+Pol%C3%ADticas.jpg',
+        pensums: [
+           { label: 'Pensum (60301 - P-CSPO)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-CSPO&plan=000012&nivel=GR' },
+        ],
       },
       {
         id: 'contabilidad',
@@ -130,6 +172,9 @@ const facultiesData: Faculty[] = [
         credits: 190,
         description: 'Formación en el registro, clasificación y análisis de información financiera y contable.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Contabilidad.jpg',
+        pensums: [
+           { label: 'Pensum  (50301 - P-CONT)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-CONT&plan=000012&nivel=GR' },
+        ],
       },
     ],
   },
@@ -146,13 +191,16 @@ const facultiesData: Faculty[] = [
         credits: 220,
         description: 'Formación jurídica integral para el ejercicio profesional en diversas ramas del derecho.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ciencias+Jur%C3%ADdicas+y+Pol%C3%ADticas.jpg',
+        pensums: [
+           { label: 'Pensum (60202 - P-DERE)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-DERE&plan=000012&nivel=GR' },
+        ],
       },
     ],
   },
   {
     id: 'salud',
     name: 'Ciencias de la Salud',
-    color: '#f3fa33',
+    color: '#d4a800',
     logoUrl: saludLogo,
     careers: [
       {
@@ -162,6 +210,10 @@ const facultiesData: Faculty[] = [
         credits: 200,
         description: 'Formación para el cuidado de la salud y atención integral de pacientes.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Enfermer%C3%ADa.jpg',
+        pensums: [
+           { label: 'Pensum (80601 - P-ENF1)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-ENF1&plan=000012&nivel=GR' },
+           { label: 'Pensum (80603 - P-ENFE)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-ENFE&plan=000013&nivel=GR' },
+        ],
       },
       {
         id: 'bioanalisis',
@@ -170,6 +222,9 @@ const facultiesData: Faculty[] = [
         credits: 210,
         description: 'Preparación para el análisis clínico y diagnóstico de laboratorio.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Bioan%C3%A1lisis.jpg',
+        pensums: [
+           { label: 'Pensum (80902 - P-BIOA)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-BIOA&plan=000014&nivel=GR' },
+        ],
       },
       {
         id: 'medicina',
@@ -178,6 +233,11 @@ const facultiesData: Faculty[] = [
         credits: 320,
         description: 'Formación en ciencias médicas para la atención y cuidado de la salud poblacional.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Doctor+en+Medicina+(Prem%C3%A9dica-Internado).jpg',
+        pensums: [
+           { label: 'Pre-Médica/Medicina - (M0941PMED - P-PMED) ', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-PMED&plan=000014&nivel=GR' },
+           { label: 'Pre-Médica/Medicina - (81002 - P-PMED)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-PMED&plan=000014&nivel=GR' },
+
+          ],
       },
       {
         id: 'psicologia-clinica',
@@ -186,6 +246,9 @@ const facultiesData: Faculty[] = [
         credits: 200,
         description: 'Estudio del comportamiento humano orientado a la intervención clínica y terapéutica.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Psicolog%C3%ADa+Cl%C3%ADnica.jpg',
+        pensums: [
+           { label: 'Pensum Psicología Clínica - (31002 - P-PSIC)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-PSIC&plan=000012&nivel=GR' },
+        ],
       },
       {
         id: 'psicologia-escolar',
@@ -194,6 +257,9 @@ const facultiesData: Faculty[] = [
         credits: 195,
         description: 'Especialización en comportamiento y aprendizaje en entornos educativos.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Psicolog%C3%ADa+Escolar.jpg',
+        pensums: [
+           { label: 'Pensum (31004 - P-PSIE) ', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-PSIE&plan=000012&nivel=GRs' },
+        ],
       },
     ],
   },
@@ -210,6 +276,9 @@ const facultiesData: Faculty[] = [
         credits: 190,
         description: 'Formación en tecnologías de la información, desarrollo de software y sistemas informáticos.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Licenciatura+en+Inform%C3%A1tica.jpg',
+        pensums: [
+           { label: 'Pensum (P-LINF)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-LINF&plan=202510&nivel=GR' },
+        ],
       },
     ],
   },
@@ -226,6 +295,9 @@ const facultiesData: Faculty[] = [
         credits: 210,
         description: 'Estudio de la producción animal y mejoramiento genético para la industria agropecuaria.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ingenier%C3%ADa+Zootecnia.jpg',
+        pensums: [
+           { label: 'Pensum (90306 - P-IZOO)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-IZOO&plan=201810&nivel=GR' },
+        ],
       },
       {
         id: 'agronomia-suelos',
@@ -234,6 +306,9 @@ const facultiesData: Faculty[] = [
         credits: 215,
         description: 'Especialización en manejo de suelos y sistemas de riego para la producción agrícola.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ingenier%C3%ADa+Agron%C3%B3mica+(Suelos+y+Riego).jpg',
+        pensums: [
+           { label: 'Pensum (90208 - P-IASR)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-IASR&plan=000012&nivel=GR' },
+        ],
       },
       {
         id: 'agronomia-cultivos',
@@ -242,6 +317,9 @@ const facultiesData: Faculty[] = [
         credits: 215,
         description: 'Formación en técnicas de cultivo, cosecha y manejo post-cosecha de productos agrícolas.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ingenier%C3%ADa+Agron%C3%B3mica+(Producci%C3%B3n+de+Cultivos).jpg',
+        pensums: [
+           { label: 'Pensum (90209 - P-IAPC)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-IAPC&plan=000012&nivel=GR' },
+        ],
       },
       {
         id: 'agronomia-desarrollo',
@@ -250,6 +328,9 @@ const facultiesData: Faculty[] = [
         credits: 215,
         description: 'Enfoque en desarrollo rural y sistemas de producción sostenibles para comunidades agrícolas.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ingenier%C3%ADa+Agron%C3%B3mica+(Desarrollo+Agr%C3%ADcola).jpg',
+        pensums: [
+           { label: 'Pensum (90210 - P-IADA)', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-IADA&plan=000012&nivel=GR' },
+        ],
       },
     ],
   },
@@ -266,224 +347,391 @@ const facultiesData: Faculty[] = [
         credits: 225,
         description: 'Formación en diseño, construcción y mantenimiento de infraestructuras y obras civiles.',
         imageUrl: 'https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/imagenes-carreras-de-grado/Ingenier%C3%ADa+Civil.jpg',
+        pensums: [
+           { label: 'Pensum (70401 - P-ICIV) ', url: 'https://app.uasd.edu.do/PensumGrado/?periodoV=999999&programa=P-ICIV&plan=000012&nivel=GR' },
+        ],
       },
     ],
   },
 ];
 
-// Componente para mostrar una carrera individual
-const CareerCard: React.FC<{ career: Career; facultyColor: string }> = ({ career, facultyColor }) => {
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full transition-transform hover:scale-102 hover:shadow-lg">
-      <div className="h-40 overflow-hidden">
-        <img 
-          src={career.imageUrl} 
-          alt={`Imagen representativa de ${career.name}`} 
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold mb-2" style={{ color: facultyColor }}>{career.name}</h3>
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
-          <span>{career.duration}</span>
-          <span>{career.credits} créditos</span>
-        </div>
-        <p className="text-gray-700 text-sm mt-auto">{career.description}</p>
-      </div>
-    </div>
-  );
-};
+/* ── CareerCard ──────────────────────────────────────── */
 
-// Componente para mostrar una facultad y sus carreras
-const FacultySection: React.FC<{ faculty: Faculty; isOpen: boolean; toggleSection: () => void }> = ({ 
-  faculty, 
-  isOpen, 
-  toggleSection 
-}) => {
-  return (
-    <section className="mb-10">
-      <div 
-        className="cursor-pointer relative"
-        onClick={toggleSection}
-      >
-        {/* Logo que se sobrepone en la parte superior */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-          <div className="bg-white rounded-full p-1 shadow-md">
-            <img 
-              src={faculty.logoUrl} 
-              alt={`Logo de facultad de ${faculty.name}`} 
-              className="w-20 h-20 object-contain"
-            />
-          </div>
-        </div>
-        
-        {/* Barra de color con patrón distintivo */}
-        <div 
-          className="pt-12 pb-6 px-6 flex flex-col items-center justify-center overflow-hidden relative"
-          style={{ backgroundColor: faculty.color }}
-        >
-          {/* Elementos decorativos del fondo */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute left-0 top-0 w-40 h-40 rounded-full bg-white transform -translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute right-0 bottom-0 w-60 h-60 rounded-full bg-white transform translate-x-1/4 translate-y-1/4"></div>
-          </div>
-          
-          <h2 className="text-2xl font-bold text-white text-center mt-2">FACULTAD DE {faculty.name.toUpperCase()}</h2>
-          
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="28" 
-              height="28" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className={`transform transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-        </div>
+const CareerCard: React.FC<{ career: Career; facultyColor: string }> = ({ career, facultyColor }) => (
+  <div style={{
+    backgroundColor: '#ffffff',
+    border:          '1px solid var(--color-border-subtle)',
+    display:         'flex',
+    flexDirection:   'column',
+    overflow:        'hidden',
+    transition:      'box-shadow 0.2s ease, transform 0.2s ease',
+  }}
+    onMouseEnter={e => {
+      (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.10)';
+      (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+    }}
+    onMouseLeave={e => {
+      (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+      (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+    }}
+  >
+    {/* Image */}
+    <div style={{ height: '160px', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+      <div style={{
+        position:        'absolute',
+        top:             0,
+        left:            0,
+        width:           '4px',
+        height:          '100%',
+        backgroundColor: facultyColor,
+        zIndex:          1,
+      }} />
+      <img
+        src={career.imageUrl}
+        alt={career.name}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        loading="lazy"
+      />
+    </div>
+
+    {/* Content */}
+    <div style={{ padding: '1.25rem 1.25rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+      <h3 style={{
+        fontSize:   '0.9375rem',
+        fontWeight: 600,
+        color:      facultyColor,
+        lineHeight: 1.3,
+        margin:     0,
+      }}>
+        {career.name}
+      </h3>
+
+      {/* Meta */}
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem',
+          fontSize: '0.6875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+          <Clock size={11} />
+          {career.duration}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem',
+          fontSize: '0.6875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+          <BookOpen size={11} />
+          {career.credits} créditos
+        </span>
       </div>
-      
-      {isOpen && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {faculty.careers.map(career => (
-            <CareerCard 
-              key={career.id} 
-              career={career} 
-              facultyColor={faculty.color} 
-            />
+
+      <p style={{
+        fontSize:   '0.8125rem',
+        lineHeight: 1.6,
+        color:      'var(--color-text-secondary)',
+        margin:     0,
+        flex:       1,
+      }}>
+        {career.description}
+      </p>
+
+      {/* Pensum buttons */}
+      {career.pensums.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
+          {career.pensums.map((p) => (
+            <a
+              key={p.url}
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display:        'inline-flex',
+                alignItems:     'center',
+                gap:            '0.375rem',
+                fontSize:       '0.6875rem',
+                fontWeight:     700,
+                letterSpacing:  '0.06em',
+                textTransform:  'uppercase',
+                color:          facultyColor,
+                border:         `1px solid ${facultyColor}`,
+                padding:        '0.375rem 0.75rem',
+                textDecoration: 'none',
+                transition:     'background-color 0.18s ease, color 0.18s ease',
+                width:          'fit-content',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = facultyColor;
+                (e.currentTarget as HTMLAnchorElement).style.color = '#fff';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
+                (e.currentTarget as HTMLAnchorElement).style.color = facultyColor;
+              }}
+            >
+              <ExternalLink size={10} />
+              {p.label}
+            </a>
           ))}
         </div>
       )}
+    </div>
+  </div>
+);
+
+/* ── FacultySection ──────────────────────────────────── */
+
+const FacultySection: React.FC<{
+  faculty:       Faculty;
+  isOpen:        boolean;
+  toggleSection: () => void;
+  filteredCareers: Career[];
+}> = ({ faculty, isOpen, toggleSection, filteredCareers }) => {
+  if (filteredCareers.length === 0) return null;
+
+  return (
+    <section style={{ marginBottom: '0', borderBottom: '1px solid var(--color-border-subtle)' }}>
+
+      {/* Header */}
+      <button
+        onClick={toggleSection}
+        aria-expanded={isOpen}
+        style={{
+          width:           '100%',
+          display:         'flex',
+          alignItems:      'center',
+          gap:             '1rem',
+          padding:         '1.25rem 0',
+          background:      'none',
+          border:          'none',
+          cursor:          'pointer',
+          textAlign:       'left',
+          borderLeft:      `4px solid ${faculty.color}`,
+          paddingLeft:     '1.25rem',
+        }}
+      >
+        {/* Logo */}
+        <div style={{
+          width:           '48px',
+          height:          '48px',
+          flexShrink:      0,
+          display:         'flex',
+          alignItems:      'center',
+          justifyContent:  'center',
+          backgroundColor: `${faculty.color}12`,
+          padding:         '6px',
+        }}>
+          <img
+            src={faculty.logoUrl}
+            alt={`Facultad de ${faculty.name}`}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        </div>
+
+        {/* Name + count */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            fontSize:      '0.5rem',
+            fontWeight:    700,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color:         faculty.color,
+            margin:        '0 0 0.2rem',
+          }}>
+            Facultad de
+          </p>
+          <h2 style={{
+            fontFamily:    '"Playfair Display", Georgia, serif',
+            fontSize:      'clamp(1rem, 2vw, 1.25rem)',
+            fontWeight:    600,
+            color:         'var(--color-text-primary)',
+            margin:        0,
+            lineHeight:    1.2,
+          }}>
+            {faculty.name}
+          </h2>
+        </div>
+
+        {/* Career count */}
+        <span style={{
+          fontSize:        '0.5625rem',
+          fontWeight:      700,
+          letterSpacing:   '0.1em',
+          textTransform:   'uppercase',
+          color:           'var(--color-text-muted)',
+          marginRight:     '0.5rem',
+          whiteSpace:      'nowrap',
+        }}>
+          {filteredCareers.length} {filteredCareers.length === 1 ? 'carrera' : 'carreras'}
+        </span>
+
+        {/* Chevron */}
+        <ChevronDown
+          size={18}
+          style={{
+            color:      faculty.color,
+            flexShrink: 0,
+            transition: 'transform 0.28s ease',
+            transform:  isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        />
+      </button>
+
+      {/* Careers grid */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="careers"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{
+              display:               'grid',
+              gridTemplateColumns:   'repeat(auto-fill, minmax(260px, 1fr))',
+              gap:                   '1.25rem',
+              padding:               '1rem 0 2rem',
+            }}>
+              {filteredCareers.map((career, i) => (
+                <motion.div
+                  key={career.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.36, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <CareerCard career={career} facultyColor={faculty.color} />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
 
-// Componente principal de la página
+/* ── DegreesPage ─────────────────────────────────────── */
+
 const DegreesPage: React.FC = () => {
-  // Estado para controlar qué facultades están expandidas
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>(
-    facultiesData.reduce((acc, faculty) => ({ ...acc, [faculty.id]: false }), {})
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
+    facultiesData.reduce((acc, f) => ({ ...acc, [f.id]: false }), {})
   );
+  const [query, setQuery] = useState('');
 
-  // Función para alternar la apertura de una sección
-  const toggleSection = (facultyId: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [facultyId]: !prev[facultyId]
+  const toggleSection = (id: string) =>
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return facultiesData.map(f => ({ faculty: f, careers: f.careers }));
+    return facultiesData.map(f => ({
+      faculty:  f,
+      careers:  f.careers.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        f.name.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q)
+      ),
     }));
-  };
+  }, [query]);
 
-  // Color principal: Azul constitucional
-  const primaryColor = '#003087';
-  // Color secundario para el hero (un azul más profundo pero complementario)
-  const heroColor = '#001F54';
+  const totalCarreras = facultiesData.reduce((s, f) => s + f.careers.length, 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Espaciador para el nav */}
-      <div className="pt-24 md:pt-28">
-        {/* Hero Section con motion figures - Adaptado de MisionVisionPage */}
-        <div className="relative h-[60vh] bg-[#001F54] overflow-hidden">
-          <div className="absolute inset-0">
-            <img
-              src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/news_images/grado.jpg"
-              alt="UASD Carreras de Grado"
-              className="w-full h-full object-cover opacity-40"
+    <div style={{ backgroundColor: 'var(--color-surface)', minHeight: '100vh' }}>
+
+      {/* ── Hero ── */}
+      <div style={{ paddingTop: '108px', position: 'relative', backgroundColor: '#001F54', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <img
+            src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/news_images/grado.jpg"
+            alt="UASD Carreras de Grado"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }}
+          />
+          <div style={{
+            position:   'absolute',
+            inset:      0,
+            background: 'linear-gradient(to bottom, rgba(0,31,84,0.6) 0%, rgba(0,31,84,0.92) 100%)',
+          }} />
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', margin: '0 auto',
+          padding: 'clamp(3rem, 6vw, 5rem) clamp(1.25rem, 4vw, 2.5rem)' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: '#C9940A', margin: '0 0 0.75rem' }}>
+              UASD · Recinto San Juan
+            </p>
+            <h1 style={{
+              fontFamily:    '"Playfair Display", Georgia, serif',
+              fontStyle:     'italic',
+              fontSize:      'clamp(2.5rem, 5vw, 3.75rem)',
+              fontWeight:    700,
+              letterSpacing: '-0.03em',
+              lineHeight:    1.05,
+              color:         '#ffffff',
+              margin:        '0 0 1rem',
+            }}>
+              Carreras de Grado
+            </h1>
+            <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.72)', maxWidth: '52ch', margin: 0, lineHeight: 1.65 }}>
+              {totalCarreras} carreras en {facultiesData.length} facultades — formando profesionales que transforman la región sur.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── Contenido principal ── */}
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 clamp(1.25rem, 4vw, 2.5rem)' }}>
+
+        {/* Búsqueda */}
+        <div style={{ padding: '2rem 0 1.5rem', borderBottom: '1px solid var(--color-border-subtle)' }}>
+          <div style={{ position: 'relative', maxWidth: '480px' }}>
+            <Search
+              size={16}
+              style={{ position: 'absolute', left: '0.875rem', top: '50%',
+                transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }}
+            />
+            <input
+              type="text"
+              placeholder="Buscar carrera o facultad…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              style={{
+                width:           '100%',
+                paddingLeft:     '2.5rem',
+                paddingRight:    '1rem',
+                paddingTop:      '0.625rem',
+                paddingBottom:   '0.625rem',
+                fontSize:        '0.875rem',
+                border:          '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+                color:           'var(--color-text-primary)',
+                outline:         'none',
+              }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+              onBlur={e  => (e.currentTarget.style.borderColor = 'var(--color-border)')}
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#001F54]/70 to-[#001F54]/90" />
-          
-          {/* Animated geometric shapes */}
-          <motion.div
-            initial={{ scale: 0, rotate: 0 }}
-            animate={{ scale: 1, rotate: 45 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-1/4 left-0 w-96 h-96 bg-white/10"
-          />
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.5, delay: 0.3 }}
-            className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full"
-          />
-          <motion.div
-            initial={{ scale: 0, rotate: 0 }}
-            animate={{ scale: 1, rotate: -45 }}
-            transition={{ duration: 1.5, delay: 0.6 }}
-            className="absolute top-0 right-1/3 w-64 h-64 bg-white/10"
-          />
-
-          <div className="relative z-10 max-w-6xl mx-auto h-full flex items-center">
-            <div className="px-4 sm:px-6 lg:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="max-w-2xl"
-              >
-                <h1 className="text-5xl font-light tracking-tight text-white leading-tight mb-6">
-                  Carreras de Grado
-                </h1>
-                <div className="w-24 h-1 bg-white mb-6"></div>
-                <p className="text-xl font-light text-white">
-                  Formando profesionales que transforman la región sur
-                </p>
-              </motion.div>
-            </div>
-          </div>
         </div>
 
-        {/* Main Content - Ahora está debajo del hero */}
-        <div className="container mx-auto px-4 py-16">
-          <header className="mb-10 text-center">
-            <h2 className="text-3xl font-bold mb-4">Oferta Académica</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Descubre las carreras de pregrado ofrecidas por el Recinto UASD San Juan, organizadas por facultades.
-            </p>
-          </header>
+        {/* Facultades */}
+        <main style={{ paddingBottom: '5rem' }}>
+          {filtered.map(({ faculty, careers }) => (
+            <FacultySection
+              key={faculty.id}
+              faculty={faculty}
+              isOpen={openSections[faculty.id]}
+              toggleSection={() => toggleSection(faculty.id)}
+              filteredCareers={careers}
+            />
+          ))}
 
-          <div className="mb-8">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar carrera..."
-                className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+          {filtered.every(f => f.careers.length === 0) && (
+            <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--color-text-muted)' }}>
+              <p style={{ fontSize: '0.9375rem' }}>No se encontraron carreras para &ldquo;{query}&rdquo;.</p>
             </div>
-          </div>
-
-          <main>
-            {facultiesData.map(faculty => (
-              <FacultySection
-                key={faculty.id}
-                faculty={faculty}
-                isOpen={openSections[faculty.id]}
-                toggleSection={() => toggleSection(faculty.id)}
-              />
-            ))}
-          </main>
-        </div>
+          )}
+        </main>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ import DocenteDetailPage from './pages/docentes/DocenteDetailPage';
 import DocentesEditorPage from './pages/DocentesEditorPage';
 import DocentesPage from './pages/docentes/DocentesPage';
 import ScrollToTop from './components/ScrollToTop';
+import CookieConsent from './components/CookieConsent';
 import NotFoundPage from './pages/NotFoundPage';
 import InnovacionesEducativas from './components/Innovations';
 import Frequentquestions from './components/frequentquestions';
@@ -61,7 +62,9 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <TrackPageViews /> {/* Agrega el componente de rastreo */}
+        <CookieConsent />
         <Routes>
+          {/* ── Public routes (with site nav) ── */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/noticias" element={<NewsPage />} />
@@ -92,67 +95,69 @@ function App() {
             <Route path="/contacto" element={<ContactosPage />} />
             <Route path="/meritorios" element={<MeritoriosPage />} />
             <Route path="*" element={<NotFoundPage />} />
-            <Route
-              path="/admin-panel"
-              element={
-                <ProtectedRoute>
-                  <AdminPanelPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/slides-editor"
-              element={
-                <ProtectedRoute>
-                  <SlidesEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/memorias-editor"
-              element={
-                <ProtectedRoute>
-                  <MemoriasEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/docentes-editor"
-              element={
-                <ProtectedRoute>
-                  <DocentesEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/estados-financieros"
-              element={
-                <ProtectedRoute>
-                  <EstadosFinancierosManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <SuperAdminRoute>
-                  <UserManagementPage />
-                </SuperAdminRoute>
-              }
-            />
-            <Route
-              path="/unauthorized"
-              element={
-                <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                  <div className="text-center p-8 bg-white rounded-lg shadow-md">
-                    <h1 className="text-2xl font-bold text-red-600 mb-4">Acceso Denegado</h1>
-                    <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
-                  </div>
-                </div>
-              }
-            />
           </Route>
+
+          {/* ── Admin routes (own full-viewport shell, no site nav) ── */}
           <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin-panel"
+            element={
+              <ProtectedRoute>
+                <AdminPanelPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/slides-editor"
+            element={
+              <ProtectedRoute>
+                <SlidesEditorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/memorias-editor"
+            element={
+              <ProtectedRoute>
+                <MemoriasEditorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/docentes-editor"
+            element={
+              <ProtectedRoute>
+                <DocentesEditorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/estados-financieros"
+            element={
+              <ProtectedRoute>
+                <EstadosFinancierosManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <SuperAdminRoute>
+                <UserManagementPage />
+              </SuperAdminRoute>
+            }
+          />
+          <Route
+            path="/unauthorized"
+            element={
+              <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                  <h1 className="text-2xl font-bold text-red-600 mb-4">Acceso Denegado</h1>
+                  <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
+                </div>
+              </div>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

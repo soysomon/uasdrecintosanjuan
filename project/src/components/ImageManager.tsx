@@ -1,576 +1,462 @@
-// src/components/ImageManager.tsx - VERSIÓN MEJORADA CON CARGA MÚLTIPLE
+// src/components/ImageManager.tsx
 import React, { useState, useRef } from 'react';
-import { 
-  Upload, Image as ImageIcon, Settings, X, AlignLeft, AlignCenter, 
-  AlignRight, Minimize, Maximize, AlertCircle, CheckCircle, Loader 
+import {
+  Upload, Image as ImageIcon, Settings, X, Star,
+  AlignLeft, AlignCenter, AlignRight,
+  Minimize, Maximize, AlertCircle, CheckCircle,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { ImageDisplayOptions, NewsImage, Section } from '../types/news';
+import { ImageDisplayOptions, Section } from '../types/news';
 import API_ROUTES from '../config/api';
 
+/* ─── Types ──────────────────────────────────────────────────────── */
 interface UploadingImage {
-  id: string;
-  file: File;
-  preview: string;
+  id:       string;
+  file:     File;
+  preview:  string;
   progress: number;
-  status: 'pending' | 'uploading' | 'success' | 'error';
-  error?: string;
+  status:   'pending' | 'uploading' | 'success' | 'error';
+  error?:   string;
 }
 
+/* ─── Compression util ───────────────────────────────────────────── */
+const compressImage = (file: File): Promise<File> => {
+  if (file.type === 'image/gif') return Promise.resolve(file);
+
+  return new Promise((resolve) => {
+    const img    = new Image();
+    const blobUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(blobUrl);
+      const MAX = 1920;
+      let { width, height } = img;
+      if (width > MAX) { height = Math.round((height * MAX) / width); width = MAX; }
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          const out = new File(
+            [blob],
+            file.name.replace(/\.[^.]+$/, '.jpg'),
+            { type: 'image/jpeg', lastModified: Date.now() }
+          );
+          resolve(out.size < file.size ? out : file);
+        },
+        'image/jpeg',
+        0.82
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(file); };
+    img.src = blobUrl;
+  });
+};
+
+/* ─── Component ─────────────────────────────────────────────────── */
 const ImageManager: React.FC<{
-  section: Section;
-  onUpload: (file: File) => void;
-  onRemoveImage: (imageId: string) => void;
+  section:          Section;
+  /** Called once per image after a successful S3 upload */
+  onUploadComplete: (url: string, publicId: string) => void;
+  onRemoveImage:    (imageId: string) => void;
   onSettingsChange: (imageId: string, setting: keyof ImageDisplayOptions, value: any) => void;
-  uploadProgress?: number;
-}> = ({ section, onUpload, onRemoveImage, onSettingsChange, uploadProgress }) => {
+  /** 0-based index of this section; 0 = portada section */
+  sectionIndex?: number;
+  /** Reorder: move imageId to position 0 (make it portada) */
+  onSetPortada?: (imageId: string) => void;
+}> = ({ section, onUploadComplete, onRemoveImage, onSettingsChange, sectionIndex, onSetPortada }) => {
+
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const [uploadingImages, setUploadingImages] = useState<UploadingImage[]>([]);
-  const [isMultiUploading, setIsMultiUploading] = useState(false);
+  const [failedImages,    setFailedImages]     = useState<Set<string>>(new Set());
+  const [uploadingImages, setUploadingImages]  = useState<UploadingImage[]>([]);
+  const [dragOver,        setDragOver]         = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageError = (imageId: string, imageUrl: string) => {
-    console.error('Error al cargar imagen:', imageUrl);
+  /* ── Image error handler ── */
+  const handleImageError = (imageId: string) =>
     setFailedImages((prev) => new Set(prev).add(imageId));
-  };
 
-  // Función para subir una imagen individual al servidor
-  const uploadSingleImage = async (uploadingImg: UploadingImage): Promise<void> => {
-    const formData = new FormData();
-    formData.append('file', uploadingImg.file);
+  /* ── Core: compress → fetch → notify parent ── */
+  const uploadOneFile = async (item: UploadingImage): Promise<void> => {
+    // Mark as uploading
+    setUploadingImages((prev) =>
+      prev.map((i) => i.id === item.id ? { ...i, status: 'uploading', progress: 10 } : i)
+    );
 
     try {
-      // Actualizar estado a "uploading"
+      const compressed = await compressImage(item.file);
+
+      // Fake progress to 40% while waiting for network
       setUploadingImages((prev) =>
-        prev.map((img) =>
-          img.id === uploadingImg.id ? { ...img, status: 'uploading', progress: 0 } : img
-        )
+        prev.map((i) => i.id === item.id ? { ...i, progress: 40 } : i)
       );
 
-      const res = await fetch(API_ROUTES.UPLOAD_IMAGE, {
-        method: 'POST',
-        body: formData,
-      });
+      const formData = new FormData();
+      formData.append('file', compressed);
 
+      const res  = await fetch(API_ROUTES.UPLOAD_IMAGE, { method: 'POST', body: formData });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al subir la imagen');
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al subir la imagen');
-      }
-
-      // Actualizar progreso a 100% y marcar como exitosa
+      // Mark success
       setUploadingImages((prev) =>
-        prev.map((img) =>
-          img.id === uploadingImg.id 
-            ? { ...img, status: 'success', progress: 100 } 
-            : img
-        )
+        prev.map((i) => i.id === item.id ? { ...i, status: 'success', progress: 100 } : i)
       );
 
-      // Llamar al callback original con el archivo para agregarlo a la sección
-      onUpload(uploadingImg.file);
+      // Tell NewsCreate the final S3 URL
+      onUploadComplete(data.imageUrl, data.public_id);
 
-      return Promise.resolve();
+      // Remove thumb after a brief success flash
+      setTimeout(() => {
+        setUploadingImages((prev) => prev.filter((i) => i.id !== item.id));
+        URL.revokeObjectURL(item.preview);
+      }, 1400);
+
     } catch (err: any) {
-      console.error('Error subiendo imagen:', err);
-      
-      // Marcar como error
       setUploadingImages((prev) =>
-        prev.map((img) =>
-          img.id === uploadingImg.id
-            ? { ...img, status: 'error', error: err.message }
-            : img
-        )
+        prev.map((i) => i.id === item.id ? { ...i, status: 'error', error: err.message } : i)
       );
-
-      return Promise.reject(err);
+      toast.error(`Error al subir ${item.file.name}`);
+      setTimeout(() => {
+        setUploadingImages((prev) => prev.filter((i) => i.id !== item.id));
+        URL.revokeObjectURL(item.preview);
+      }, 3000);
+      throw err;
     }
   };
 
-  // Función para procesar múltiples imágenes con concurrencia controlada
-  const processMultipleUploads = async (files: UploadingImage[]) => {
-    const MAX_CONCURRENT = 3; // Máximo 3 cargas simultáneas
-    const queue = [...files];
-    const executing: Promise<void>[] = [];
+  /* ── Concurrency-limited runner (max 3 simultaneous) ── */
+  const processAll = async (items: UploadingImage[]): Promise<void> => {
+    const MAX     = 3;
+    const queue   = [...items];
+    const running: Promise<void>[] = [];
 
-    while (queue.length > 0 || executing.length > 0) {
-      // Mientras haya espacio y archivos pendientes, iniciar nuevas cargas
-      while (executing.length < MAX_CONCURRENT && queue.length > 0) {
-        const img = queue.shift()!;
-        const promise = uploadSingleImage(img).finally(() => {
-          executing.splice(executing.indexOf(promise), 1);
-        });
-        executing.push(promise);
+    while (queue.length > 0 || running.length > 0) {
+      while (running.length < MAX && queue.length > 0) {
+        const item = queue.shift()!;
+        const p = uploadOneFile(item)
+          .catch(() => { /* error already handled + toasted inside uploadOneFile */ })
+          .finally(() => { running.splice(running.indexOf(p), 1); });
+        running.push(p);
       }
-
-      // Esperar a que al menos una termine
-      if (executing.length > 0) {
-        await Promise.race(executing);
-      }
+      if (running.length > 0) await Promise.race(running);
     }
   };
 
-  // Handler para selección múltiple
-  const handleMultipleFilesSelect = async (files: FileList | null) => {
+  /* ── File selection ── */
+  const handleFilesSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    setIsMultiUploading(true);
+    const MAX_SIZE = 30 * 1024 * 1024;
+    const ALLOWED  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-    // Convertir FileList a array y validar
-    const filesArray = Array.from(files);
-    
-    // Validaciones
-    const MAX_SIZE = 30 * 1024 * 1024; // 30MB
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    
-    const newUploadingImages: UploadingImage[] = filesArray
-      .filter((file) => {
-        // Validar tamaño
-        if (file.size > MAX_SIZE) {
-          toast.error(`${file.name} es demasiado grande (máx 30MB)`);
-          return false;
-        }
-        
-        // Validar tipo
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          toast.error(`${file.name} no es un formato válido (JPG, PNG, GIF, WEBP)`);
-          return false;
-        }
-        
-        return true;
-      })
-      .map((file) => ({
-        id: `temp-${Date.now()}-${Math.random()}`,
-        file,
-        preview: URL.createObjectURL(file),
-        progress: 0,
-        status: 'pending' as const,
-      }));    
-    if (newUploadingImages.length === 0) {
-      setIsMultiUploading(false);
-      toast.error('No hay imágenes válidas para subir');
-      return;
-    }
+    const arr = Array.from(files).filter((f) => {
+      if (f.size > MAX_SIZE)         { toast.error(`${f.name}: demasiado grande (máx 30 MB)`); return false; }
+      if (!ALLOWED.includes(f.type)) { toast.error(`${f.name}: formato no válido`);             return false; }
+      return true;
+    });
 
-    setUploadingImages(newUploadingImages);
+    if (arr.length === 0) return;
 
-    try {
-      // Procesar todas las cargas
-      await processMultipleUploads(newUploadingImages);
+    // Build uploading items
+    const items: UploadingImage[] = arr.map((f) => ({
+      id:       `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      file:     f,
+      preview:  URL.createObjectURL(f),
+      progress: 0,
+      status:   'pending' as const,
+    }));
 
-      // Limpiar las imágenes procesadas después de 2 segundos
-      setTimeout(() => {
-        setUploadingImages([]);
-        setIsMultiUploading(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Error en carga múltiple:', err);
-      setIsMultiUploading(false);
-    }
+    setUploadingImages((prev) => [...prev, ...items]);
+    await processAll(items);
   };
 
-  // Handler para selección única (mantener compatibilidad)
-  const handleSingleFileSelect = (file: File) => {
-    onUpload(file);
-  };
-
-  // Calcular progreso total
-  const totalProgress = uploadingImages.length > 0
-    ? Math.round(
-        uploadingImages.reduce((sum, img) => sum + img.progress, 0) / uploadingImages.length
-      )
+  /* ── Derived state ── */
+  const isUploading   = uploadingImages.length > 0;
+  const successCount  = uploadingImages.filter((i) => i.status === 'success').length;
+  const errorCount    = uploadingImages.filter((i) => i.status === 'error').length;
+  const totalProgress = uploadingImages.length
+    ? Math.round(uploadingImages.reduce((s, i) => s + i.progress, 0) / uploadingImages.length)
     : 0;
 
-  const successCount = uploadingImages.filter((img) => img.status === 'success').length;
-  const errorCount = uploadingImages.filter((img) => img.status === 'error').length;
-
+  /* ─── JSX ─────────────────────────────────────────────────────── */
   return (
     <div>
-      <label className="block text-gray-700 text-sm font-medium mb-2 flex items-center">
-        <ImageIcon size={16} className="mr-1 text-blue-600" />
-        Imágenes de la Sección
-      </label>
 
-      {/* Área de carga con soporte múltiple */}
-      <div className="space-y-4">
-        {/* Botón de carga múltiple */}
-        <div className="relative border-2 border-dashed border-gray-300 bg-gray-50 p-6 rounded-lg flex flex-col items-center transition-all hover:border-blue-400 hover:bg-blue-50 group">
-          {uploadProgress !== undefined ? (
-            <div className="w-full">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Subiendo imagen...</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full transition-all"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-            </div>
-          ) : isMultiUploading ? (
-            <div className="w-full">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-medium">
-                  Procesando {uploadingImages.length} imagen(es)...
-                </span>
-                <span className="text-blue-600 font-semibold">{totalProgress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
-                <div
-                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                  style={{ width: `${totalProgress}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-center space-x-4 text-xs">
-                <span className="flex items-center text-green-600">
-                  <CheckCircle size={14} className="mr-1" />
-                  Exitosas: {successCount}
-                </span>
-                {errorCount > 0 && (
-                  <span className="flex items-center text-red-600">
-                    <AlertCircle size={14} className="mr-1" />
-                    Errores: {errorCount}
+      {/* ── Drop zone ──────────────────────────────────────────── */}
+      <div
+        className={`adm-drop-zone${dragOver ? ' drag-over' : ''}${isUploading ? ' uploading' : ''}`}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFilesSelect(e.dataTransfer.files); }}
+      >
+        {/* Scan line while uploading */}
+        {isUploading && <div className="adm-drop-scan" />}
+
+        {/* Hidden file input (hidden while uploading to prevent re-trigger) */}
+        {!isUploading && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+            onChange={(e) => { handleFilesSelect(e.target.files); e.target.value = ''; }}
+          />
+        )}
+
+        {/* Idle state */}
+        {!isUploading && (
+          <div className="adm-drop-idle">
+            <div className="adm-drop-icon"><Upload size={20} /></div>
+            <p className="adm-drop-label">
+              {section.images.length > 0 ? 'Añadir más imágenes' : 'Arrastra o haz clic para subir'}
+            </p>
+            <p className="adm-drop-hint">JPG · PNG · GIF · WebP · hasta 30 MB · múltiples archivos</p>
+          </div>
+        )}
+
+        {/* Progress bar while uploading */}
+        {isUploading && (
+          <div className="adm-drop-progress-wrap">
+            <div className="adm-drop-progress-row">
+              <span className="adm-drop-progress-label">
+                {uploadingImages.length === 1
+                  ? 'Subiendo imagen...'
+                  : `${uploadingImages.length} imágenes`}
+                {successCount > 0 && (
+                  <span style={{ color: 'var(--adm-green)', marginLeft: 8 }}>
+                    <CheckCircle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />
+                    {successCount} lista{successCount !== 1 ? 's' : ''}
                   </span>
                 )}
-              </div>
+                {errorCount > 0 && (
+                  <span style={{ color: 'var(--adm-red)', marginLeft: 8 }}>
+                    <AlertCircle size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />
+                    {errorCount} error{errorCount !== 1 ? 'es' : ''}
+                  </span>
+                )}
+              </span>
+              <span className="adm-drop-progress-pct">{totalProgress}%</span>
             </div>
-          ) : (
-            <>
-              <Upload className="text-blue-500 mb-2 group-hover:scale-110 transition-transform" size={28} />
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 1) {
-                    handleMultipleFilesSelect(e.target.files);
-                  } else if (e.target.files && e.target.files[0]) {
-                    handleSingleFileSelect(e.target.files[0]);
-                  }
-                  e.target.value = ''; // Reset input
-                }}
-              />
-              <p className="text-gray-600 text-sm font-medium">
-                {section.images.length > 0 ? 'Añadir más imágenes' : 'Seleccionar imágenes'}
-              </p>
-              <p className="text-gray-500 text-xs mt-1">
-                Arrastra aquí o haz clic • JPG, PNG, GIF • Múltiples archivos permitidos
-              </p>
-              <p className="text-blue-600 text-xs mt-2 font-medium">
-                💡 Puedes seleccionar varias imágenes a la vez
-              </p>
-            </>
-          )}
-        </div>
-
-        {/* Preview de imágenes en proceso de carga */}
-        {uploadingImages.length > 0 && (
-          <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-              <Loader className="animate-spin mr-2" size={16} />
-              Cargando imágenes...
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {uploadingImages.map((img) => (
-                <div
-                  key={img.id}
-                  className="relative rounded-lg overflow-hidden border-2 transition-all"
-                  style={{
-                    borderColor:
-                      img.status === 'success'
-                        ? '#10b981'
-                        : img.status === 'error'
-                        ? '#ef4444'
-                        : img.status === 'uploading'
-                        ? '#3b82f6'
-                        : '#d1d5db',
-                  }}
-                >
-                  <img
-                    src={img.preview}
-                    alt="Preview"
-                    className="w-full h-24 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    {img.status === 'pending' && (
-                      <div className="text-white text-xs">En cola...</div>
-                    )}
-                    {img.status === 'uploading' && (
-                      <div className="text-white text-center">
-                        <Loader className="animate-spin mx-auto mb-1" size={20} />
-                        <div className="text-xs">{img.progress}%</div>
-                      </div>
-                    )}
-                    {img.status === 'success' && (
-                      <CheckCircle className="text-green-400" size={32} />
-                    )}
-                    {img.status === 'error' && (
-                      <div className="text-white text-center px-2">
-                        <AlertCircle className="text-red-400 mx-auto mb-1" size={24} />
-                        <div className="text-xs">{img.error || 'Error'}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="adm-progress">
+              <div className="adm-progress-fill" style={{ width: `${totalProgress}%` }} />
             </div>
           </div>
         )}
       </div>
 
-      {/* Imágenes ya subidas (mantener funcionalidad original) */}
-      {section.images.length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-            <ImageIcon size={16} className="mr-2 text-blue-600" />
-            Imágenes en la sección ({section.images.length})
-          </h4>
-          <div className="grid grid-cols-1 gap-4">
-            {section.images.map((image) => {
-              const hasFailed = failedImages.has(image.id);
+      {/* ── Upload thumbnail strip ──────────────────────────────── */}
+      {uploadingImages.length > 0 && (
+        <div className="adm-upload-strip">
+          {uploadingImages.map((img) => (
+            <div key={img.id} className={`adm-upload-thumb ${img.status}`}>
+              {/* Shimmer skeleton for pending/uploading */}
+              {(img.status === 'pending' || img.status === 'uploading') && (
+                <div className="adm-img-skeleton" style={{ position: 'absolute', inset: 0 }} />
+              )}
+              {/* Preview */}
+              <img
+                src={img.preview}
+                alt=""
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  opacity: img.status === 'success' ? 1 : 0.35,
+                  transition: 'opacity 0.3s ease',
+                }}
+              />
+              {/* Status overlay */}
+              <div className="adm-upload-thumb-overlay">
+                {img.status === 'uploading' && <div className="adm-upload-spinner" />}
+                {img.status === 'success'   && <CheckCircle  size={20} color="#ffffff" />}
+                {img.status === 'error'     && <AlertCircle  size={20} color="#ffffff" />}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
+      {/* ── Uploaded images ────────────────────────────────────── */}
+      {section.images.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div className="adm-label" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            <ImageIcon size={11} />
+            Imágenes en la sección ({section.images.length})
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {section.images.map((image, imgIdx) => {
+              const hasFailed = failedImages.has(image.id);
               return (
-                <div
-                  key={image.id}
-                  className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="relative">
-                    <div
-                      className={`overflow-hidden relative ${
-                        image.displayOptions.alignment === 'left'
-                          ? 'mr-auto'
-                          : image.displayOptions.alignment === 'right'
-                          ? 'ml-auto'
-                          : 'mx-auto'
-                      } ${
-                        image.displayOptions.size === 'small'
-                          ? 'max-w-xs'
-                          : image.displayOptions.size === 'medium'
-                          ? 'max-w-md'
-                          : image.displayOptions.size === 'large'
-                          ? 'max-w-lg'
-                          : 'w-full'
-                      }`}
-                    >
-                      {hasFailed ? (
-                        <div className="w-full h-48 flex flex-col items-center justify-center bg-gray-100 border border-gray-200 rounded">
-                          <AlertCircle size={24} className="text-red-500 mb-2" />
-                          <p className="text-sm text-gray-600">No se pudo cargar la imagen</p>
-                        </div>
-                      ) : (
-                        <img
-                          src={image.url}
-                          alt="Vista previa"
-                          className={`w-full border border-gray-100 ${
-                            image.displayOptions.cropMode === 'cover'
-                              ? 'object-cover h-48'
-                              : image.displayOptions.cropMode === 'contain'
-                              ? 'object-contain h-48'
-                              : 'object-none'
-                          }`}
-                          onError={(e) => {
-                            handleImageError(image.id, image.url);
-                            e.currentTarget.src = '/placeholder-image.jpg';
+                <div key={image.id} className="adm-img-card">
+
+                  {/* Image container */}
+                  <div className="adm-img-container">
+                    {hasFailed ? (
+                      <div className="adm-img-error">
+                        <AlertCircle size={20} style={{ color: 'var(--adm-red)', marginBottom: 6 }} />
+                        <span>No se pudo cargar la imagen</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={image.url}
+                        alt="Vista previa"
+                        className="adm-img-reveal"
+                        style={{
+                          width: '100%', height: 200, display: 'block',
+                          objectFit:
+                            image.displayOptions.cropMode === 'contain' ? 'contain'
+                            : image.displayOptions.cropMode === 'none'   ? 'none'
+                            : 'cover',
+                        }}
+                        onError={() => handleImageError(image.id)}
+                      />
+                    )}
+
+                    {/* Portada badge — first image of the first section */}
+                    {sectionIndex === 0 && imgIdx === 0 && (
+                      <div style={{
+                        position: 'absolute', top: 10, left: 10,
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        background: 'rgba(45,106,45,0.88)', backdropFilter: 'blur(4px)',
+                        border: '1px solid rgba(45,106,45,0.45)', color: '#fff',
+                        fontFamily: 'var(--adm-font-mono)', fontSize: 10,
+                        letterSpacing: '0.06em', textTransform: 'uppercase',
+                        padding: '3px 8px', borderRadius: 4, pointerEvents: 'none',
+                      }}>
+                        <Star size={9} style={{ fill: '#fff', flexShrink: 0 }} />
+                        Portada
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6 }}>
+                      {/* Set-as-portada button — only on non-first images of the first section */}
+                      {sectionIndex === 0 && imgIdx !== 0 && onSetPortada && (
+                        <button
+                          type="button"
+                          onClick={() => onSetPortada(image.id)}
+                          title="Usar como portada"
+                          style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.55)', border: 'none',
+                            color: '#fff', cursor: 'pointer', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            backdropFilter: 'blur(4px)', transition: 'background 0.15s',
                           }}
-                          onLoad={() => console.log('Imagen cargada correctamente:', image.url)}
-                        />
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(140,95,0,0.88)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.55)')}
+                        >
+                          <Star size={12} />
+                        </button>
                       )}
-                      <div className="absolute top-2 right-2 flex space-x-2">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedImageId(selectedImageId === image.id ? null : image.id)
-                          }
-                          className="bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-md hover:scale-110"
-                        >
-                          <Settings size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onRemoveImage(image.id)}
-                          className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-md hover:scale-110"
-                        >
-                          <X size={14} />
-                        </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedImageId(selectedImageId === image.id ? null : image.id)}
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.55)', border: 'none',
+                          color: '#fff', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          backdropFilter: 'blur(4px)', transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.8)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.55)')}
+                      >
+                        <Settings size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveImage(image.id)}
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.55)', border: 'none',
+                          color: '#fff', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          backdropFilter: 'blur(4px)', transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(163,31,52,0.9)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.55)')}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Caption */}
+                  {image.displayOptions.caption && (
+                    <p style={{ fontSize: 12, color: 'var(--adm-ink-3)', textAlign: 'center', padding: '6px 12px', fontStyle: 'italic' }}>
+                      {image.displayOptions.caption}
+                    </p>
+                  )}
+
+                  {/* Settings panel */}
+                  {selectedImageId === image.id && (
+                    <div className="adm-img-settings">
+                      {/* Size */}
+                      <div className="adm-img-settings-row">
+                        <span className="adm-label" style={{ marginBottom: 0, minWidth: 72 }}>Tamaño</span>
+                        <div className="adm-toggle-group">
+                          {(['small', 'medium', 'large', 'full'] as const).map((s) => (
+                            <button key={s} type="button"
+                              onClick={() => onSettingsChange(image.id, 'size', s)}
+                              className={`adm-toggle-btn${image.displayOptions.size === s ? ' active' : ''}`}
+                            >
+                              {s === 'small' ? <Minimize size={13} />
+                               : s === 'large' ? <Maximize size={13} />
+                               : s === 'full'  ? <span style={{ fontSize: 10, fontFamily: 'var(--adm-font-mono)' }}>100%</span>
+                               : <ImageIcon size={13} />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Alignment */}
+                      <div className="adm-img-settings-row">
+                        <span className="adm-label" style={{ marginBottom: 0, minWidth: 72 }}>Alineación</span>
+                        <div className="adm-toggle-group">
+                          {(['left', 'center', 'right'] as const).map((a) => (
+                            <button key={a} type="button"
+                              onClick={() => onSettingsChange(image.id, 'alignment', a)}
+                              className={`adm-toggle-btn${image.displayOptions.alignment === a ? ' active' : ''}`}
+                            >
+                              {a === 'left' ? <AlignLeft size={13} /> : a === 'right' ? <AlignRight size={13} /> : <AlignCenter size={13} />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Crop */}
+                      <div className="adm-img-settings-row">
+                        <span className="adm-label" style={{ marginBottom: 0, minWidth: 72 }}>Recorte</span>
+                        <div className="adm-toggle-group">
+                          {(['cover', 'contain', 'none'] as const).map((c) => (
+                            <button key={c} type="button"
+                              onClick={() => onSettingsChange(image.id, 'cropMode', c)}
+                              className={`adm-toggle-btn${image.displayOptions.cropMode === c ? ' active' : ''}`}
+                              style={{ fontSize: 11, padding: '5px 10px' }}
+                            >
+                              {c === 'cover' ? 'Cubrir' : c === 'contain' ? 'Contener' : 'Original'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Caption */}
+                      <div className="adm-img-settings-row" style={{ alignItems: 'flex-start' }}>
+                        <span className="adm-label" style={{ marginBottom: 0, minWidth: 72, paddingTop: 2 }}>Leyenda</span>
+                        <input
+                          type="text"
+                          value={image.displayOptions.caption || ''}
+                          onChange={(e) => onSettingsChange(image.id, 'caption', e.target.value)}
+                          placeholder="Añadir leyenda..."
+                          className="adm-input"
+                          style={{ flex: 1, fontSize: 12 }}
+                        />
                       </div>
                     </div>
-                    {selectedImageId === image.id && (
-                      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                          <Settings size={14} className="mr-1 text-blue-500" />
-                          Opciones de visualización
-                        </h4>
-                        <div className="mb-4">
-                          <label className="text-xs text-gray-600 block mb-1.5 font-medium">Tamaño</label>
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'size', 'small')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.size === 'small'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Pequeño"
-                            >
-                              <Minimize size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'size', 'medium')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.size === 'medium'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Mediano"
-                            >
-                              <ImageIcon size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'size', 'large')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.size === 'large'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Grande"
-                            >
-                              <Maximize size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'size', 'full')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.size === 'full'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Completo"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                <line x1="21" y1="3" x2="3" y2="21" />
-                                <line x1="3" y1="3" x2="21" y2="21" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <label className="text-xs text-gray-600 block mb-1.5 font-medium">Alineación</label>
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'alignment', 'left')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.alignment === 'left'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Izquierda"
-                            >
-                              <AlignLeft size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'alignment', 'center')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.alignment === 'center'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Centro"
-                            >
-                              <AlignCenter size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'alignment', 'right')}
-                              className={`p-2 rounded ${
-                                image.displayOptions.alignment === 'right'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Derecha"
-                            >
-                              <AlignRight size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <label className="text-xs text-gray-600 block mb-1.5 font-medium">Modo de recorte</label>
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'cropMode', 'cover')}
-                              className={`p-2 rounded text-xs ${
-                                image.displayOptions.cropMode === 'cover'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Cubrir"
-                            >
-                              <span>Cubrir</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'cropMode', 'contain')}
-                              className={`p-2 rounded text-xs ${
-                                image.displayOptions.cropMode === 'contain'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Contener"
-                            >
-                              <span>Contener</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSettingsChange(image.id, 'cropMode', 'none')}
-                              className={`p-2 rounded text-xs ${
-                                image.displayOptions.cropMode === 'none'
-                                  ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-400'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                              title="Original"
-                            >
-                              <span>Original</span>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mb-1">
-                          <label className="text-xs text-gray-600 block mb-1.5 font-medium">Leyenda</label>
-                          <input
-                            type="text"
-                            value={image.displayOptions.caption || ''}
-                            onChange={(e) => onSettingsChange(image.id, 'caption', e.target.value)}
-                            placeholder="Añadir una leyenda para esta imagen...."
-                            className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {image.displayOptions.caption && (
-                      <p className="text-sm text-gray-600 mt-1 text-center italic px-3 py-2">
-                        {image.displayOptions.caption}
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               );
             })}

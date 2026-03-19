@@ -4,6 +4,8 @@ import { Search, ArrowRight, ChevronsRight, ChevronsLeft, ChevronLeft, ChevronRi
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import API_ROUTES from '../config/api';
+import { getCache, setCache } from '../utils/apiCache';
+import LazyImage from './LazyImage';
 
 interface ImageDisplayOptions {
   size: 'small' | 'medium' | 'large' | 'full';
@@ -23,6 +25,7 @@ interface Section {
   images: NewsImage[];
   text: string;
   imageUrl?: string;
+  videoUrl?: string;
 }
 
 interface NewsItem {
@@ -51,10 +54,21 @@ const NewsSection: React.FC = () => {
   }, [searchTerm, activeCategory]);
 
   const fetchNews = async () => {
+    // ── Cache hit: zero-latency render ──
+    const cached = getCache<NewsItem[]>('news');
+    if (cached) {
+      const sorted = [...cached].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setNewsItems(sorted);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const res = await axios.get(API_ROUTES.NEWS);
-      const sortedNews = [...res.data].sort((a, b) => {
+      setCache('news', res.data, 120_000); // 2 min TTL
+      const sortedNews = [...res.data].sort((a: NewsItem, b: NewsItem) => {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
       setNewsItems(sortedNews);
@@ -65,14 +79,22 @@ const NewsSection: React.FC = () => {
     }
   };
 
+  const getYouTubeThumbnail = (videoUrl: string): string => {
+    const match = videoUrl.match(
+      /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : '';
+  };
+
   const getImageUrl = (section: Section): string | undefined => {
-    if (section.images && section.images.length > 0) {
-      return section.images[0].url;
-    } else if (section.imageUrl) {
-      return section.imageUrl;
-    }
+    if (section.images?.length) return section.images[0].url;
+    if (section.imageUrl)       return section.imageUrl;
+    if (section.videoUrl)       return getYouTubeThumbnail(section.videoUrl) || undefined;
     return undefined;
   };
+
+  const sectionHasVideo = (section: Section): boolean =>
+    !!(section.videoUrl && !section.images?.length && !section.imageUrl);
 
   const categories = ['Todas', ...Array.from(new Set(newsItems.map(item => item.category)))];
 
@@ -190,7 +212,7 @@ const NewsSection: React.FC = () => {
   };
 
   return (
-    <section className="pt-28 pb-24 bg-white">
+    <section className="pt-28 pb-24" style={{ backgroundColor: 'var(--color-surface)' }}>
       <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-16">
           <motion.h2
@@ -225,11 +247,11 @@ const NewsSection: React.FC = () => {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`px-4 py-2 text-sm font-serif transition-all ${
-                activeCategory === category
-                  ? 'text-white bg-gray-900'
-                  : 'text-gray-700 bg-white border border-gray-200 hover:border-gray-400'
-              }`}
+              className="px-4 py-2 text-sm font-serif transition-all"
+              style={activeCategory === category
+                ? { backgroundColor: 'var(--color-primary)', color: '#ffffff' }
+                : { color: 'var(--color-text-secondary)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)' }
+              }
             >
               {category}
             </button>
@@ -238,10 +260,10 @@ const NewsSection: React.FC = () => {
 
         {isLoading ? (
           <div className="space-y-16">
-            <div className="w-full h-96 bg-gray-100 animate-pulse"></div>
+            <div className="skeleton w-full h-96 rounded"></div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
               {[1, 2, 3].map(i => (
-                <div key={i} className="bg-gray-100 h-64 animate-pulse"></div>
+                <div key={i} className="skeleton h-64 rounded"></div>
               ))}
             </div>
           </div>
@@ -280,14 +302,19 @@ const NewsSection: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="md:col-span-5 lg:col-span-4 order-1 md:order-2">
-                      <div className="aspect-w-4 aspect-h-5 overflow-hidden">
-                        <img
-                          src={featuredNews.sections[0] ? getImageUrl(featuredNews.sections[0]) : '/placeholder-news.jpg'}
-                          alt={featuredNews.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                      </div>
+                    <div className="md:col-span-5 lg:col-span-4 order-1 md:order-2 relative">
+                      <LazyImage
+                        src={featuredNews.sections[0] ? getImageUrl(featuredNews.sections[0]) || '/placeholder-news.jpg' : '/placeholder-news.jpg'}
+                        alt={featuredNews.title}
+                        wrapperClassName="aspect-w-4 aspect-h-5 overflow-hidden"
+                        imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        priority
+                      />
+                      {featuredNews.sections[0] && sectionHasVideo(featuredNews.sections[0]) && (
+                        <span className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full bg-black/60 text-white pointer-events-none">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -295,7 +322,7 @@ const NewsSection: React.FC = () => {
             )}
 
             {regularNews.length > 0 && (
-              <div className="border-t border-gray-100 mb-16"></div>
+              <div className="border-t mb-16" style={{ borderColor: 'var(--color-border-subtle)' }}></div>
             )}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -308,12 +335,18 @@ const NewsSection: React.FC = () => {
                   className="group"
                 >
                   <Link to={`/noticias/${news._id}`} className="block">
-                    <div className="aspect-w-16 aspect-h-9 mb-5 overflow-hidden">
-                      <img
-                        src={news.sections[0] ? getImageUrl(news.sections[0]) : '/placeholder-news.jpg'}
+                    <div className="relative mb-5">
+                      <LazyImage
+                        src={news.sections[0] ? getImageUrl(news.sections[0]) || '/placeholder-news.jpg' : '/placeholder-news.jpg'}
                         alt={news.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        wrapperClassName="aspect-w-16 aspect-h-9 overflow-hidden"
+                        imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
+                      {news.sections[0] && sectionHasVideo(news.sections[0]) && (
+                        <span className="absolute top-3 right-3 flex items-center justify-center w-9 h-9 rounded-full bg-black/60 text-white pointer-events-none">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                      )}
                     </div>
                     <div>
                       <span className="text-xs uppercase tracking-wider text-gray-500 mb-2 block">
@@ -375,11 +408,11 @@ const NewsSection: React.FC = () => {
                       <button
                         key={index}
                         onClick={() => goToPage(number)}
-                        className={`flex items-center justify-center w-10 h-10 text-sm font-serif transition-colors ${
-                          currentPage === number
-                            ? 'bg-gray-900 text-white'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        className="flex items-center justify-center w-10 h-10 text-sm font-serif transition-colors"
+                        style={currentPage === number
+                          ? { backgroundColor: 'var(--color-primary)', color: '#ffffff' }
+                          : { color: 'var(--color-text-secondary)' }
+                        }
                         aria-label={`Ir a página ${number}`}
                         aria-current={currentPage === number ? 'page' : undefined}
                       >
@@ -388,7 +421,8 @@ const NewsSection: React.FC = () => {
                     ) : (
                       <span
                         key={index}
-                        className="flex items-center justify-center w-10 h-10 text-sm font-serif text-gray-600"
+                        className="flex items-center justify-center w-10 h-10 text-sm font-serif"
+                        style={{ color: 'var(--color-text-secondary)' }}
                       >
                         {number}
                       </span>

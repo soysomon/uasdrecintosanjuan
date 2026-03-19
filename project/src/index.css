@@ -1,202 +1,527 @@
-/* Configuración base */
-html {
-  zoom: 0.93; /* Aplica un zoom del 93% a toda la página */
-}
+/* ================================================================
+   DESIGN SYSTEM — UASD RECINTO SAN JUAN
+   Principal UI Architect :: Premium Elevation v2.0
+   ================================================================ */
 
-body {
-  margin: 0; /* Elimina márgenes predeterminados */
-  padding: 0; /* Elimina paddings predeterminados */
-  min-height: 100vh; /* Asegura que el body no cree espacio extra */
-}
+/*
+ * Google Fonts — Roboto Variable (weights 300–900, todos reales, no faux-bold).
+ * Roboto v3+ usa fuente variable, por lo que 800 (ExtraBold) y 900 (Black)
+ * son instancias discretas del eje de peso — NO síntesis del navegador.
+ * Hero usa fontWeight:900 · Stats usa fontWeight:800
+ */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Contenedor raíz de React */
-#root {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh; /* Coincide con el body */
-}
-
-/* Footer */
-footer {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Chatbot icon */
-.chatbot-icon {
-  position: fixed;
-  bottom: 16px; /* Equivalente a bottom-4 en Tailwind */
-  right: 16px; /* Equivalente a right-4 */
-  z-index: 1000; /* Más alto que el menú móvil (z-50) */
-  width: 56px; /* Tamaño fijo para visibilidad */
-  height: 56px;
-  zoom: 1; /* Restaura el tamaño original, ignorando el zoom global */
-}
-
-/* Chatbot panel */
-.chatbot-panel {
-  position: fixed;
-  bottom: 80px; /* Justo encima del icono (16px del icono + 56px de altura del icono + 8px de separación) */
-  right: 16px; /* Alineado con el icono */
-  z-index: 1000; /* Igual que el icono, por encima del menú móvil (z-50) */
-  width: 100%;
-  max-width: 320px; /* Equivalente a max-w-sm, pero más pequeño para pantallas pequeñas */
-  max-height: 80vh; /* No exceder el 80% de la altura del viewport */
-  zoom: 1; /* Restaura el tamaño original, ignorando el zoom global */
-}
-
-/* Ajustes responsivos para el panel */
-@media (min-width: 640px) {
-  .chatbot-panel {
-    max-width: 448px; /* Equivalente a sm:max-w-md */
-  }
-}
-
-@media (min-width: 768px) {
-  .chatbot-panel {
-    max-width: 512px; /* Equivalente a md:max-w-lg */
-  }
-}
-
-/* Asegurar que el contenedor interno del panel también sea responsivo */
-.chatbot-panel > .relative {
-  max-height: 80vh; /* Coincide con el contenedor padre */
-  overflow-y: auto; /* Permite scroll vertical si el contenido es muy largo */
-}
-
-/* Backdrop del chatbot */
-.chatbot-panel > .fixed {
-  z-index: 900; /* Justo debajo del panel y el icono, pero por encima de otros elementos */
-}
-
-/* Importar las fuentes Roboto desde public/fonts */
+/* === LOCAL FONT FALLBACKS === */
 @font-face {
   font-family: 'Roboto';
   src: url('../fonts/roboto-regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'Roboto';
   src: url('../fonts/roboto-bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
+  font-display: swap;
 }
 
+/* === CSS DESIGN TOKENS === */
+:root {
+  /* Color Roles */
+  --color-primary:        #003087;
+  --color-primary-dark:   #001f5a;
+  --color-primary-light:  #1a4ba0;
+  --color-primary-subtle: #eef2fb;
+  --color-accent:         #fdb913;
+  --color-accent-dark:    #e6a610;
+
+  /* Surfaces */
+  --color-surface:        #ffffff;
+  --color-surface-alt:    #f8f9fc;
+  --color-surface-muted:  #f0f4fa;
+
+  /* Text */
+  --color-text-primary:   #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted:     #94a3b8;
+  --color-text-inverse:   #ffffff;
+
+  /* Borders */
+  --color-border:         #e2e8f0;
+  --color-border-subtle:  #f1f5f9;
+
+  /* Spacing Scale 8pt */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+  --space-32:  128px;
+
+  /* Border Radius — 4 niveles formales */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-hero: 20px;
+
+  /* Shadow System — 3 niveles */
+  --shadow-subtle:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-medium:   0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 20px 48px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.06);
+  --shadow-primary:  0 8px 28px rgba(0,48,135,0.28);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Motion System — 2026 unified constants */
+  --motion-y:        40px;
+  --motion-dur:      0.7s;
+  --motion-dur-slow: 0.9s;
+  --motion-ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --motion-stagger:  0.09s;
+
+  /* Section Spacing — clamp responsive, +40% vs v1 */
+  --section-pad:     clamp(4.5rem, 8vw, 7rem);
+  --section-pad-lg:  clamp(5.5rem, 10vw, 8.5rem);
+  --block-gap:       clamp(3rem, 5vw, 4.5rem);
+}
+
+/* ===== TAILWIND (una sola vez) ===== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ================================================================
+   BASE LAYER
+   ================================================================ */
 @layer base {
   html {
     scroll-behavior: smooth;
-  }
-  
-  body {
-    @apply font-sans antialiased text-gray-700 bg-gray-50; 
-    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
   }
 
-  p {
-    @apply text-gray-600;
-    line-height: 1.9;
+  body {
+    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    line-height: 1.75;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  #root {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  footer {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold text-gray-800; 
+    color: var(--color-text-primary);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0;
   }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0;
+  }
+
+  a {
+    transition: color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Accesibilidad — focus visible AA */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Scrollbar refinado */
+  ::-webkit-scrollbar        { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track  { background: var(--color-surface-alt); }
+  ::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 }
 
+/* ================================================================
+   COMPONENTS LAYER
+   ================================================================ */
 @layer components {
-  .bauhaus-grid {
-    @apply grid grid-cols-1 gap-4 sm:gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
-  }
-  
-  .bauhaus-card {
-    @apply relative overflow-hidden rounded-lg bg-white shadow-xl transition-all duration-300 hover:shadow-2xl;
-  }
 
-  .bauhaus-title {
-    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight;
-  }
-
-  .bauhaus-subtitle {
-    @apply mt-3 sm:mt-4 md:mt-6 text-base sm:text-lg md:text-xl text-gray-600;
-  }
-
-  .bauhaus-button {
-    @apply inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-300
-           focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-
-  .bauhaus-primary-button {
-    @apply bauhaus-button bg-bauhaus-blue text-white hover:bg-bauhaus-blue/90
-           focus:ring-bauhaus-blue;
-  }
-
-  .bauhaus-secondary-button {
-    @apply bauhaus-button border-2 border-bauhaus-blue text-bauhaus-blue hover:bg-bauhaus-blue/10
-           focus:ring-bauhaus-blue;
-  }
-
-  .bauhaus-geometric-bg {
-    @apply relative overflow-hidden;
-  }
-
-  .bauhaus-geometric-bg::before {
-    content: '';
-    @apply absolute top-0 left-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-bauhaus-red/20 rounded-full -translate-x-1/2 -translate-y-1/2;
-  }
-
-  .bauhaus-geometric-bg::after {
-    content: '';
-    @apply absolute bottom-0 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-bauhaus-blue/20 translate-x-1/4 translate-y-1/4 rotate-45;
-  }
-}
-
-/* Utilidades responsivas */
-@layer utilities {
+  /* --- Containers --- */
   .container-responsive {
-    @apply w-full px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl;
-    margin-bottom: 0; /* Evita márgenes inferiores no deseados */
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
   }
-  
-  .section-spacing {
-    @apply py-8 md:py-12 lg:py-16;
+
+  .section-padding    { padding-top: var(--section-pad);    padding-bottom: var(--section-pad); }
+  .section-padding-lg { padding-top: var(--section-pad-lg); padding-bottom: var(--section-pad-lg); }
+
+  /* --- Encabezados de sección --- */
+  .section-label {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-primary);
   }
-  
-  .flex-responsive {
-    @apply flex flex-col md:flex-row;
+
+  .section-title {
+    font-weight: 700;
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
   }
-  
-  .flex-responsive-reverse {
-    @apply flex flex-col md:flex-row-reverse;
+
+  .section-subtitle {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    max-width: 56ch;
+  }
+
+  /* --- Sistema de botones --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium;
+    font-family: 'Roboto', sans-serif;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    white-space: nowrap;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    padding: 0.625rem 1.25rem;
+    line-height: 1;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+  .btn-sm { padding: 0.5rem 1rem;       font-size: 0.875rem; }
+  .btn-md { padding: 0.625rem 1.25rem;  font-size: 0.9375rem; }
+  .btn-lg { padding: 0.75rem 1.625rem;  font-size: 1rem; }
+
+  .btn-primary {
+    @apply btn btn-md;
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    box-shadow: var(--shadow-primary);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 32px rgba(0,48,135,0.35);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    @apply btn btn-md;
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-primary-subtle);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    @apply btn btn-md;
+    background-color: transparent;
+    color: var(--color-primary);
+  }
+  .btn-ghost:hover { background-color: var(--color-primary-subtle); }
+
+  /* --- Sistema de cards --- */
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--transition-base);
+    overflow: hidden;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+    border-color: var(--color-border);
+  }
+  .card-elevated { box-shadow: var(--shadow-medium); }
+  .card-elevated:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-3px);
+  }
+
+  /* --- Link arrows --- */
+  .link-arrow {
+    @apply inline-flex items-center gap-2 font-medium;
+    color: var(--color-primary);
+    transition: gap var(--transition-fast), color var(--transition-fast);
+    font-size: 0.9375rem;
+  }
+  .link-arrow:hover { gap: 0.75rem; }
+
+  /* --- Dividers --- */
+  .divider-primary { height: 2px; width: 48px; background-color: var(--color-primary); border-radius: 2px; }
+  .divider-accent  { height: 3px; width: 40px; background-color: var(--color-accent);  border-radius: 2px; }
+
+}
+
+/* ================================================================
+   UTILITIES LAYER
+   ================================================================ */
+@layer utilities {
+  .section-spacing         { @apply py-16 md:py-20 lg:py-24; }
+  .flex-responsive         { @apply flex flex-col md:flex-row; }
+  .flex-responsive-reverse { @apply flex flex-col md:flex-row-reverse; }
+  .text-balance            { text-wrap: balance; }
+  .text-gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
-/* Animaciones */
+/* ================================================================
+   NAVEGACIÓN PREMIUM
+   ================================================================ */
+
+/* Blur backdrop al hacer scroll */
+.nav-blur {
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  background-color: rgba(255, 255, 255, 0.93) !important;
+}
+
+/* Dropdown premium */
+.nav-dropdown {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated);
+  animation: dropdownFadeIn 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ================================================================
+   NEWS CARDS — Sistema editorial
+   ================================================================ */
+.news-card {
+  display: block;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
+  cursor: pointer;
+}
+.news-card:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-6px);
+  border-color: var(--color-border);
+}
+.news-card-image { overflow: hidden; }
+.news-card-image img {
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+  width: 100%;
+}
+.news-card:hover .news-card-image img { transform: scale(1.03); }
+
+/* Skeleton refinado */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-surface-alt) 25%,
+    var(--color-border-subtle) 50%,
+    var(--color-surface-alt) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ================================================================
+   CHATBOT
+   ================================================================ */
+.chatbot-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 56px;
+  height: 56px;
+  zoom: 1;
+}
+.chatbot-panel {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  z-index: 1000;
+  width: 100%;
+  max-width: 340px;
+  max-height: 80vh;
+  zoom: 1;
+}
+@media (min-width: 640px) { .chatbot-panel { max-width: 460px; } }
+@media (min-width: 768px) { .chatbot-panel { max-width: 520px; } }
+.chatbot-panel > .relative { max-height: 80vh; overflow-y: auto; }
+.chatbot-panel > .fixed    { z-index: 900; }
+
+/* ================================================================
+   ANIMACIONES DE SCROLL
+   ================================================================ */
 .animate-on-scroll {
   opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s ease-out;
+  transform: translateY(var(--motion-y));
+  transition:
+    opacity   var(--motion-dur) var(--motion-ease),
+    transform var(--motion-dur) var(--motion-ease);
 }
-
 .animate-on-scroll.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Transiciones suaves */
-.page-transition {
-  @apply transition-all duration-300 ease-in-out;
+/* Stagger children — delay each child sequentially */
+.animate-on-scroll.stagger:nth-child(1) { transition-delay: calc(var(--motion-stagger) * 0); }
+.animate-on-scroll.stagger:nth-child(2) { transition-delay: calc(var(--motion-stagger) * 1); }
+.animate-on-scroll.stagger:nth-child(3) { transition-delay: calc(var(--motion-stagger) * 2); }
+.animate-on-scroll.stagger:nth-child(4) { transition-delay: calc(var(--motion-stagger) * 3); }
+.animate-on-scroll.stagger:nth-child(5) { transition-delay: calc(var(--motion-stagger) * 4); }
+.animate-on-scroll.stagger:nth-child(6) { transition-delay: calc(var(--motion-stagger) * 5); }
+.animate-on-scroll.stagger:nth-child(7) { transition-delay: calc(var(--motion-stagger) * 6); }
+.animate-on-scroll.stagger:nth-child(8) { transition-delay: calc(var(--motion-stagger) * 7); }
+
+.page-transition { transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* ================================================================
+   SECTION DARK — Secciones de fondo institucional oscuro
+   ================================================================ */
+.section-dark {
+  background-color: var(--color-primary-dark);
+}
+.section-dark h1, .section-dark h2,
+.section-dark h3, .section-dark h4 { color: #ffffff; }
+.section-dark .section-label  { color: rgba(255,255,255,0.50); }
+.section-dark .section-title  { color: #ffffff; }
+.section-dark p { color: rgba(255,255,255,0.72); }
+.section-dark .divider-primary { background-color: rgba(255,255,255,0.30); }
+
+/* ================================================================
+   STAGGER KEYFRAMES — Para secciones gestionadas por CSS
+   ================================================================ */
+@keyframes sectionItemEnter {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Uso: clase .stagger-enter en el contenedor, .is-visible se añade con IntersectionObserver */
+.stagger-enter > * { opacity: 0; }
+.stagger-enter.is-visible > *:nth-child(1) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 0); }
+.stagger-enter.is-visible > *:nth-child(2) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 1); }
+.stagger-enter.is-visible > *:nth-child(3) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 2); }
+.stagger-enter.is-visible > *:nth-child(4) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 3); }
+.stagger-enter.is-visible > *:nth-child(5) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 4); }
+.stagger-enter.is-visible > *:nth-child(6) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 5); }
+.stagger-enter.is-visible > *:nth-child(7) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 6); }
+.stagger-enter.is-visible > *:nth-child(8) { animation: sectionItemEnter 0.65s var(--motion-ease) forwards calc(var(--motion-stagger) * 7); }
+
+
+
+/* ================================================================
+   ACCESIBILIDAD — WCAG 2.1 AA
+   ================================================================ */
+
+/* Skip Navigation — SC 2.4.1 Bypass Blocks */
+.skip-nav {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 10001;
+  padding: 0.625rem 1.25rem;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  transition: top 0.2s var(--motion-ease);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-medium);
+}
+.skip-nav:focus {
+  top: 0;
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-/* Accesibilidad */
+/* Visually hidden but accessible (SR-only) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus visible mejorado — SC 2.4.7 */
+:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 3px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* prefers-reduced-motion — SC 2.3.3 */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -204,6 +529,14 @@ footer {
   }
 }
 
+@media (max-width: 639px) {
+  .hide-on-mobile { display: none !important; }
+  .mobile-only    { display: block; }
+}
+
+/* ================================================================
+   RECENT NEWS heading (legacy)
+   ================================================================ */
 .recent-news h2 {
   padding-left: 0;
   margin-left: 0;
@@ -212,72 +545,43 @@ footer {
   display: inline-block;
 }
 
-@keyframes slideInFromLeft {
-  0% {
-    width: 0;
-  }
-  100% {
-    width: 100%;
-  }
-}
-
-.animate-underline {
+/* ================================================================
+   QUICKLINKS — Underline grows from center (desktop only)
+   ================================================================ */
+.quicklink-item { position: relative; }
+.quicklink-item::after {
+  content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  height: 2px;
+  background-color: var(--color-primary);
+  transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.quicklink-item:hover::after {
   left: 0;
-  height: 1px;
-  background-color: #2563eb;
-  width: 0;
-  animation: slideInFromLeft 0.5s ease-in-out forwards;
+  right: 0;
 }
 
-/* Estilos para menú de navegación responsivo */
-.mobile-menu {
-  @apply fixed inset-0 bg-gray-800 bg-opacity-75 z-50 transform transition-transform duration-300 ease-in-out;
-  transform: translateX(-100%);
+/* ================================================================
+   PORTRAIT ZOOM — Director image hover
+   ================================================================ */
+.portrait-zoom-container { overflow: hidden; }
+.portrait-zoom-container img {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.portrait-zoom-container:hover img { transform: scale(1.04); }
 
-.mobile-menu.open {
-  transform: translateX(0);
+/* ================================================================
+   SECTION ELEVATED — Dark sections with depth shadow
+   Applied on wrapper divs in HomePage (not on overflow:hidden sections)
+   ================================================================ */
+.section-elevated {
+  position: relative;
+  z-index: 2;
+  box-shadow:
+    0 -20px 50px rgba(0, 0, 0, 0.18),
+    0  20px 50px rgba(0, 0, 0, 0.18);
 }
-
-.mobile-menu-content {
-  @apply bg-white h-full w-3/4 max-w-sm py-6 px-4 overflow-y-auto;
-}
-
-/* Breakpoints personalizados para casos específicos */
-@media (min-width: 640px) and (max-width: 767px) {
-  /* Estilos específicos para tablets pequeñas */
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  /* Estilos específicos para tablets */
-}
-
-@media (min-width: 1024px) and (max-width: 1279px) {
-  /* Estilos específicos para laptops */
-}
-
-@media (min-width: 1280px) {
-  /* Estilos específicos para pantallas grandes */
-}
-
-/* Optimización para dispositivos móviles */
-@media (max-width: 639px) {
-  .hide-on-mobile {
-    display: none !important;
-  }
-  
-  .mobile-only {
-    display: block;
-  }
-}
-
-/* Adaptaciones para dispositivos de alta resolución */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  /* Ajustes para pantallas retina */
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

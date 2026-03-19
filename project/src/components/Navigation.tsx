@@ -1,3 +1,6 @@
+// src/components/Navigation.tsx
+// Universidad-grade navigation: utility bar top, clear hierarchy, Admissions as primary CTA.
+// Reference: MIT / Princeton / Yale — admissions-first nav architecture.
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown, ExternalLink, Search, ChevronRight } from 'lucide-react';
@@ -10,38 +13,39 @@ interface NavChildItem {
 
 const baseNavItems: NavItem[] = [
   {
-    label: 'General',
+    label: 'La Institución',
     href: '/',
     children: [
       { label: 'Historia', href: '/inicio/historia' },
-      { label: 'Filosofía', href: '/inicio/filosofia' },
+      { label: 'Filosofía Institucional', href: '/inicio/filosofia' },
       { label: 'Misión, Visión y Valores', href: '/inicio/mision-vision' },
       { label: 'Proyectos y Resoluciones', href: '/inicio/proyectos' },
-      { label: 'Empledos', href: '/inicio/informes' },
+      { label: 'Nuestro Equipo', href: '/inicio/informes' },
       { label: 'UASD Elías Piña', href: '/inicio/elias-pina' },
       { label: 'Consejo Directivo', href: '/inicio/consejo-directivo' },
       { label: 'Unidades', href: '/inicio/unidades' },
+      { label: 'Tour Virtual', href: '/TourVirtual' },
       { label: 'Preguntas Frecuentes', href: '/preguntas-frecuentes' },
     ],
   },
-  { label: 'Noticias', href: '/noticias' },
   {
-    label: 'Carreras',
+    label: 'Académico',
     href: '/carreras',
     children: [
-      { label: 'Grado', href: '/carreras/grado' },
-      { label: 'Postgrado', href: '/carreras/postgrado' },
+      { label: 'Carreras de Grado', href: '/carreras/grado' },
+      { label: 'Postgrado y Maestrías', href: '/carreras/postgrado' },
+      { label: 'Nuestros Docentes', href: '/docentes-page' },
     ],
   },
-  { label: 'Tour Virtual', href: '/TourVirtual' },
-  { label: 'Docentes', href: '/docentes-page' },
+  { label: 'Noticias', href: '/noticias' },
+  { label: 'Investigación', href: '/inicio/proyectos' },
   { label: 'Contacto', href: '/contacto' },
   {
     label: 'Transparencia',
     href: '/transparencia',
     children: [
       { label: 'Estados Financieros', href: '/transparencia/estados-financieros' },
-      { label: 'Memorias', href: '/memorias' },
+      { label: 'Memorias Institucionales', href: '/memorias' },
     ],
   },
 ];
@@ -57,27 +61,16 @@ const serviceLinks = [
   { id: 'pagos', label: 'Pago en línea', href: 'https://uasd.edu.do/servicios/pago-en-linea/', description: 'Sistema de pagos' },
 ];
 
-// Función para convertir la estructura de menú anidada a una lista plana para móvil
 function getFlattenedMenuItems(items: NavItem[]): { label: string; href: string; isSubItem?: boolean; parentLabel?: string }[] {
   const result: { label: string; href: string; isSubItem?: boolean; parentLabel?: string }[] = [];
-  
   items.forEach(item => {
-    // Agregar el ítem principal
     result.push({ label: item.label, href: item.href });
-    
-    // Agregar los hijos si existen
     if (item.children && item.children.length > 0) {
       item.children.forEach(child => {
-        result.push({ 
-          label: child.label, 
-          href: child.href, 
-          isSubItem: true,
-          parentLabel: item.label 
-        });
+        result.push({ label: child.label, href: child.href, isSubItem: true, parentLabel: item.label });
       });
     }
   });
-  
   return result;
 }
 
@@ -89,13 +82,13 @@ function Navigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const [navItems] = useState<NavItem[]>(baseNavItems);
   const [flatMobileItems] = useState(getFlattenedMenuItems(baseNavItems));
-  
+
   const handleScroll = useCallback(() => {
-    setIsScrolled(window.scrollY > 10);
+    setIsScrolled(window.scrollY > 20);
   }, []);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
@@ -110,7 +103,6 @@ function Navigation() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [activeDropdown]);
 
-  // Navegar a una ruta en móvil
   const navigateToMobile = (href: string) => {
     setIsOpen(false);
     navigate(href);
@@ -118,86 +110,115 @@ function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0" style={{ zIndex: 9999 }}>
-      {/* Barra de Servicios */}
-      <div className={`transition-all duration-300 ${isScrolled ? 'bg-[#003087] py-0.5' : 'bg-[#003087] py-1'} border-b border-[#003087]`}>
-        <div className="max-w-7xl mx-auto px-4 flex justify-end">
-          {serviceLinks.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-              className="text-sm text-white hover:text-gray-200 px-3 py-0 flex items-center transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {link.label}
-              <ExternalLink size={14} className="ml-1 opacity-75" />
-            </a>
-          ))}
+
+      {/* ── Utility bar — top strip ── */}
+      <div
+        className="border-b border-[#002070]/20 transition-all duration-300"
+        style={{ backgroundColor: 'var(--color-primary)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+          {/* Left: institution name abbreviation */}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-widest hidden sm:block"
+            style={{ color: 'rgba(255,255,255,0.40)', letterSpacing: '0.14em' }}
+          >
+            UASD · Recinto San Juan de la Maguana
+          </span>
+          {/* Right: service links */}
+          <div className="flex ml-auto">
+            {serviceLinks.map((link) => (
+              <a
+                key={link.id}
+                href={link.href}
+                className="text-xs font-medium text-white/75 hover:text-white px-3 py-1.5 flex items-center gap-1 transition-colors duration-150"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {link.label}
+                <ExternalLink size={10} className="opacity-50" />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Barra de Navegación Principal */}
-      <div className={`transition-all duration-300 ${isScrolled ? 'py-2 bg-white shadow-sm' : 'py-3 bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
+      {/* ── Primary navigation bar ── */}
+      <div
+        className={`transition-all duration-300 ${
+          isScrolled
+            ? 'py-2 nav-blur shadow-nav'
+            : 'py-3 bg-white'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
+
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0 mx-auto lg:-ml-8 lg:mx-0">
+          <Link to="/" className="flex-shrink-0 mx-auto lg:-ml-0 lg:mx-0">
             <img
               src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/LOGO-RECINTO-UASD-SAN-JUAN-AZUL-2.png"
               alt="UASD Recinto San Juan"
-              className="h-14 md:h-16 lg:h-18 transition-all"
+              className={`w-auto transition-all duration-300 ${isScrolled ? 'h-12' : 'h-14 md:h-16'}`}
             />
           </Link>
 
-          {/* Menú Desktop */}
-          <div className="hidden lg:flex items-center space-x-2">
-            {/* Búsqueda */}
-            <div className="relative mr-4">
+          {/* Desktop menu */}
+          <div className="hidden lg:flex items-center gap-1">
+
+            {/* Search */}
+            <div className="relative mr-3">
               <input
                 type="text"
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 px-4 py-2 pl-10 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#003087] focus:border-transparent"
+                className="w-44 px-4 py-2 pl-9 text-sm rounded-lg border border-[#e2e8f0] bg-[#f8f9fc]
+                           focus:outline-none focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]/40
+                           transition-all duration-200 placeholder:text-[#94a3b8]"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#94a3b8]" />
             </div>
 
-            {/* Ítems de navegación */}
+            {/* Nav items */}
             {navItems.map((item) => (
-              <div key={item.href} className="relative group dropdown-container">
+              <div key={item.href} className="relative dropdown-container">
                 {item.children ? (
                   <button
                     onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#003087] hover:bg-gray-50 transition-colors flex items-center"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-[#475569] hover:text-[#003087]
+                               hover:bg-[#f8f9fc] transition-all duration-150 flex items-center gap-1"
                     aria-expanded={activeDropdown === item.label}
                     aria-controls={`dropdown-${item.label}`}
                   >
                     {item.label}
                     <ChevronDown
-                      size={16}
-                      className={`ml-1 transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
+                      size={13}
+                      className={`transition-transform duration-200 opacity-50 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
                     />
                   </button>
                 ) : (
                   <Link
                     to={item.href}
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#003087] hover:bg-gray-50 transition-colors"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-[#475569] hover:text-[#003087]
+                               hover:bg-[#f8f9fc] transition-all duration-150 block"
                   >
                     {item.label}
                   </Link>
                 )}
 
+                {/* Dropdown */}
                 {item.children && activeDropdown === item.label && (
                   <div
                     id={`dropdown-${item.label}`}
-                    className="absolute z-50 left-0 mt-1 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all animate-fadeIn"
+                    className="absolute z-50 left-0 mt-2 w-64 nav-dropdown"
                   >
-                    <div className="py-1">
+                    <div className="py-2">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
                           to={child.href}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#003087] transition-colors"
+                          className="flex items-center px-4 py-2.5 text-sm text-[#475569]
+                                     hover:bg-[#f8f9fc] hover:text-[#003087]
+                                     transition-colors duration-100"
                           onClick={() => setActiveDropdown(null)}
                         >
                           {child.label}
@@ -209,92 +230,128 @@ function Navigation() {
               </div>
             ))}
 
-            {/* Botones CTA */}
-            <div className="flex items-center ml-6 space-x-2">
+            {/* Primary CTAs — Autoservicio + Admisiones */}
+            <div className="flex items-center gap-2 ml-4 pl-4" style={{ borderLeft: '1px solid #e2e8f0' }}>
               <a
                 href={serviceLinks[0].href}
-                className="px-3 py-2 text-sm font-medium text-[#003087] border border-[#003087] rounded-md hover:bg-[#003087]/5 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[#003087] border border-[#003087]/25
+                           rounded-lg hover:bg-[#003087]/5 hover:border-[#003087]/50
+                           transition-all duration-200"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Autoservicio
+                Portal
               </a>
-
               <a
                 href={serviceLinks[1].href}
-                className="px-3 py-2 text-sm font-medium text-white bg-[#003087] rounded-md hover:bg-[#00246b] transition-colors shadow-sm"
+                className="px-5 py-2 text-sm font-semibold text-white rounded-lg
+                           transition-all duration-200 hover:-translate-y-px"
+                style={{ backgroundColor: 'var(--color-primary)', boxShadow: '0 2px 8px rgba(0,48,135,0.30)' }}
                 target="_blank"
                 rel="noopener noreferrer"
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-primary)')}
               >
                 Admisiones
               </a>
             </div>
           </div>
 
-          {/* Botón de Menú Móvil */}
+          {/* Mobile menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-[#475569] hover:bg-[#f8f9fc]
+                       hover:text-[#003087] transition-all duration-150"
+            aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
-      {/* Menú móvil plano estilo app */}
+      {/* ── Mobile menu ── */}
       {isOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg animate-fadeIn fixed top-[108px] left-0 right-0 bottom-0 overflow-auto">
-          {/* Barra de búsqueda */}
-          <div className="sticky top-0 bg-white p-4 border-b border-gray-200">
+        <div className="lg:hidden bg-white border-t border-[#f1f5f9] shadow-elevated
+                        fixed top-[calc(var(--nav-h,108px))] left-0 right-0 bottom-0 overflow-auto
+                        animate-fade-in">
+
+          {/* Search */}
+          <div className="sticky top-0 bg-white p-4 border-b border-[#f1f5f9]">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#003087] focus:border-transparent"
+                className="w-full px-4 py-2.5 pl-9 text-sm rounded-lg border border-[#e2e8f0]
+                           bg-[#f8f9fc] focus:outline-none focus:ring-2 focus:ring-[#003087]/20
+                           focus:border-[#003087]/40 transition-all placeholder:text-[#94a3b8]"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
             </div>
           </div>
 
-          {/* Lista plana de todas las opciones de menú */}
-          <div className="p-2">
+          {/* Admissions banner — mobile first */}
+          <div
+            className="mx-4 mt-4 rounded-xl px-5 py-4 flex items-center justify-between"
+            style={{ backgroundColor: 'var(--color-primary)' }}
+          >
+            <div>
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-0.5">
+                Matrícula abierta
+              </p>
+              <p className="text-sm font-bold text-white">Admisiones 2025–2026</p>
+            </div>
+            <a
+              href={serviceLinks[1].href}
+              className="text-xs font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary-dark)' }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Aplicar
+            </a>
+          </div>
+
+          {/* Nav items list */}
+          <div className="p-3 mt-2">
             {flatMobileItems.map((item, index) => (
               <button
                 key={`${item.href}-${index}`}
                 onClick={() => navigateToMobile(item.href)}
-                className={`flex w-full justify-between items-center px-4 py-3 text-base 
-                  ${item.isSubItem 
-                    ? 'text-gray-600 pl-8 border-l-2 border-gray-200 ml-4' 
-                    : 'text-gray-800 font-medium'
-                  }
-                  hover:bg-gray-50 active:bg-gray-100 rounded-md transition-colors mb-0.5
-                `}
+                className={`flex w-full justify-between items-center px-4 py-3 text-sm rounded-lg
+                            transition-all duration-150 mb-0.5
+                            ${item.isSubItem
+                              ? 'text-[#475569] pl-8 ml-2 border-l-2 border-[#e2e8f0] rounded-l-none'
+                              : 'text-[#0f172a] font-medium'
+                            }
+                            hover:bg-[#f8f9fc] active:bg-[#eef2fb]`}
               >
                 <span>{item.label}</span>
-                <ChevronRight size={16} className="text-gray-400" />
+                <ChevronRight size={14} className="text-[#94a3b8]" />
               </button>
             ))}
 
-            {/* Enlaces de servicio */}
-            <div className="mt-6 px-2 space-y-2">
-              {serviceLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.href}
-                  className="block px-4 py-3 text-base font-medium text-center rounded-md transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    backgroundColor: link.id === 'admisiones' ? '#003087' : 'white',
-                    color: link.id === 'admisiones' ? 'white' : '#003087',
-                    border: '1px solid #003087',
-                  }}
-                >
-                  {link.label}
-                </a>
-              ))}
+            {/* Other service links */}
+            <div className="mt-6 px-1 space-y-2">
+              {serviceLinks
+                .filter(l => l.id !== 'admisiones')
+                .map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    className="flex items-center justify-center px-4 py-3 text-sm font-medium
+                               rounded-lg transition-all duration-200"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color:  'var(--color-primary)',
+                      border: `1.5px solid var(--color-primary)`,
+                    }}
+                  >
+                    {link.label}
+                  </a>
+                ))}
             </div>
           </div>
         </div>

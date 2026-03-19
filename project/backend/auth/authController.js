@@ -1,399 +1,456 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const IpAttempt = require('../models/IpAttempt');
-// Generar JWT
-const generateToken = (userId) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET no está definido en las variables de entorno');
-  }
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: '8h' // Token expira en 8 horas
-  });
+/**
+ * authController.js — Enterprise hardened authentication controller
+ *
+ * Security model:
+ *   - Access token  : JWT, 15 min TTL, delivered via httpOnly Secure cookie
+ *   - Refresh token : opaque 64-byte hex, 7-day TTL, stored in DB + httpOnly cookie
+ *   - Token rotation: each /refresh issues a new pair and invalidates the old one
+ *   - Reuse detection: presenting a used token deletes the entire token family
+ *   - Progressive IP lockout: 5 → 15 min, 10 → 30 min, 15 → 1 hr, 20 → 5 hrs
+ *   - Progressive user lockout: 5 bad passwords → account locked 15 min
+ *   - All security-relevant events written to SecurityEvent audit log
+ */
+
+const crypto = require('crypto');
+const jwt    = require('jsonwebtoken');
+
+const User         = require('../models/User');
+const IpAttempt    = require('../models/IpAttempt');
+const RefreshToken = require('../models/RefreshToken');
+const auditLogger  = require('./auditLogger');
+
+// ── Environment guards ────────────────────────────────────────────────────────
+if (!process.env.JWT_SECRET) {
+  throw new Error('[AUTH] JWT_SECRET is not defined. Refusing to start.');
+}
+
+// ── Cookie configuration ──────────────────────────────────────────────────────
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+const ACCESS_TTL_MS  = 15 * 60 * 1000;          // 15 minutes
+const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: IS_PROD,
+  // 'strict' in production prevents cross-origin cookie sending (CSRF defence)
+  // 'lax' in dev allows localhost cross-port requests
+  sameSite: IS_PROD ? 'strict' : 'lax',
 };
 
-// Login
-exports.login = async (req, res) => {
+function setTokenCookies(res, accessToken, refreshToken) {
+  res.cookie('access_token', accessToken, {
+    ...COOKIE_BASE,
+    maxAge: ACCESS_TTL_MS,
+    path: '/',
+  });
+  // Refresh token cookie scoped to /api/auth only — minimises exposure surface
+  res.cookie('refresh_token', refreshToken, {
+    ...COOKIE_BASE,
+    maxAge: REFRESH_TTL_MS,
+    path: '/api/auth',
+  });
+}
+
+function clearTokenCookies(res) {
+  const clearOpts = { ...COOKIE_BASE, maxAge: 0 };
+  res.clearCookie('access_token',  { ...clearOpts, path: '/' });
+  res.clearCookie('refresh_token', { ...clearOpts, path: '/api/auth' });
+}
+
+// ── Token generators ──────────────────────────────────────────────────────────
+function generateAccessToken(user) {
+  return jwt.sign(
+    { userId: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m', issuer: 'uasd-api', audience: 'uasd-client' }
+  );
+}
+
+async function generateRefreshToken(userId, family) {
+  const token     = crypto.randomBytes(64).toString('hex');
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_MS);
+  await RefreshToken.create({ token, userId, family, expiresAt });
+  return token;
+}
+
+// ── IP progressive lockout ────────────────────────────────────────────────────
+const BLOCK_SCHEDULE = [
+  { threshold: 5,  minutes: 15  },
+  { threshold: 10, minutes: 30  },
+  { threshold: 15, minutes: 60  },
+  { threshold: 20, minutes: 300 },
+];
+
+async function recordFailedIpAttempt(ip) {
   try {
-    const { username, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress; // Obtener IP del cliente
+    let record = await IpAttempt.findOne({ ip });
+    if (!record) record = new IpAttempt({ ip, failedAttempts: 0, blockLevel: 0 });
 
-    // Verificar si la IP está bloqueada
-    let ipAttempt = await IpAttempt.findOne({ ip });
-    if (ipAttempt && ipAttempt.lockUntil && ipAttempt.lockUntil > Date.now()) {
-      const timeLeft = Math.ceil((ipAttempt.lockUntil - Date.now()) / 1000 / 60);
-      return res.status(429).json({
-        message: `Por razones de seguridad, el acceso ha sido suspendido temporalmente. Podrás volver a intentarlo en ${timeLeft} minuto${timeLeft !== 1 ? 's' : ''}.`
-      });
+    record.failedAttempts += 1;
+    record.lastAttempt    = new Date();
+
+    for (let i = 0; i < BLOCK_SCHEDULE.length; i++) {
+      if (record.failedAttempts >= BLOCK_SCHEDULE[i].threshold) {
+        record.blockLevel = i + 1;
+        record.lockUntil  = new Date(Date.now() + BLOCK_SCHEDULE[i].minutes * 60 * 1000);
+      }
     }
 
-    // Buscar usuario
-    const user = await User.findOne({ username });
-    if (!user) {
+    await record.save();
+  } catch (err) {
+    console.error('[AUTH] recordFailedIpAttempt:', err.message);
+  }
+}
+
+async function isIpBlocked(ip) {
+  const record = await IpAttempt.findOne({ ip });
+  if (!record || !record.lockUntil) return false;
+
+  if (record.lockUntil > new Date()) return true;
+
+  // Lock expired — reset counters
+  record.failedAttempts = 0;
+  record.blockLevel     = 0;
+  record.lockUntil      = null;
+  await record.save();
+  return false;
+}
+
+async function clearIpAttempts(ip) {
+  await IpAttempt.findOneAndUpdate(
+    { ip },
+    { failedAttempts: 0, blockLevel: 0, lockUntil: null }
+  );
+}
+
+// ── User account lockout ──────────────────────────────────────────────────────
+async function recordFailedUserAttempt(user) {
+  user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+  if (user.failedLoginAttempts >= 5) {
+    user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+  }
+  await user.save();
+}
+
+async function clearUserAttempts(user) {
+  user.failedLoginAttempts = 0;
+  user.lockUntil           = null;
+  user.lastLogin           = new Date();
+  await user.save();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getClientMeta(req) {
+  return {
+    ip:        req.ip || req.connection?.remoteAddress || 'unknown',
+    userAgent: req.get('User-Agent') || null,
+  };
+}
+
+// ── Controllers ───────────────────────────────────────────────────────────────
+
+exports.login = async (req, res) => {
+  const { username, password } = req.body;
+  const { ip, userAgent }      = getClientMeta(req);
+
+  try {
+    // 1. IP lockout check
+    if (await isIpBlocked(ip)) {
+      await auditLogger.log({
+        type: 'LOGIN_FAILED', ip, userAgent,
+        details: { reason: 'ip_blocked', username },
+        severity: 'HIGH',
+      });
+      return res.status(429).json({ message: 'Demasiados intentos fallidos. Intente más tarde.' });
+    }
+
+    // 2. Find user
+    const user = await User.findOne({ username: username.toLowerCase().trim() });
+
+    if (!user || !user.active) {
       await recordFailedIpAttempt(ip);
-      return res.status(401).json({ message: 'Credenciales inválidas' });
-    }
-
-    // Verificar si el usuario está bloqueado
-    if (user.lockUntil && user.lockUntil > Date.now()) {
-      const timeLeft = Math.ceil((user.lockUntil - Date.now()) / 1000 / 60);
-      return res.status(429).json({
-        message: `Tu cuenta ha sido suspendida temporalmente por razones de seguridad. Podrás intentarlo de nuevo en ${timeLeft} minuto${timeLeft !== 1 ? 's' : ''}.`
+      await auditLogger.log({
+        type: 'LOGIN_FAILED', ip, userAgent,
+        details: { reason: 'user_not_found', username },
+        severity: 'MEDIUM',
       });
+      // Generic message — do NOT reveal whether the user exists
+      return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
-    // Verificar contraseña
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    // 3. Account lockout check
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      await auditLogger.log({
+        type: 'ACCOUNT_LOCKED', userId: user._id, username: user.username,
+        ip, userAgent, details: { reason: 'account_locked' }, severity: 'HIGH',
+      });
+      return res.status(423).json({ message: 'Cuenta bloqueada temporalmente. Intente más tarde.' });
+    }
+
+    // 4. Password verification
+    const validPassword = await user.comparePassword(password);
+    if (!validPassword) {
       await recordFailedIpAttempt(ip);
       await recordFailedUserAttempt(user);
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      await auditLogger.log({
+        type: 'LOGIN_FAILED', userId: user._id, username: user.username,
+        ip, userAgent,
+        details: { reason: 'bad_password', attempts: user.failedLoginAttempts },
+        severity: 'MEDIUM',
+      });
+      return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
-    // Resetear intentos fallidos
-    if (ipAttempt) {
-      ipAttempt.failedAttempts = 0;
-      ipAttempt.lockUntil = null;
-      ipAttempt.blockLevel = 0;
-      await ipAttempt.save();
-    }
-    user.failedLoginAttempts = 0;
-    user.lockUntil = null;
-    user.lastLogin = Date.now();
-    await user.save();
+    // 5. Success — reset lockout counters
+    await clearIpAttempts(ip);
+    await clearUserAttempts(user);
 
-    // Generar token JWT
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    // 6. Issue tokens (new family = new session)
+    const family       = crypto.randomBytes(16).toString('hex');
+    const accessToken  = generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user._id, family);
 
-    res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
-  } catch (error) {
-    console.error('Error en login:', error);
-    res.status(500).json({ message: 'Error en el servidor' });
-  }
-};
+    setTokenCookies(res, accessToken, refreshToken);
 
-// Registrar intentos fallidos de IP
-async function recordFailedIpAttempt(ip) {
-  let ipAttempt = await IpAttempt.findOne({ ip });
-  if (!ipAttempt) {
-    ipAttempt = new IpAttempt({ ip });
-  }
+    await auditLogger.log({
+      type: 'LOGIN_SUCCESS', userId: user._id, username: user.username,
+      ip, userAgent, severity: 'LOW',
+    });
 
-  ipAttempt.failedAttempts += 1;
-  ipAttempt.lastAttempt = Date.now();
-
-  // Lógica de bloqueo progresivo
-  if (ipAttempt.failedAttempts === 5 && ipAttempt.blockLevel === 0) {
-    ipAttempt.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-    ipAttempt.blockLevel = 1;
-  } else if (ipAttempt.failedAttempts === 7 && ipAttempt.blockLevel === 1) {
-    ipAttempt.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
-    ipAttempt.blockLevel = 2;
-  } else if (ipAttempt.failedAttempts === 9 && ipAttempt.blockLevel === 2) {
-    ipAttempt.lockUntil = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-    ipAttempt.blockLevel = 3;
-  } else if (ipAttempt.failedAttempts === 11 && ipAttempt.blockLevel === 3) {
-    ipAttempt.lockUntil = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5 horas
-    ipAttempt.blockLevel = 4;
-  }
-
-  await ipAttempt.save();
-}
-
-// Registrar intentos fallidos de usuario
-async function recordFailedUserAttempt(user) {
-  user.failedLoginAttempts += 1;
-  if (user.failedLoginAttempts >= 5) {
-    user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Bloqueo de 15 min
-  }
-  await user.save();
-}
-
-// Listar IPs bloqueadas (para superadmin)
-exports.getBlockedIps = async (req, res) => {
-  try {
-    if (req.user.role !== 'superadmin') {
-      return res.status(403).json({ message: 'Acceso denegado. Solo para superadministradores.' });
-    }
-
-    const blockedIps = await IpAttempt.find({
-      $or: [{ lockUntil: { $gt: Date.now() } }, { failedAttempts: { $gt: 0 } }],
-    }).select('ip failedAttempts lastAttempt lockUntil blockLevel');
-
-    // Añadir tiempo restante para cada IP bloqueada
-    const blockedIpsWithTime = blockedIps.map((ip) => ({
-      ip: ip.ip,
-      failedAttempts: ip.failedAttempts,
-      lastAttempt: ip.lastAttempt,
-      lockUntil: ip.lockUntil,
-      blockLevel: ip.blockLevel,
-      timeLeft: ip.lockUntil && ip.lockUntil > Date.now()
-        ? Math.ceil((ip.lockUntil - Date.now()) / 1000 / 60)
-        : 0,
-    }));
-
-    res.json({ blockedIps: blockedIpsWithTime });
-  } catch (error) {
-    console.error('Error al obtener IPs bloqueadas:', error);
-    res.status(500).json({ message: 'Error al obtener IPs bloqueadas' });
-  }
-};
-
-// Función para registrar intentos fallidos de IP
-async function recordFailedIpAttempt(ip) {
-  let ipAttempt = await IpAttempt.findOne({ ip });
-  if (!ipAttempt) {
-    ipAttempt = new IpAttempt({ ip });
-  }
-
-  ipAttempt.failedAttempts += 1;
-  ipAttempt.lastAttempt = Date.now();
-
-  // Lógica de bloqueo progresivo
-  if (ipAttempt.failedAttempts >= 5 && ipAttempt.blockLevel === 0) {
-    ipAttempt.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-    ipAttempt.blockLevel = 1;
-  } else if (ipAttempt.failedAttempts >= 10 && ipAttempt.blockLevel === 1) {
-    ipAttempt.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
-    ipAttempt.blockLevel = 2;
-  } else if (ipAttempt.failedAttempts >= 15 && ipAttempt.blockLevel === 2) {
-    ipAttempt.lockUntil = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-    ipAttempt.blockLevel = 3;
-  } else if (ipAttempt.failedAttempts >= 20 && ipAttempt.blockLevel === 3) {
-    ipAttempt.lockUntil = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5 horas
-    ipAttempt.blockLevel = 4;
-  }
-
-  await ipAttempt.save();
-}
-
-// Función para registrar intentos fallidos de usuario
-async function recordFailedUserAttempt(user) {
-  user.failedAttempts = (user.failedAttempts || 0) + 1;
-  if (user.failedAttempts >= 5) {
-    user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Bloqueo de 15 min
-  }
-  await user.save();
-}
-
-// Obtener usuario actual
-exports.getCurrentUser = async (req, res) => {
-  try {
-    // El middleware de autenticación ya ha adjuntado el usuario a req
-    const user = req.user;
-    
-    res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role
-      }
+    return res.json({
+      user: { id: user._id, username: user.username, role: user.role },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor' });
+    console.error('[AUTH] login error:', error.message);
+    return res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
 
-// CRUD de usuarios (solo para superadmin)
+// ── /auth/refresh ─────────────────────────────────────────────────────────────
+exports.refresh = async (req, res) => {
+  const refreshToken      = req.cookies?.refresh_token;
+  const { ip, userAgent } = getClientMeta(req);
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'No autenticado.' });
+  }
+
+  try {
+    const record = await RefreshToken.findOne({ token: refreshToken }).populate('userId');
+
+    if (!record) {
+      clearTokenCookies(res);
+      return res.status(401).json({ message: 'Sesión inválida.' });
+    }
+
+    // REUSE DETECTION — token was already rotated: session hijack signal
+    if (record.used) {
+      await RefreshToken.deleteMany({ family: record.family });
+      await auditLogger.log({
+        type: 'TOKEN_REUSE_DETECTED', userId: record.userId?._id,
+        ip, userAgent,
+        details: { family: record.family },
+        severity: 'CRITICAL',
+      });
+      clearTokenCookies(res);
+      return res.status(401).json({ message: 'Sesión comprometida. Inicia sesión nuevamente.' });
+    }
+
+    if (record.expiresAt < new Date()) {
+      await RefreshToken.deleteOne({ _id: record._id });
+      clearTokenCookies(res);
+      return res.status(401).json({ message: 'Sesión expirada.' });
+    }
+
+    const user = record.userId;
+    if (!user || !user.active) {
+      await RefreshToken.deleteMany({ userId: record.userId });
+      clearTokenCookies(res);
+      return res.status(401).json({ message: 'Acceso denegado.' });
+    }
+
+    // Rotate — mark old token used, issue new pair
+    record.used = true;
+    await record.save();
+
+    const newAccessToken  = generateAccessToken(user);
+    const newRefreshToken = await generateRefreshToken(user._id, record.family);
+
+    setTokenCookies(res, newAccessToken, newRefreshToken);
+
+    await auditLogger.log({
+      type: 'TOKEN_REFRESH', userId: user._id, username: user.username,
+      ip, userAgent, severity: 'LOW',
+    });
+
+    return res.json({
+      user: { id: user._id, username: user.username, role: user.role },
+    });
+  } catch (error) {
+    console.error('[AUTH] refresh error:', error.message);
+    return res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+// ── /auth/logout ──────────────────────────────────────────────────────────────
+exports.logout = async (req, res) => {
+  const refreshToken      = req.cookies?.refresh_token;
+  const { ip, userAgent } = getClientMeta(req);
+
+  if (refreshToken) {
+    try {
+      const record = await RefreshToken.findOne({ token: refreshToken });
+      if (record) {
+        await RefreshToken.deleteMany({ family: record.family });
+        await auditLogger.log({
+          type: 'LOGOUT', userId: record.userId,
+          ip, userAgent, severity: 'LOW',
+        });
+      }
+    } catch (err) {
+      console.error('[AUTH] logout error:', err.message);
+    }
+  }
+
+  clearTokenCookies(res);
+  return res.json({ message: 'Sesión cerrada.' });
+};
+
+// ── /auth/me ──────────────────────────────────────────────────────────────────
+exports.me = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('-password -failedLoginAttempts -lockUntil');
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    return res.json({
+      user: { id: user._id, username: user.username, role: user.role },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+};
+
+// ── User management (superadmin only) ─────────────────────────────────────────
+
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find()
-      .select('-password')
-      .sort({ username: 1 });
-
-    const formattedUsers = users.map(user => ({
-      id: user._id,
-      username: user.username,
-      role: user.role,
-      active: user.active,
-      lastLogin: user.lastLogin,
-      createdAt: user.createdAt,
-      isBlocked: user.lockUntil && user.lockUntil > Date.now(), // Indica si está bloqueado
-      timeLeft: user.lockUntil && user.lockUntil > Date.now()
-        ? Math.ceil((user.lockUntil - Date.now()) / 1000 / 60)
-        : 0, // Tiempo restante en minutos
-      failedLoginAttempts: user.failedLoginAttempts // Intentos fallidos
-    }));
-
-    res.json(formattedUsers);
+      .select('-password -failedLoginAttempts -lockUntil')
+      .lean();
+    return res.json(users);
   } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).json({ message: 'Error al obtener usuarios' });
+    return res.status(500).json({ message: 'Error al obtener usuarios.' });
   }
 };
 
 exports.createUser = async (req, res) => {
+  const { ip, userAgent } = getClientMeta(req);
   try {
     const { username, password, role } = req.body;
-    
-    // Validar campos obligatorios
-    if (!username || !password) {
-      return res.status(400).json({ message: 'El nombre de usuario y la contraseña son obligatorios' });
+
+    const safeRole = role === 'superadmin' ? 'superadmin' : 'admin';
+
+    const existing = await User.findOne({ username: username.toLowerCase().trim() });
+    if (existing) {
+      return res.status(409).json({ message: 'El nombre de usuario ya existe.' });
     }
-    
-    // Verificar si el usuario ya existe
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
-    }
-    
-    // Crear nuevo usuario
-    const user = new User({
-      username,
-      password, // Se hasheará automáticamente en el middleware pre-save
-      role: role || 'admin',
-      active: true
+
+    const newUser = new User({
+      username: username.toLowerCase().trim(),
+      password,
+      role: safeRole,
     });
-    
-    await user.save();
-    
-    res.status(201).json({
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        active: user.active
-      }
+    await newUser.save();
+
+    await auditLogger.log({
+      type: 'USER_CREATED', userId: req.user._id, username: req.user.username,
+      ip, userAgent,
+      details: { createdUser: newUser.username, role: safeRole },
+      severity: 'MEDIUM',
+    });
+
+    return res.status(201).json({
+      message: 'Usuario creado exitosamente.',
+      user: { id: newUser._id, username: newUser.username, role: newUser.role },
     });
   } catch (error) {
-    console.error('Error al crear usuario:', error);
-    res.status(500).json({ message: 'Error al crear usuario' });
+    return res.status(500).json({ message: 'Error al crear usuario.' });
   }
 };
 
 exports.updateUser = async (req, res) => {
+  const { ip, userAgent } = getClientMeta(req);
   try {
+    const { id } = req.params;
     const { username, password, role, active } = req.body;
-    const userId = req.params.id;
-    
-    // Buscar el usuario que estamos actualizando
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    
-    // Si se intenta cambiar el username, verificar que no exista otro usuario con ese username
-    if (username && username !== user.username) {
-      const existingUser = await User.findOne({ 
-        username, 
-        _id: { $ne: user._id } // Excluir el usuario actual de la búsqueda
-      });
-      
-      if (existingUser) {
-        return res.status(400).json({ 
-          message: 'El nombre de usuario ya está en uso por otro usuario' 
-        });
-      }
-      
-      // Actualizar el username
-      user.username = username;
-    }
-    
-    // Actualizar contraseña si se proporciona
-    if (password) {
-      user.password = password; // El hash se maneja automáticamente en el middleware pre-save
-    }
-    
-    // Actualizar rol si se proporciona
-    if (role) {
-      user.role = role;
-    }
-    
-    // Actualizar estado si se proporciona
-    if (active !== undefined) {
-      user.active = active;
-    }
-    
-    // Guardar los cambios
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    if (username)                                      user.username = username.toLowerCase().trim();
+    if (password)                                      user.password = password;
+    if (role && ['admin', 'superadmin'].includes(role)) user.role    = role;
+    if (typeof active === 'boolean')                   user.active   = active;
+
     await user.save();
-    
-    // Enviar respuesta (sin incluir la contraseña)
-    res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        active: user.active,
-        lastLogin: user.lastLogin
-      }
+
+    if (active === false) {
+      await RefreshToken.deleteMany({ userId: id });
+    }
+
+    await auditLogger.log({
+      type: 'USER_UPDATED', userId: req.user._id, username: req.user.username,
+      ip, userAgent,
+      details: { updatedUser: user.username, changes: { role, active } },
+      severity: 'MEDIUM',
+    });
+
+    return res.json({
+      message: 'Usuario actualizado.',
+      user: { id: user._id, username: user.username, role: user.role, active: user.active },
     });
   } catch (error) {
-    console.error('Error al actualizar usuario:', error);
-    res.status(500).json({ message: 'Error al actualizar usuario', error: error.message });
+    return res.status(500).json({ message: 'Error al actualizar usuario.' });
   }
 };
 
 exports.deleteUser = async (req, res) => {
+  const { ip, userAgent } = getClientMeta(req);
   try {
-    const userId = req.params.id;
-    
-    // Verificar si el usuario existe antes de intentar eliminarlo
-    const userToDelete = await User.findById(userId);
-    
-    if (!userToDelete) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+    const { id } = req.params;
+
+    if (req.user._id.toString() === id) {
+      return res.status(400).json({ message: 'No puedes eliminar tu propia cuenta.' });
     }
-    
-    // Verificar que no sea el último superadmin
-    if (userToDelete.role === 'superadmin') {
-      // Contar cuántos superadmins hay en el sistema
-      const superadminCount = await User.countDocuments({ role: 'superadmin' });
-      
-      if (superadminCount <= 1) {
-        return res.status(400).json({ 
-          message: 'No se puede eliminar el último superadmin del sistema' 
-        });
-      }
-    }
-    
-    // Proceder con la eliminación
-    await User.findByIdAndDelete(userId);
-    
-    res.json({ 
-      success: true,
-      message: 'Usuario eliminado correctamente',
-      deletedUserId: userId
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    await User.findByIdAndDelete(id);
+    await RefreshToken.deleteMany({ userId: id });
+
+    await auditLogger.log({
+      type: 'USER_DELETED', userId: req.user._id, username: req.user.username,
+      ip, userAgent,
+      details: { deletedUser: user.username },
+      severity: 'HIGH',
     });
+
+    return res.json({ message: 'Usuario eliminado.' });
   } catch (error) {
-    console.error('Error al eliminar usuario:', error);
-    res.status(500).json({ message: 'Error al eliminar usuario', error: error.message });
+    return res.status(500).json({ message: 'Error al eliminar usuario.' });
   }
 };
 
-// Cambiar contraseña del usuario actual
-exports.changePassword = async (req, res) => {
+exports.getBlockedIps = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
-    const userId = req.user._id; // Obtenido del middleware de autenticación
-    
-    // Validar datos
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'Se requieren la contraseña actual y la nueva' });
-    }
-    
-    // Obtener usuario
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    
-    // Verificar contraseña actual
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'La contraseña actual es incorrecta' });
-    }
-    
-    // Actualizar contraseña
-    user.password = newPassword; // Se hasheará automáticamente
-    await user.save();
-    
-    res.json({ message: 'Contraseña actualizada correctamente' });
+    const blocked = await IpAttempt.find({ lockUntil: { $gt: new Date() } })
+      .select('-_id ip failedAttempts blockLevel lockUntil')
+      .lean();
+    return res.json(blocked);
   } catch (error) {
-    console.error('Error al cambiar contraseña:', error);
-    res.status(500).json({ message: 'Error al cambiar la contraseña' });
+    return res.status(500).json({ message: 'Error al obtener IPs bloqueadas.' });
   }
 };
