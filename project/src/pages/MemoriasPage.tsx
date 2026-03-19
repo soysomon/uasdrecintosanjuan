@@ -1,8 +1,8 @@
 // src/pages/MemoriasPage.tsx
 // Redesign: layout editorial minimalista — lista ordenada alfabéticamente.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, ArrowRight, Loader } from 'lucide-react';
+import { FileText, ArrowRight, Loader, Search, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import API_ROUTES from '../config/api';
@@ -21,6 +21,7 @@ const MemoriasPage: React.FC = () => {
   const [memorias, setMemorias]   = useState<MemoriaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError]         = useState<string | null>(null);
+  const [query, setQuery]         = useState('');
 
   useEffect(() => {
     const fetchMemorias = async () => {
@@ -42,6 +43,15 @@ const MemoriasPage: React.FC = () => {
     };
     fetchMemorias();
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return memorias;
+    return memorias.filter(m =>
+      m.title.toLowerCase().includes(q) ||
+      (m.description && m.description.toLowerCase().includes(q))
+    );
+  }, [memorias, query]);
 
   return (
     <div style={{ backgroundColor: 'var(--color-surface)', minHeight: '100vh', paddingTop: '108px' }}>
@@ -89,6 +99,63 @@ const MemoriasPage: React.FC = () => {
             de la Universidad Autónoma de Santo Domingo, Recinto San Juan.
           </p>
         </motion.div>
+
+        {/* ── Barra de búsqueda ── */}
+        <div style={{ padding: '1.75rem 0 0' }}>
+          <div style={{ position: 'relative', maxWidth: '480px' }}>
+            <Search
+              size={15}
+              style={{
+                position:  'absolute',
+                left:      '0.875rem',
+                top:       '50%',
+                transform: 'translateY(-50%)',
+                color:     'var(--color-text-muted)',
+                pointerEvents: 'none',
+              }}
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar memoria..."
+              style={{
+                width:        '100%',
+                boxSizing:    'border-box',
+                padding:      '0.625rem 2.25rem 0.625rem 2.375rem',
+                border:       '1px solid var(--color-border-subtle)',
+                borderRadius: 0,
+                backgroundColor: 'var(--color-surface)',
+                fontFamily:   'inherit',
+                fontSize:     '0.875rem',
+                color:        'var(--color-text-primary)',
+                outline:      'none',
+              }}
+              onFocus={e  => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+              onBlur={e   => (e.currentTarget.style.borderColor = 'var(--color-border-subtle)')}
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                aria-label="Limpiar búsqueda"
+                style={{
+                  position:   'absolute',
+                  right:      '0.75rem',
+                  top:        '50%',
+                  transform:  'translateY(-50%)',
+                  background: 'none',
+                  border:     'none',
+                  cursor:     'pointer',
+                  padding:    0,
+                  color:      'var(--color-text-muted)',
+                  display:    'flex',
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* ── Cuerpo ── */}
         <div style={{ padding: '2rem 0 5rem' }}>
@@ -142,12 +209,22 @@ const MemoriasPage: React.FC = () => {
                 color:         'var(--color-text-muted)',
                 marginBottom:  '0',
               }}>
-                {memorias.length} {memorias.length === 1 ? 'memoria' : 'memorias'} · Orden alfabético
+                {filtered.length} {filtered.length === 1 ? 'memoria' : 'memorias'}
+                {query && memorias.length !== filtered.length && ` de ${memorias.length}`}
               </p>
+
+              {/* Sin resultados */}
+              {filtered.length === 0 && (
+                <div style={{ padding: '3rem 0', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.9375rem', color: 'var(--color-text-muted)' }}>
+                    No se encontraron memorias para "{query}".
+                  </p>
+                </div>
+              )}
 
               {/* Lista */}
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {memorias.map((memoria, i) => (
+                {filtered.map((memoria, i) => (
                   <motion.li
                     key={memoria._id}
                     custom={i}
