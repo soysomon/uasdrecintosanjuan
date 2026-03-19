@@ -419,6 +419,8 @@
   color: var(--adm-ink-4);
 }
 .adm-textarea {
+  width: 100%;
+  box-sizing: border-box;
   resize: vertical;
   min-height: 100px;
 }
