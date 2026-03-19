@@ -1,40 +1,35 @@
-const jwt  = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-/**
- * authMiddleware — reads the access token exclusively from the httpOnly cookie.
- *
- * Rejects tokens that arrive via the Authorization header to prevent
- * XSS-stolen tokens from being replayed by a different client.
- *
- * On 401 with code TOKEN_EXPIRED the frontend will call /api/auth/refresh
- * transparently (handled by the axios interceptor in AuthContext.tsx).
- */
 exports.authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies?.access_token;
+    // Verificar que JWT_SECRET esté definido
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET no está definido en las variables de entorno');
+    }
 
+    // Obtener token del header
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
     if (!token) {
-      return res.status(401).json({ message: 'No autenticado.' });
+      return res.status(401).json({ message: 'Acceso denegado. Token no proporcionado.' });
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-      issuer:   'uasd-api',
-      audience: 'uasd-client',
-    });
-
-    const user = await User.findById(decoded.userId).select('-password');
-
+    
+    // Verificar token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Buscar usuario
+    const user = await User.findById(decoded.userId);
+    
     if (!user || !user.active) {
-      return res.status(401).json({ message: 'Acceso denegado.' });
+      return res.status(401).json({ message: 'Acceso denegado. Usuario no válido.' });
     }
-
+    
+    // Adjuntar usuario a la solicitud
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Sesión expirada.', code: 'TOKEN_EXPIRED' });
-    }
-    return res.status(401).json({ message: 'No autenticado.' });
+    console.error('Error en authMiddleware:', error.message);
+    return res.status(401).json({ message: 'Token inválido o configuración incorrecta.' });
   }
 };
