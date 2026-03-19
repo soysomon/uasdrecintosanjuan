@@ -1,17 +1,7 @@
-/**
- * authService.ts — HTTP client for user management operations
- *
- * Authentication (login/logout/refresh) is handled by AuthContext, not here.
- * This service handles superadmin user CRUD operations only.
- *
- * withCredentials is set globally in AuthContext (axios.defaults.withCredentials = true),
- * so all requests here automatically include auth cookies.
- * The X-CSRF-Token header is injected by the request interceptor in AuthContext.
- */
-
 import axios from 'axios';
 import API_ROUTES from '../../config/api';
 
+// Interfaz para usuario
 export interface User {
   id: string;
   username: string;
@@ -20,6 +10,7 @@ export interface User {
   lastLogin?: string;
 }
 
+// Interfaz para crear/actualizar usuario
 export interface UserFormData {
   username: string;
   password: string;
@@ -27,31 +18,67 @@ export interface UserFormData {
   active?: boolean;
 }
 
+// Servicios de autenticación y gestión de usuarios
 const AuthService = {
+  // Login de usuario
+  login: async (username: string, password: string) => {
+    try {
+      const response = await axios.post(API_ROUTES.AUTH_LOGIN, { username, password });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Verificar usuario actual
   getCurrentUser: async () => {
-    const response = await axios.get(API_ROUTES.AUTH_ME);
-    return response.data;
+    try {
+      const response = await axios.get(API_ROUTES.AUTH_ME);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
+  // Obtener todos los usuarios (solo superadmin)
   getUsers: async () => {
-    const response = await axios.get(API_ROUTES.USERS);
-    return response.data;
+    try {
+      const response = await axios.get(API_ROUTES.USERS);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
+  // Crear nuevo usuario (solo superadmin)
   createUser: async (userData: UserFormData) => {
-    const response = await axios.post(API_ROUTES.USERS, userData);
-    return response.data;
+    try {
+      const response = await axios.post(API_ROUTES.USERS, userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  updateUser: async (userId: string, userData: Partial<UserFormData>) => {
-    const response = await axios.put(API_ROUTES.USER_BY_ID(userId), userData);
-    return response.data;
+  // Actualizar usuario existente (solo superadmin)
+  updateUser: async (userId: string, userData: UserFormData) => {
+    try {
+      const response = await axios.put(API_ROUTES.USER_BY_ID(userId), userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
+  // Eliminar usuario (solo superadmin)
   deleteUser: async (userId: string) => {
-    const response = await axios.delete(API_ROUTES.USER_BY_ID(userId));
-    return response.data;
-  },
+    try {
+      const response = await axios.delete(API_ROUTES.USER_BY_ID(userId));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default AuthService;
