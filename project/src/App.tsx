@@ -42,14 +42,13 @@ import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
 
-// Inicializa Google Analytics con el ID de medición
+// Inicializa Google Analytics — registra las visitas al sitio automáticamente. NO MODIFICAR.
 ReactGA.initialize('G-VH9JTLWD6Z');
 
-// Componente para rastrear cambios de página
+// Componente interno que detecta cuando el usuario cambia de página y lo reporta a Analytics. NO MODIFICAR.
 const TrackPageViews = () => {
   const location = useLocation();
   useEffect(() => {
-    // Rastrear la vista de página con la ruta actual
     ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
   }, [location]);
   return null;
@@ -57,17 +56,33 @@ const TrackPageViews = () => {
 
 function App() {
   return (
+    // AuthProvider — maneja el sistema de login. Envuelve todo el sitio. NO MODIFICAR.
     <AuthProvider>
       <BrowserRouter>
+        {/* ScrollToTop — hace que cada página nueva empiece desde arriba. NO MODIFICAR. */}
         <ScrollToTop />
-        <TrackPageViews /> {/* Agrega el componente de rastreo */}
+        {/* TrackPageViews — registra las visitas en Google Analytics. NO MODIFICAR. */}
+        <TrackPageViews />
+        {/* CookieConsent — barra de cookies que aparece la primera vez. NO MODIFICAR. */}
         <CookieConsent />
         <Routes>
-          {/* ── Public routes (with site nav) ── */}
+
+          {/* ─────────────────────────────────────────────────────────────
+              PÁGINAS PÚBLICAS — las que cualquier visitante puede ver.
+              Todas usan el encabezado y pie de página del sitio (MainLayout).
+              Cada línea conecta una URL con su página correspondiente.
+          ───────────────────────────────────────────────────────────── */}
           <Route element={<MainLayout />}>
+
+            {/* Página principal — uasdrecintosanjuan.org/ */}
             <Route path="/" element={<HomePage />} />
+
+            {/* Noticias — lista de todas las noticias */}
             <Route path="/noticias" element={<NewsPage />} />
+            {/* Detalle de una noticia específica — el :id cambia según la noticia */}
             <Route path="/noticias/:id" element={<NewsDetailPage />} />
+
+            {/* Sección "Inicio" — páginas institucionales */}
             <Route path="/inicio/historia" element={<HistoryPage />} />
             <Route path="/inicio/filosofia" element={<PhilosophyPage />} />
             <Route path="/inicio/mision-vision" element={<MisionVisionPage />} />
@@ -75,27 +90,49 @@ function App() {
             <Route path="/inicio/elias-pina" element={<EliasPinaPage />} />
             <Route path="/inicio/consejo-directivo" element={<DirectivosPage />} />
             <Route path="/inicio/unidades" element={<UnidadesPage />} />
+
+            {/* Carreras */}
             <Route path="/carreras/grado" element={<DegreesPage />} />
             <Route path="/carreras/postgrado" element={<PostgraduatePage />} />
+
+            {/* Despacho del director */}
             <Route path="/director/despacho" element={<DirectorOfficePage />} />
+
+            {/* Tour virtual del campus */}
             <Route path="/TourVirtual" element={<CampusTour />} />
+
+            {/* Docentes */}
             <Route path="/docentes/no-residentes" element={<NonResidentFacultyPage />} />
-            <Route path="/memorias" element={<MemoriasPage />} />
-            <Route path="/transparencia/estados-financieros" element={<EstadosFinancierosPage />} />
-            <Route path="/memorias/:slug" element={<MemoriaContentPage />} />
-            <Route path="/memorias/postgrado" element={<MemoriasPostgradoPage />} />
             <Route path="/docentes/residentes" element={<ResidentFacultyPage />} />
             <Route path="/docentes/no-residentes" element={<ResidentFacultyPage />} />
+            {/* El :slug es el nombre único de cada docente en la URL */}
             <Route path="/docentes/:slug" element={<DocenteDetailPage />} />
             <Route path="/docentes-page" element={<DocentesPage />} />
+
+            {/* Memorias institucionales */}
+            <Route path="/memorias" element={<MemoriasPage />} />
+            <Route path="/memorias/:slug" element={<MemoriaContentPage />} />
+            <Route path="/memorias/postgrado" element={<MemoriasPostgradoPage />} />
+
+            {/* Transparencia */}
+            <Route path="/transparencia/estados-financieros" element={<EstadosFinancierosPage />} />
+
+            {/* Otras páginas */}
             <Route path="/innovaciones" element={<InnovacionesEducativas />} />
             <Route path="/preguntas-frecuentes" element={<Frequentquestions />} />
             <Route path="/contacto" element={<ContactosPage />} />
             <Route path="/meritorios" element={<MeritoriosPage />} />
+
+            {/* Página 404 — se muestra cuando la URL no existe */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          {/* ── Admin routes (own full-viewport shell, no site nav) ── */}
+          {/* ─────────────────────────────────────────────────────────────
+              PÁGINAS DE ADMINISTRACIÓN — solo accesibles con login.
+              NO MODIFICAR — cualquier cambio aquí puede romper el acceso al panel.
+          ───────────────────────────────────────────────────────────── */}
+
+          {/* Página de login del panel administrativo */}
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route
             path="/admin-panel"
