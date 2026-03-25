@@ -11,27 +11,23 @@ export const NewsService = {
   fetchNews: async () => {
     try {
       const res = await axios.get(API_ROUTES.NEWS);
-      console.log('Noticias obtenidas:', res.data);
       return res.data;
     } catch (error) {
       const err = error as any;
       const apiError: ApiError = new Error('Error al obtener noticias: ' + (err.response?.data?.error || err.message));
       apiError.status = err.response?.status;
       apiError.data = err.response?.data;
-      console.error('Error en fetchNews:', apiError);
       throw apiError;
     }
   },
 
   createNews: async (newsData: any) => {
     try {
-      console.log('Enviando datos para crear noticia:', JSON.stringify(newsData, null, 2));
       const res = await axios.post(API_ROUTES.NEWS, newsData, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      console.log('Respuesta de creación de noticia:', res.data);
       return res.data;
     } catch (error) {
       const err = error as any;
@@ -40,7 +36,6 @@ export const NewsService = {
       );
       apiError.status = err.response?.status;
       apiError.data = err.response?.data;
-      console.error('Error en createNews:', apiError, 'Datos enviados:', newsData);
       throw apiError;
     }
   },
@@ -48,7 +43,6 @@ export const NewsService = {
   updateNews: async (id: string, newsData: any) => {
     try {
       const res = await axios.put(API_ROUTES.NEWS_BY_ID(id), newsData);
-      console.log('Noticia actualizada:', res.data);
       return res.data;
     } catch (error) {
       const err = error as any;
@@ -57,7 +51,6 @@ export const NewsService = {
       );
       apiError.status = err.response?.status;
       apiError.data = err.response?.data;
-      console.error('Error en updateNews:', apiError);
       throw apiError;
     }
   },
@@ -65,7 +58,6 @@ export const NewsService = {
   deleteNews: async (id: string) => {
     try {
       await axios.delete(API_ROUTES.NEWS_BY_ID(id));
-      console.log('Noticia eliminada:', id);
     } catch (error) {
       const err = error as any;
       const apiError: ApiError = new Error(
@@ -73,7 +65,6 @@ export const NewsService = {
       );
       apiError.status = err.response?.status;
       apiError.data = err.response?.data;
-      console.error('Error en deleteNews:', apiError);
       throw apiError;
     }
   },

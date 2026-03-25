@@ -45,7 +45,6 @@ const DocenteImgUploader: React.FC<DocenteImgUploaderProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('Enviando imagen al servidor (docente)...');
         const res = await axios.post(
           API_ROUTES.UPLOAD_IMAGE,
           formData,
@@ -57,13 +56,10 @@ const DocenteImgUploader: React.FC<DocenteImgUploaderProps> = ({
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / (progressEvent.total || 100)
             );
-            console.log(`Progreso de carga (docente): ${percentCompleted}%`);
             setUploadProgress(percentCompleted);
           }
         }
       );
-
-      console.log('Respuesta del servidor (docente):', res.data);
 
       // Verificar respuesta correcta
       if (res.data.success) {
@@ -78,7 +74,6 @@ const DocenteImgUploader: React.FC<DocenteImgUploaderProps> = ({
         throw new Error(res.data.error || 'Error al subir la imagen');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
       toast.error('Error al subir la imagen. Inténtalo de nuevo.', {
         icon: <AlertTriangle className="text-red-500" size={18} />
       });

@@ -33,7 +33,6 @@ const UserManagementPage: React.FC = () => {
       setError(null);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Error al cargar usuarios');
-      console.error('Error al cargar usuarios:', error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +103,6 @@ const UserManagementPage: React.FC = () => {
       setError(null);
     } catch (error: any) {
       setError(error.response?.data?.message || error.message || 'Error al guardar el usuario');
-      console.error('Error al guardar usuario:', error);
     } finally {
       setLoading(false);
     }
@@ -120,7 +118,6 @@ const UserManagementPage: React.FC = () => {
         setError(null);
       } catch (error: any) {
         setError(error.response?.data?.message || 'Error al eliminar el usuario');
-        console.error('Error al eliminar usuario:', error);
       } finally {
         setLoading(false);
       }

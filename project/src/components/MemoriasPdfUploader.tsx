@@ -29,12 +29,6 @@ const MemoriasPdfUploader: React.FC<MemoriasPdfUploaderProps> = ({
       return;
     }
 
-    console.log('Archivo PDF a subir:', {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -49,7 +43,6 @@ const MemoriasPdfUploader: React.FC<MemoriasPdfUploaderProps> = ({
       }
 
       const { uploadUrl, pdfUrl, fileKey } = res.data;
-      console.log('URL pre-firmada recibida:', uploadUrl);
 
       // Paso 2: Subir directamente a S3 con instancia limpia
       const s3Axios = axios.create();
@@ -64,13 +57,9 @@ const MemoriasPdfUploader: React.FC<MemoriasPdfUploaderProps> = ({
             (progressEvent.loaded * 100) / (progressEvent.total || 100)
           );
           setUploadProgress(percentCompleted);
-          console.log(`Progreso: ${percentCompleted}%`);
         },
         timeout: 0, // Sin timeout para archivos grandes
       });
-
-      console.log('PDF subido a:', pdfUrl);
-      console.log('Public ID:', fileKey);
 
       toast.success('PDF cargado correctamente', {
         icon: <Check className="text-green-500" size={18} />,
@@ -78,10 +67,8 @@ const MemoriasPdfUploader: React.FC<MemoriasPdfUploaderProps> = ({
 
       onPdfUploaded(pdfUrl, fileKey);
     } catch (err) {
-      console.error('Error al subir PDF:', err);
       let errorMessage = 'Error al subir el PDF.';
       if (axios.isAxiosError(err) && err.response) {
-        console.error('Detalles del error:', err.response.data);
         errorMessage += ` Error ${err.response.status}: ${err.response.data.error || err.response.statusText}`;
       } else if (err instanceof Error) {
         errorMessage += ` ${err.message}`;

@@ -734,8 +734,9 @@ Recibe actualizaciones y más información en:
                               ? 'bg-blue-600 text-white rounded-br-none'
                               : 'bg-white text-gray-800 rounded-bl-none'
                           }`}
-                          dangerouslySetInnerHTML={{ __html: msg.text }}
-                        />
+                        >
+                          {msg.text}
+                        </div>
                         {msg.options && renderOptions(msg.options)}
                         <div className="text-xs text-gray-500 mt-1 px-1">
                           {formatTime(msg.timestamp)}

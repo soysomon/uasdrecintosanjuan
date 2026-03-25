@@ -52,7 +52,6 @@ const AdminPanelPage: React.FC = () => {
       }, {});
       setStats({ totalNews, byCategory });
     } catch (err) {
-      console.error(err);
       toast.error('No se pudieron cargar las estadísticas.');
     }
   };
