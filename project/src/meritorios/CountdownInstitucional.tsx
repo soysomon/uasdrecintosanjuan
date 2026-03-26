@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 
-// Fecha objetivo: 2 de mayo del año actual
-const deadline = new Date(new Date().getFullYear(), 4, 2, 0, 0, 0); // mes 0-based
+// ─────────────────────────────────────────────────────────────
+// FECHA DE LA CEREMONIA DE MERITORIOS
+// Solo debe estar activa UNA línea. Las demás deben estar comentadas.
+//
+// PERIODO ACTUAL — Activo ahora:
+const deadline = new Date(2026, 4, 2, 0, 0, 0); // 2 de mayo 2026
+//
+// PRÓXIMO PERIODO — Descomentar cuando llegue el momento (y comentar la línea de arriba):
+// const deadline = new Date(2026, 9, 15, 0, 0, 0); // 15 de octubre 2026 — ajusta el día cuando se confirme
+//
+// Formato: new Date(AÑO, MES-1, DÍA)
+// Ejemplos de meses: enero=0, febrero=1, marzo=2, abril=3, mayo=4,
+//                   junio=5, julio=6, agosto=7, septiembre=8, octubre=9,
+//                   noviembre=10, diciembre=11
+// ─────────────────────────────────────────────────────────────
 
 function calculateTimeLeft() {
   const now = new Date();
@@ -96,7 +109,11 @@ export default function CountdownInstitucional() {
             <svg width={22} fill="currentColor" className="text-gray-700 inline" viewBox="0 0 24 24"><path d="M16 2v2h5v2H3V4h5V2h2v2h6V2h2zm2 7v11a2 2 0 01-2 2H8a2 2 0 01-2-2V9h12zm-2 2H8v9h8v-9z"/></svg>
             Ceremonia:&nbsp;
           </span>
+          {/* PERIODO ACTUAL — activo: */}
           Viernes 2 de mayo, Auditorio Ing. Sinecio Ramírez · 10:00 AM
+          {/* PRÓXIMO PERIODO — descomentar y actualizar cuando se confirme la fecha:
+          Jueves 15 de octubre, Auditorio Ing. Sinecio Ramírez · 10:00 AM
+          */}
         </p>
       </div>
     </section>
