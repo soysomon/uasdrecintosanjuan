@@ -38,10 +38,12 @@ export default function MeritoriosMultiPeriodo() {
   const periods = [
     { id: "2025-10", label: "Ene-Abr 2025" },   // Periodo 1 — activo
     { id: "2024-20", label: "Sep-Dic 2024" },    // Periodo 2 — activo
+
     // PRÓXIMO PERIODO — descomentar cuando llegue el momento:
     // { id: "2026-05", label: "Ene-May 2026" },  // Periodo 3 — pendiente
   ];
 
+  
   useEffect(() => {
     const checkUnlock = () => {
       const now = new Date();

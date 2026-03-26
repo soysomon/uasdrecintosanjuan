@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/sansomon/Proyectos/uasdrecintosanjuan/project"],
+      "port": 5173
+    },
+    {
+      "name": "expo-html",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/sansomon/Desktop", "-p", "8080", "--no-clipboard"],
+      "port": 8080
+    }
+  ]
+}
