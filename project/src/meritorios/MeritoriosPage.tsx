@@ -11,6 +11,9 @@ interface ResultadoBusqueda {
 }
 
 export default function MeritoriosMultiPeriodo() {
+  // PERIODO SELECCIONADO POR DEFECTO al entrar a la página
+  // Cuando actives el nuevo periodo, cambia "2025-10" por el ID del nuevo periodo:
+  // const [selectedPeriod, setSelectedPeriod] = useState<string>("2026-05");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("2025-10");
   const [matricula, setMatricula] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -27,9 +30,16 @@ export default function MeritoriosMultiPeriodo() {
   const API_URL = "https://script.google.com/macros/s/AKfycbxGTiCo7PrFqPJPK11YzfV3Ogxat9VyLP7r9uDOhWET6667qaWTKzReTqsfZmlrRiE1/exec";
   const UNLOCK_DATE = new Date("2025-11-26T00:00:00");
 
+  // ─────────────────────────────────────────────────────────────
+  // PERIODOS DE CONSULTA DISPONIBLES
+  // Para activar un nuevo periodo: descomenta su línea y actualiza el selectedPeriod arriba.
+  // Cuando actives uno nuevo, también cambia el grid de "grid-cols-2" a "grid-cols-3" más abajo.
+  // ─────────────────────────────────────────────────────────────
   const periods = [
-    { id: "2025-10", label: "Ene-Abr 2025" },
-    { id: "2024-20", label: "Sep-Dic 2024" }
+    { id: "2025-10", label: "Ene-Abr 2025" },   // Periodo 1 — activo
+    { id: "2024-20", label: "Sep-Dic 2024" },    // Periodo 2 — activo
+    // PRÓXIMO PERIODO — descomentar cuando llegue el momento:
+    // { id: "2026-05", label: "Ene-May 2026" },  // Periodo 3 — pendiente
   ];
 
   useEffect(() => {
@@ -178,6 +188,7 @@ export default function MeritoriosMultiPeriodo() {
 
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }} className="max-w-md">
                 <label className="block text-xs font-semibold text-gray-500 mb-2 sm:mb-3 uppercase tracking-wide">Período Académico</label>
+                {/* NOTA: Si activas 3 periodos, cambia "grid-cols-2" a "grid-cols-3" en la línea siguiente */}
                 <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl sm:rounded-2xl">
                   {periods.map((period) => (
                     <motion.button key={period.id} onClick={() => setSelectedPeriod(period.id)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className={`relative py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${selectedPeriod === period.id ? "text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
