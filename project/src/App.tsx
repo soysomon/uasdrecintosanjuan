@@ -20,7 +20,6 @@ import { NonResidentFacultyPage } from './pages/NonResidentFacultyPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import SlidesEditorPage from './pages/SlidesEditorPage';
-import { MemoriasPostgradoPage } from './pages/memorias/MemoriasPostgradoPage';
 import MemoriasEditorPage from './pages/memorias/MemoriasEditorPage';
 import MemoriaContentPage from './pages/MemoriaContentPage';
 import EstadosFinancierosPage from './pages/EstadosFinancierosPage';
@@ -41,6 +40,8 @@ import { AuthProvider } from './auth/context/AuthContext';
 import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
+import {PruebasPage} from './components/PruebasPage';
+
 
 // Inicializa Google Analytics — registra las visitas al sitio automáticamente. NO MODIFICAR.
 ReactGA.initialize('G-VH9JTLWD6Z');
@@ -109,10 +110,17 @@ function App() {
             <Route path="/docentes/:slug" element={<DocenteDetailPage />} />
             <Route path="/docentes-page" element={<DocentesPage />} />
 
+
+
+            <Route path="/pruebas" element={<PruebasPage />} />
+
+
+
+
+
             {/* Memorias institucionales */}
             <Route path="/memorias" element={<MemoriasPage />} />
             <Route path="/memorias/:slug" element={<MemoriaContentPage />} />
-            <Route path="/memorias/postgrado" element={<MemoriasPostgradoPage />} />
 
             {/* Transparencia */}
             <Route path="/transparencia/estados-financieros" element={<EstadosFinancierosPage />} />
