@@ -41,6 +41,11 @@ import ProtectedRoute from './auth/components/ProtectedRoute';
 import SuperAdminRoute from './auth/components/SuperAdminRoute';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import {PruebasPage} from './components/PruebasPage';
+import MaintenancePage from './pages/MaintenancePage';
+
+// Modo mantenimiento: controlado por la variable de entorno VITE_MAINTENANCE_MODE en Railway.
+// Con VITE_MAINTENANCE_MODE=true se muestra solo MaintenancePage en todas las rutas.
+const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
 
 // Inicializa Google Analytics — registra las visitas al sitio automáticamente. NO MODIFICAR.
@@ -56,6 +61,10 @@ const TrackPageViews = () => {
 };
 
 function App() {
+  if (MAINTENANCE_MODE) {
+    return <MaintenancePage />;
+  }
+
   return (
     // AuthProvider — maneja el sistema de login. Envuelve todo el sitio. NO MODIFICAR.
     <AuthProvider>
