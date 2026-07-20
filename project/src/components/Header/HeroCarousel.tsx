@@ -85,43 +85,43 @@ const MobileSlide: React.FC<SlideProps> = ({
 
   return (
     <section className="relative bg-white w-full overflow-hidden flex flex-col items-center">
-      <div className="w-full h-auto min-h-[200px] flex items-center justify-center">
-        <AnimatePresence mode="wait">
+      <div className="relative w-full min-h-[200px]" style={{ aspectRatio: '4 / 5' }}>
+        <AnimatePresence mode="sync">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7 }}
-            className="w-full transform scale-85 relative group"
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 group"
           >
-            <div className="relative w-full min-h-[200px] overflow-hidden">
+            <div className="relative w-full h-full overflow-hidden">
               {imageError ? (
-                <div className="w-full min-h-[200px] flex items-center justify-center bg-gray-200">
+                <div className="w-full h-full flex items-center justify-center bg-gray-200">
                   <p className="text-gray-500">No se pudo cargar la imagen</p>
                 </div>
               ) : (
                 <img
                   src={slides[currentSlide].image}
                   alt={slides[currentSlide].title}
-                  className="w-full h-auto object-contain object-center"
+                  className="w-full h-full object-cover object-center"
                   onError={() => setImageError(true)}
                   loading="eager"
                   fetchPriority={currentSlide === 0 ? 'high' : 'auto'}
                   decoding="async"
                 />
               )}
-              {slides[currentSlide].displayMode === 'hover' && (
+              {(slides[currentSlide].title || slides[currentSlide].description) && (
                 <>
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto"
                     style={{
                       backdropFilter: 'blur(3px)',
                       WebkitBackdropFilter: 'blur(3px)',
                       backgroundColor: `${slides[currentSlide].color}AA`,
                     }}
                   ></div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none group-hover:pointer-events-auto">
                     <div className="max-w-3xl px-2 text-center">
                       {slides[currentSlide].subtitle && (
                         <span className="inline-block bg-white/20 px-1 py-0.5 rounded-md text-white text-[10px] font-semibold mb-1">
@@ -250,13 +250,13 @@ const DesktopSlide: React.FC<SlideProps> = ({
 }) => {
   return (
     <section className="relative bg-white min-h-[60vh] md:min-h-[65vh] w-full overflow-hidden">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         <motion.div
           key={currentSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="absolute inset-0 flex items-center justify-center"
         >
           <div className="w-full h-full relative group">
@@ -276,17 +276,17 @@ const DesktopSlide: React.FC<SlideProps> = ({
                   decoding="async"
                 />
               )}
-              {slides[currentSlide].displayMode === 'hover' && (
+              {(slides[currentSlide].title || slides[currentSlide].description) && (
                 <>
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto"
                     style={{
                       backdropFilter: 'blur(3px)',
                       WebkitBackdropFilter: 'blur(3px)',
                       backgroundColor: `${slides[currentSlide].color}AA`,
                     }}
                   ></div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none group-hover:pointer-events-auto">
                     <div className="max-w-3xl px-4 text-center">
                       {slides[currentSlide].subtitle && (
                         <span className="inline-block bg-white/20 px-2 py-1 rounded-md text-white text-xs font-semibold mb-2">
@@ -535,9 +535,14 @@ const HeroCarousel: React.FC = () => {
           />
         )
       ) : (
-        <div className="flex items-center justify-center min-h-[50vh] text-gray-500">
-          No hay slides disponibles
-        </div>
+        <div
+          className="min-h-[60vh] md:min-h-[65vh] w-full animate-pulse"
+          style={{
+            background: 'linear-gradient(110deg, #001f5a 0%, #003087 40%, #001f5a 80%)',
+            backgroundSize: '200% 100%',
+          }}
+          aria-hidden="true"
+        />
       )}
     </>
   );

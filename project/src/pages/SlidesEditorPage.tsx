@@ -324,23 +324,25 @@ const SlidesEditorPage: React.FC = () => {
                 className="adm-slide-main-preview"
                 style={{ backgroundColor: slide.color }}
               >
-                {/* Background image */}
+                {/* Background image — siempre limpia; el overlay solo se revela al pasar el cursor en el sitio público */}
                 {slide.image && (
                   <img
                     src={slide.image}
                     alt={slide.title}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: slide.displayMode === 'hover' ? 0.6 : 1 }}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )}
-                {/* Overlay for hover mode */}
-                {slide.displayMode === 'hover' && (
-                  <div style={{
+                {/* Overlay de contenido — se revela al pasar el cursor sobre esta vista previa */}
+                {(slide.title || slide.description) && (
+                  <div className="adm-slide-hover-overlay" style={{
                     position: 'absolute', inset: 0,
                     background: `${slide.color}cc`,
                     backdropFilter: 'blur(4px)',
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'flex-start', justifyContent: 'center',
                     padding: '28px 36px',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease',
                   }}>
                     {slide.subtitle && (
                       <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 6, padding: '2px 10px', color: '#fff', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
@@ -354,12 +356,9 @@ const SlidesEditorPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-                {/* Normal mode — imagen limpia, sin overlay ni texto */}
-                {slide.displayMode !== 'hover' && (
-                  <span className="adm-slide-main-preview-label">
-                    Vista previa · Slide {slideNum} (Normal — imagen limpia)
-                  </span>
-                )}
+                <span className="adm-slide-main-preview-label">
+                  Vista previa · Slide {slideNum} — pasa el cursor para ver el overlay
+                </span>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -524,19 +523,6 @@ const SlidesEditorPage: React.FC = () => {
                       min={0}
                       style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}
                     />
-                  </div>
-
-                  {/* Modo de visualización */}
-                  <div className="adm-field">
-                    <label className="adm-label">Modo de visualización</label>
-                    <select
-                      className="adm-input adm-select"
-                      value={slide.displayMode || 'normal'}
-                      onChange={(e) => updateSlide(currentIndex, { displayMode: e.target.value as 'normal' | 'hover' })}
-                    >
-                      <option value="normal">Normal — imagen limpia, sin overlay</option>
-                      <option value="hover">Hover — revelar al pasar el cursor</option>
-                    </select>
                   </div>
 
                   <hr className="adm-divider" />
