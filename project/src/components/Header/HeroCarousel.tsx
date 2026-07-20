@@ -5,6 +5,9 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_ROUTES from '../../config/api';
 import { getCache, setCache, preloadImageUrl } from '../../utils/apiCache';
+import graduacionImage from '../../img/graduacion.jpg';
+import postgradoImage from '../../img/postgrado.png';
+import informaticaImage from '../../img/informatica.jpg';
 
 // Definición de interfaces
 interface Slide {
@@ -40,7 +43,7 @@ const defaultSlides: Slide[] = [
     subtitle: "",
     description: "Convocatoria para Becas 2025",
     cta: { text: "Explorar más", link: "/admisiones" },
-    image: '/images/graduacion.jpg',
+    image: graduacionImage,
     color: "#003087",
     order: 0,
     displayMode: 'normal',
@@ -50,7 +53,7 @@ const defaultSlides: Slide[] = [
     subtitle: "POSGRADOS",
     description: "Especialización de alto nivel para profesionales de la educación",
     cta: { text: "Conocer oferta completa", link: "/carreras/postgrado" },
-    image: '/images/postgrado.png',
+    image: postgradoImage,
     color: "#45046A",
     order: 1,
     displayMode: 'normal',
@@ -60,7 +63,7 @@ const defaultSlides: Slide[] = [
     subtitle: "TECNOLOGÍA",
     description: "Prepárate para liderar la transformación digital del futuro",
     cta: { text: "Explorar programa", link: "/carreras/grado" },
-    image: '/images/informatica.jpg',
+    image: informaticaImage,
     color: "#004A98",
     order: 2,
     displayMode: 'normal',
@@ -410,6 +413,11 @@ const HeroCarousel: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const slideDuration = 8000;
   const progressInterval = 50;
+  const slidesRequestTimeout = 8000;
+
+  const activeSlideIndex = Number.isInteger(currentSlide) && currentSlide >= 0 && currentSlide < slides.length
+    ? currentSlide
+    : 0;
 
   // Detectar si es móvil o web
   useEffect(() => {
@@ -427,14 +435,22 @@ const HeroCarousel: React.FC = () => {
     setIsAutoPlaying(false);
     setProgress(0);
     setImageError(false);
+    if (slides.length === 0) return;
+
     if (typeof direction === 'number') {
-      setCurrentSlide(direction);
+      setCurrentSlide(Math.min(Math.max(direction, 0), slides.length - 1));
     } else if (direction === 'next') {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     } else {
       setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
     }
   }, [slides.length]);
+
+  useEffect(() => {
+    if (slides.length > 0 && (!Number.isInteger(currentSlide) || currentSlide < 0 || currentSlide >= slides.length)) {
+      setCurrentSlide(0);
+    }
+  }, [slides.length, currentSlide]);
 
   useEffect(() => {
     const fetchSlides = async () => {
@@ -448,14 +464,16 @@ const HeroCarousel: React.FC = () => {
       }
 
       try {
-        const res = await axios.get(API_ROUTES.SLIDES);
-        if (res.data.length > 0) {
-          const formattedSlides: Slide[] = res.data.map((slide: any) => ({
+        const res = await axios.get(API_ROUTES.SLIDES, { timeout: slidesRequestTimeout });
+        const remoteSlides = Array.isArray(res.data) ? res.data : [];
+
+        if (remoteSlides.length > 0) {
+          const formattedSlides: Slide[] = remoteSlides.map((slide: any) => ({
             title:       slide.title,
             subtitle:    slide.subtitle || '',
             description: slide.description,
             cta:         slide.cta,
-            image:       slide.image || '/images/fallback.jpg',
+            image:       slide.image || graduacionImage,
             color:       slide.color,
             order:       slide.order,
             displayMode: slide.displayMode || 'normal',
@@ -468,20 +486,22 @@ const HeroCarousel: React.FC = () => {
           if (formattedSlides.length > 1) {
             setTimeout(() => preloadImageUrl(formattedSlides[1].image), 300);
           }
-          if (currentSlide >= formattedSlides.length) setCurrentSlide(0);
+          setCurrentSlide((prev) => (prev >= formattedSlides.length ? 0 : prev));
         } else {
+          preloadImageUrl(defaultSlides[0].image);
           setSlides(defaultSlides);
         }
       } catch (err) {
         console.error('Error al cargar slides:', err);
+        preloadImageUrl(defaultSlides[0].image);
         setSlides(defaultSlides);
       }
     };
     fetchSlides();
-  }, []);
+  }, [slidesRequestTimeout]);
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || slides.length === 0) return;
     setProgress(0);
     const progressTimer = setInterval(() => {
       setProgress((prev) => {
@@ -512,7 +532,7 @@ const HeroCarousel: React.FC = () => {
         isMobile ? (
           <MobileSlide
             slides={sortedSlides}
-            currentSlide={currentSlide}
+            currentSlide={activeSlideIndex}
             imageError={imageError}
             setImageError={setImageError}
             handleSlideChange={handleSlideChange}
@@ -524,7 +544,7 @@ const HeroCarousel: React.FC = () => {
         ) : (
           <DesktopSlide
             slides={sortedSlides}
-            currentSlide={currentSlide}
+            currentSlide={activeSlideIndex}
             imageError={imageError}
             setImageError={setImageError}
             handleSlideChange={handleSlideChange}
