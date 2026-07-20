@@ -1,10 +1,11 @@
 // src/components/Events.tsx  (Director / Leadership section)
-// Redesign v2 — White / gray editorial, Harvard Office of the President style.
-// Stacked-cards-on-scroll implementation preserved:
+// Redesign v3 — Ivy League editorial: serif display type, gold-on-navy seal,
+// numbered credentials, dramatic dark-navy closing panel.
+// Stacked-cards-on-scroll mechanism preserved:
 //   3 full-viewport sticky panels · scale 1→0.93 · transformOrigin: top-center.
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion';
-import { GraduationCap, ArrowRight, Award } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEvents } from '../hooks/useEvents';
 
@@ -23,13 +24,20 @@ const ACADEMIC_CREDENTIALS = [
   { degree: 'Maestría en Física Aplicada', institution: 'Universidad de Barcelona' },
 ];
 
-// Light editorial palette — white → warm off-white → light gray-beige
-const PANEL_BG: [string, string, string] = ['#ffffff', '#f5f4f0', '#eceae5'];
+// Editorial palette — ivory → warm parchment → deep navy close.
+const PANEL_BG: [string, string, string] = ['#fffefb', '#faf6ee', '#0a1730'];
 
-const C_DARK    = 'var(--color-text-primary)';
-const C_MUTED   = 'rgba(0,0,0,0.52)';
-const C_DIVIDER = 'rgba(0,0,0,0.09)';
+const C_INK     = '#0a1730';
+const C_MUTED   = 'rgba(10,23,48,0.56)';
+const C_DIVIDER = 'rgba(10,23,48,0.12)';
 const C_PRIMARY = 'var(--color-primary)';
+const C_GOLD    = 'var(--color-accent)';
+const C_GOLD_DK = 'var(--color-accent-dark)';
+
+const SERIF = "'Fraunces', 'Libre Baskerville', Georgia, serif";
+
+/* ── Roman numerals for panel markers ──────────────────────────────── */
+const ROMAN = ['I', 'II', 'III'];
 
 /* ── StackPanel ─────────────────────────────────────────────────────── */
 function StackPanel({
@@ -57,11 +65,29 @@ function StackPanel({
         scale,
         transformOrigin: '50% 0%',
         backgroundColor: PANEL_BG[index],
-        borderRadius:    index > 0 ? '16px 16px 0 0' : 0,
-        boxShadow:       index > 0 ? '0 -4px 32px rgba(0,0,0,0.07)' : 'none',
+        borderRadius:    index > 0 ? '20px 20px 0 0' : 0,
+        boxShadow:       index > 0 ? '0 -8px 40px rgba(10,23,48,0.16)' : 'none',
         willChange:      'transform',
       }}
     >
+      {/* Roman numeral watermark — top-right, present on every panel */}
+      <span
+        aria-hidden="true"
+        style={{
+          position:      'absolute',
+          top:            'clamp(20px, 3.5vw, 40px)',
+          right:          'clamp(20px, 3.5vw, 48px)',
+          fontFamily:     SERIF,
+          fontStyle:      'italic',
+          fontWeight:     400,
+          fontSize:       'clamp(1rem, 1.6vw, 1.15rem)',
+          letterSpacing:  '0.04em',
+          color:          index === 2 ? 'rgba(255,255,255,0.38)' : 'rgba(10,23,48,0.28)',
+          zIndex:         5,
+        }}
+      >
+        {ROMAN[index]} / III
+      </span>
       {children}
     </motion.div>
   );
@@ -83,20 +109,19 @@ const Events: React.FC = () => {
       style={{ height: `${PANELS * 100}vh` }}
       aria-labelledby={HEADING_ID}
     >
-
       {/* ══════════════════════════════════════════════════════════════
-          PANEL 1 — Harvard split: foto izquierda / texto derecha
+          PANEL 1 — Retrato editorial: foto con marco dorado / texto serif
       ══════════════════════════════════════════════════════════════ */}
       <StackPanel index={0} scrollYProgress={scrollYProgress}>
         <div className="h-full flex flex-col lg:flex-row">
 
-          {/* ── Foto ── */}
+          {/* ── Foto con velo navy + marco dorado ── */}
           <motion.div
             initial={{ opacity: 0, scale: 1.04 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.1, ease: SPRING }}
-            className="relative overflow-hidden h-[42vh] lg:h-full w-full lg:w-1/2 flex-shrink-0"
+            className="relative overflow-hidden h-[46vh] lg:h-full w-full lg:w-[46%] flex-shrink-0"
           >
             <img
               src="https://uasd-recinto-sanjuan-media.s3.us-east-1.amazonaws.com/fotos-recinto/DR.Carlos+Sanchez+De+Oleo.png"
@@ -105,88 +130,119 @@ const Events: React.FC = () => {
               style={{ objectPosition: 'top center' }}
               draggable={false}
             />
+            {/* Velo de contraste inferior para la placa de atribución */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, rgba(10,23,48,0) 58%, rgba(10,23,48,0.68) 100%)',
+              }}
+              aria-hidden="true"
+            />
+            {/* Marco dorado interior — insignia de distinción */}
+            <div
+              className="absolute pointer-events-none"
+              style={{ inset: '14px', border: `1px solid ${C_GOLD}`, opacity: 0.55 }}
+              aria-hidden="true"
+            />
 
+            {/* Placa de nombre sobre la foto */}
+            <div className="absolute left-0 right-0 bottom-0 px-6 sm:px-10 pb-7">
+              <p
+                style={{
+                  fontFamily: SERIF, fontStyle: 'italic', fontWeight: 500,
+                  fontSize: 'clamp(1.15rem, 1.9vw, 1.5rem)', color: '#ffffff', lineHeight: 1.25,
+                }}
+              >
+                Dr. Carlos Manuel Sánchez De Óleo
+              </p>
+              <p
+                className="uppercase mt-1.5"
+                style={{ fontSize: '11px', letterSpacing: '0.2em', color: C_GOLD, fontWeight: 600 }}
+              >
+                Director · UASD Recinto San Juan
+              </p>
+            </div>
           </motion.div>
 
-          {/* ── Texto ── */}
+          {/* ── Texto editorial ── */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.85, ease: SPRING, delay: 0.12 }}
-            className="flex-1 flex flex-col justify-center
+            className="relative flex-1 flex flex-col justify-center
                        overflow-y-auto lg:overflow-hidden
-                       px-7 sm:px-12 lg:px-14 xl:px-20 py-10 lg:py-0"
+                       px-7 sm:px-12 lg:px-16 xl:px-24 py-12 lg:py-0"
           >
-            <p
-              className="section-label mb-5"
-              style={{ color: C_PRIMARY, letterSpacing: '0.13em' }}
-            >
-              Liderazgo Institucional
-            </p>
-
-            <h2
-              id={HEADING_ID}
-              className="font-extrabold mb-6"
-              style={{
-                fontSize:      'clamp(2rem, 4.2vw, 3.6rem)',
-                color:         C_DARK,
-                letterSpacing: '-0.033em',
-                lineHeight:    '1.05',
-              }}
-            >
-              Bienvenido al Despacho<br className="hidden lg:block" /> del Director
-            </h2>
-
-            <p
-              className="italic"
-              style={{
-                color:      C_MUTED,
-                fontSize:   'clamp(1rem, 1.3vw, 1.1rem)',
-                lineHeight: '1.78',
-                maxWidth:   '46ch',
-              }}
-            >
-              "Comprometido con la excelencia académica y el desarrollo integral
-              de la región sur de la República Dominicana."
-            </p>
-
-            {/* Atribución — nombre y cargo */}
-            <div className="mt-4 mb-8" style={{ borderLeft: `2px solid ${C_PRIMARY}`, paddingLeft: '0.875rem' }}>
-              <p className="font-bold text-sm leading-tight" style={{ color: C_DARK }}>
-                Dr. Carlos Manuel Sánchez De Óleo
-              </p>
-              <p className="text-xs mt-0.5 font-medium" style={{ color: C_MUTED }}>
-                Director · UASD – Centro San Juan
+            <div className="flex items-center gap-3 mb-7">
+              <span style={{ width: 30, height: 1, background: C_GOLD }} aria-hidden="true" />
+              <p
+                className="uppercase"
+                style={{ fontSize: '11px', letterSpacing: '0.24em', color: C_GOLD_DK, fontWeight: 700 }}
+              >
+                Liderazgo Institucional
               </p>
             </div>
 
-            {/* CTA — círculo relleno oscuro + texto */}
+            <h2
+              id={HEADING_ID}
+              className="mb-7"
+              style={{
+                fontFamily:    SERIF,
+                fontWeight:    500,
+                fontSize:      'clamp(2.1rem, 4.4vw, 3.9rem)',
+                color:         C_INK,
+                letterSpacing: '-0.015em',
+                lineHeight:    '1.06',
+              }}
+            >
+              Bienvenido al<br className="hidden lg:block" /> Despacho del Director
+            </h2>
+
+            <div className="relative pl-6 mb-9" style={{ borderLeft: `1px solid ${C_DIVIDER}`, maxWidth: '46ch' }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  position: 'absolute', left: '-0.32em', top: '-0.5rem',
+                  fontFamily: SERIF, fontSize: '2.6rem', fontStyle: 'italic',
+                  color: C_GOLD, lineHeight: 1, opacity: 0.85,
+                }}
+              >
+                "
+              </span>
+              <p
+                style={{
+                  fontFamily: SERIF, fontStyle: 'italic', fontWeight: 400,
+                  color: C_MUTED, fontSize: 'clamp(1.02rem, 1.3vw, 1.15rem)', lineHeight: '1.7',
+                }}
+              >
+                Comprometido con la excelencia académica y el desarrollo integral
+                de la región sur de la República Dominicana.
+              </p>
+            </div>
+
+            {/* CTA — botón premium de contorno navy, versalitas */}
             <Link
               to="/director/despacho"
-              className="group inline-flex items-center gap-3 w-fit"
+              className="group inline-flex items-center gap-3 w-fit pb-1"
+              style={{ borderBottom: `1px solid ${C_INK}` }}
             >
               <span
-                className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center
-                           transition-transform duration-200 group-hover:scale-110"
-                style={{ backgroundColor: C_DARK }}
-              >
-                <ArrowRight
-                  size={15}
-                  className="text-white transition-transform duration-200 group-hover:translate-x-0.5"
-                />
-              </span>
-              <span
-                className="text-sm font-semibold transition-opacity duration-200 group-hover:opacity-60"
-                style={{ color: C_DARK }}
+                className="uppercase font-semibold"
+                style={{ fontSize: '12px', letterSpacing: '0.16em', color: C_INK }}
               >
                 Conocer más sobre el Director
               </span>
+              <ArrowUpRight
+                size={15}
+                style={{ color: C_INK }}
+                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
             </Link>
 
             <p
-              className="mt-10 uppercase"
-              style={{ fontSize: '10px', letterSpacing: '0.20em', color: 'rgba(0,0,0,0.25)' }}
+              className="mt-12 uppercase"
+              style={{ fontSize: '10px', letterSpacing: '0.22em', color: 'rgba(10,23,48,0.32)' }}
             >
               ↓ Desplaza para conocer su trayectoria
             </p>
@@ -196,86 +252,94 @@ const Events: React.FC = () => {
       </StackPanel>
 
       {/* ══════════════════════════════════════════════════════════════
-          PANEL 2 — Bio + Formación académica  (#f5f4f0)
+          PANEL 2 — Bio con letra capitular + Formación académica numerada
       ══════════════════════════════════════════════════════════════ */}
       <StackPanel index={1} scrollYProgress={scrollYProgress}>
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+        <div className="h-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12
                         flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-24 items-center">
 
-            {/* Bio */}
+            {/* Bio con letra capitular editorial */}
             <motion.div
               initial={{ opacity: 0, x: -32 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.85, ease: SPRING }}
-              className="space-y-5"
+              className="space-y-6"
             >
-              <p className="section-label" style={{ color: C_PRIMARY, letterSpacing: '0.13em' }}>
-                Trayectoria
-              </p>
+              <div className="flex items-center gap-3">
+                <span style={{ width: 30, height: 1, background: C_GOLD }} aria-hidden="true" />
+                <p className="uppercase" style={{ fontSize: '11px', letterSpacing: '0.24em', color: C_GOLD_DK, fontWeight: 700 }}>
+                  Trayectoria
+                </p>
+              </div>
               <h3
-                className="font-extrabold"
                 style={{
-                  fontSize:      'clamp(1.6rem, 3vw, 2.6rem)',
-                  color:         C_DARK,
-                  letterSpacing: '-0.026em',
-                  lineHeight:    '1.1',
+                  fontFamily:    SERIF,
+                  fontWeight:    500,
+                  fontSize:      'clamp(1.7rem, 3.1vw, 2.75rem)',
+                  color:         C_INK,
+                  letterSpacing: '-0.012em',
+                  lineHeight:    '1.14',
                 }}
               >
                 Dos décadas impulsando la educación superior dominicana
               </h3>
-              <p style={{ color: C_MUTED, lineHeight: '1.85', fontSize: '1rem', maxWidth: '52ch' }}>
-                Maestro de la Universidad Autónoma de Santo Domingo desde 2005, el Dr. Sánchez De Óleo
+              <p style={{ color: C_MUTED, lineHeight: '1.9', fontSize: '1.02rem', maxWidth: '54ch' }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: SERIF, fontWeight: 500, fontSize: '3.4rem', float: 'left',
+                    lineHeight: '0.78', marginRight: '0.12em', marginTop: '0.1em', color: C_PRIMARY,
+                  }}
+                >
+                  M
+                </span>
+                aestro de la Universidad Autónoma de Santo Domingo desde 2005, el Dr. Sánchez De Óleo
                 ha dedicado su trayectoria a la transformación de la educación superior en la región.
                 Su visión innovadora ha impulsado importantes avances en infraestructura, calidad
                 educativa y vinculación comunitaria.
               </p>
             </motion.div>
 
-            {/* Credentials — lista con flechas, sin tarjeta */}
+            {/* Credentials — numeración romana, tipografía serif */}
             <motion.div
               initial={{ opacity: 0, x: 32 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.85, ease: SPRING, delay: 0.10 }}
             >
-              <div className="flex items-center gap-2.5 mb-6">
-                <GraduationCap
-                  className="w-4 h-4 flex-shrink-0"
-                  style={{ color: C_PRIMARY }}
-                  aria-hidden="true"
-                />
-                <p
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: 'rgba(0,0,0,0.40)', letterSpacing: '0.14em' }}
-                >
-                  Formación Académica
-                </p>
-              </div>
+              <p
+                className="uppercase mb-5"
+                style={{ fontSize: '11px', letterSpacing: '0.2em', color: 'rgba(10,23,48,0.42)', fontWeight: 700 }}
+              >
+                Formación Académica
+              </p>
 
-              <div style={{ borderTop: `1px solid ${C_DIVIDER}`, borderBottom: `1px solid ${C_DIVIDER}` }}>
+              <div style={{ borderTop: `1px solid ${C_DIVIDER}` }}>
                 {ACADEMIC_CREDENTIALS.map((cred, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between gap-5 py-5"
-                    style={i > 0 ? { borderTop: `1px solid ${C_DIVIDER}` } : {}}
+                    className="flex items-start gap-5 py-6"
+                    style={{ borderBottom: `1px solid ${C_DIVIDER}` }}
                   >
+                    <span
+                      style={{
+                        fontFamily: SERIF, fontStyle: 'italic', fontWeight: 500,
+                        fontSize: '1.1rem', color: C_GOLD_DK, flexShrink: 0, width: '1.6rem',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {ROMAN[i] ?? i + 1}
+                    </span>
                     <div>
-                      <p className="font-semibold text-sm leading-snug" style={{ color: C_DARK }}>
+                      <p style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '1.05rem', color: C_INK, lineHeight: 1.35 }}>
                         {cred.degree}
                       </p>
-                      <p className="text-sm mt-0.5" style={{ color: C_PRIMARY }}>
+                      <p className="text-sm mt-1" style={{ color: C_PRIMARY }}>
                         {cred.institution}
                       </p>
                     </div>
-                    <span
-                      className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
-                      style={{ border: '1px solid rgba(0,0,0,0.18)' }}
-                      aria-hidden="true"
-                    >
-                      <ArrowRight size={12} style={{ color: C_DARK }} />
-                    </span>
                   </div>
                 ))}
               </div>
@@ -286,12 +350,20 @@ const Events: React.FC = () => {
       </StackPanel>
 
       {/* ══════════════════════════════════════════════════════════════
-          PANEL 3 — Logros Harvard-style list  (#eceae5)
+          PANEL 3 — Cierre navy con logros numerados, dorado sobre oscuro
       ══════════════════════════════════════════════════════════════ */}
       <StackPanel index={2} scrollYProgress={scrollYProgress}>
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+        {/* Textura sutil de fondo — líneas doradas muy tenues */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle at 85% 12%, rgba(253,185,19,0.10), transparent 45%)`,
+          }}
+        />
+        <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12
                         flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24 items-start lg:items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-24 items-start lg:items-center">
 
             {/* Titular izquierda */}
             <motion.div
@@ -300,62 +372,69 @@ const Events: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.85, ease: SPRING }}
             >
-              <div className="flex items-center gap-2.5 mb-5">
-                <Award className="w-4 h-4 flex-shrink-0" style={{ color: C_PRIMARY }} aria-hidden="true" />
-                <p className="section-label" style={{ color: C_PRIMARY, letterSpacing: '0.13em' }}>
+              <div className="flex items-center gap-3 mb-6">
+                <span style={{ width: 30, height: 1, background: C_GOLD }} aria-hidden="true" />
+                <p className="uppercase" style={{ fontSize: '11px', letterSpacing: '0.24em', color: C_GOLD, fontWeight: 700 }}>
                   Logros Destacados
                 </p>
               </div>
               <h3
-                className="font-extrabold"
                 style={{
-                  fontSize:      'clamp(1.6rem, 3vw, 2.6rem)',
-                  color:         C_DARK,
-                  letterSpacing: '-0.026em',
-                  lineHeight:    '1.1',
+                  fontFamily:    SERIF,
+                  fontWeight:    500,
+                  fontSize:      'clamp(1.7rem, 3.1vw, 2.75rem)',
+                  color:         '#ffffff',
+                  letterSpacing: '-0.012em',
+                  lineHeight:    '1.14',
                   maxWidth:      '20ch',
                 }}
               >
                 Reconocimientos que respaldan una visión transformadora
               </h3>
+
+              <p
+                className="mt-8 uppercase"
+                style={{ fontSize: '10px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.38)' }}
+              >
+                Universidad Autónoma de Santo Domingo — Recinto San Juan
+              </p>
             </motion.div>
 
-            {/* Lista estilo Harvard — divisores finos + flecha circular */}
+            {/* Lista numerada — dorado sobre navy */}
             <motion.div
               initial={{ opacity: 0, x: 32 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.85, ease: SPRING, delay: 0.10 }}
-              style={{
-                borderTop:    `1px solid ${C_DIVIDER}`,
-                borderBottom: `1px solid ${C_DIVIDER}`,
-              }}
+              style={{ borderTop: '1px solid rgba(255,255,255,0.14)' }}
             >
               {ACHIEVEMENTS.map((item, i) => (
                 <Link
                   key={i}
                   to="/director/despacho"
-                  className="group flex items-center justify-between gap-5 py-5 transition-colors duration-150"
-                  style={i > 0 ? { borderTop: `1px solid ${C_DIVIDER}` } : {}}
+                  className="group flex items-center gap-6 py-6 transition-colors duration-150"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.14)' }}
                 >
+                  <span
+                    style={{
+                      fontFamily: SERIF, fontWeight: 400, fontSize: '1.4rem',
+                      color: C_GOLD, flexShrink: 0, width: '2.2rem', opacity: 0.9,
+                    }}
+                    aria-hidden="true"
+                  >
+                    0{i + 1}
+                  </span>
                   <p
-                    className="font-semibold text-sm leading-relaxed transition-colors duration-150 group-hover:underline"
-                    style={{ color: C_DARK }}
+                    className="flex-1 font-medium text-sm leading-relaxed transition-colors duration-150 group-hover:text-white"
+                    style={{ color: 'rgba(255,255,255,0.82)' }}
                   >
                     {item}
                   </p>
-                  <span
-                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center
-                               transition-all duration-150 group-hover:bg-gray-900"
-                    style={{ border: '1px solid rgba(0,0,0,0.18)' }}
-                    aria-hidden="true"
-                  >
-                    <ArrowRight
-                      size={12}
-                      className="transition-colors duration-150 group-hover:text-white"
-                      style={{ color: C_DARK }}
-                    />
-                  </span>
+                  <ArrowRight
+                    size={15}
+                    className="flex-shrink-0 transition-all duration-200 group-hover:translate-x-1"
+                    style={{ color: C_GOLD }}
+                  />
                 </Link>
               ))}
             </motion.div>

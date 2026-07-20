@@ -145,39 +145,7 @@ const MobileSlide: React.FC<SlideProps> = ({
                   </div>
                 </>
               )}
-              {slides[currentSlide].displayMode !== 'hover' && (
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `linear-gradient(to right, ${slides[currentSlide].color}E6 0%, ${slides[currentSlide].color}CC 50%, ${slides[currentSlide].color}99 100%)`,
-                  }}
-                ></div>
-              )}
             </div>
-            {slides[currentSlide].displayMode !== 'hover' && (
-              <div className="relative w-full max-w-7xl mx-auto flex items-center">
-                <div className="w-full px-2 py-6">
-                  {slides[currentSlide].subtitle && (
-                    <span className="inline-block bg-white/20 px-1 py-0.5 rounded-md text-white text-[10px] font-semibold mb-1">
-                      {slides[currentSlide].subtitle}
-                    </span>
-                  )}
-                  <h1 className="text-lg font-bold text-white mb-1 leading-tight">
-                    {slides[currentSlide].title}
-                  </h1>
-                  <p className="text-xs text-white/90 mb-2 font-light">
-                    {slides[currentSlide].description}
-                  </p>
-                  <Link
-                    to={slides[currentSlide].cta.link}
-                    className="group inline-flex items-center px-3 py-1 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg text-xs"
-                  >
-                    {slides[currentSlide].cta.text}
-                    <ArrowRight className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </div>
-              </div>
-            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -342,39 +310,7 @@ const DesktopSlide: React.FC<SlideProps> = ({
                   </div>
                 </>
               )}
-              {slides[currentSlide].displayMode !== 'hover' && (
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `linear-gradient(to right, ${slides[currentSlide].color}E6 0%, ${slides[currentSlide].color}CC 50%, ${slides[currentSlide].color}99 100%)`,
-                  }}
-                ></div>
-              )}
             </div>
-            {slides[currentSlide].displayMode !== 'hover' && (
-              <div className="relative h-full max-w-7xl mx-auto flex items-center">
-                <div className="w-full px-4 md:px-8 py-8 md:py-12">
-                  {slides[currentSlide].subtitle && (
-                    <span className="inline-block bg-white/20 px-2 py-1 rounded-md text-white text-xs font-semibold mb-2">
-                      {slides[currentSlide].subtitle}
-                    </span>
-                  )}
-                  <h1 className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-2 leading-tight">
-                    {slides[currentSlide].title}
-                  </h1>
-                  <p className="text-sm md:text-base text-white/90 mb-4 font-light">
-                    {slides[currentSlide].description}
-                  </p>
-                  <Link
-                    to={slides[currentSlide].cta.link}
-                    className="group inline-flex items-center px-4 py-2 bg-white text-gray-900 rounded-md font-medium hover:bg-opacity-95 transition-all shadow-md hover:shadow-lg text-sm"
-                  >
-                    {slides[currentSlide].cta.text}
-                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </div>
-              </div>
-            )}
           </div>
         </motion.div>
       </AnimatePresence>

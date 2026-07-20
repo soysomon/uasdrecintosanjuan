@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import logoUASD from '../img/logouasd.png';
 import API_ROUTES from '../config/api';
@@ -480,15 +481,17 @@ const NewsDetailPage: React.FC = () => {
   return (
     <div className="bg-white min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-white shadow-sm">
-        <div
-          className="h-full bg-black transition-all duration-300 ease-out"
-          style={{ width: `${readingProgress}%` }}
+        <motion.div
+          className="h-full origin-left"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+          animate={{ scaleX: readingProgress / 100 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           aria-hidden="true"
           role="progressbar"
           aria-valuenow={readingProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-        ></div>
+        ></motion.div>
       </div>
 
       <div ref={articleRef} className="pt-32 pb-24">

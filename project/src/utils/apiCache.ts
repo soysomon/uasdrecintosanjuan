@@ -41,6 +41,15 @@ export function setCache<T>(key: string, data: T, ttlMs = 120_000): void {
   }
 }
 
+/** Remove a cached entry — call after saving data so viewers get it fresh. */
+export function clearCache(key: string): void {
+  try {
+    sessionStorage.removeItem(PREFIX + key);
+  } catch {
+    // sessionStorage unavailable — ignore silently.
+  }
+}
+
 /**
  * Inject a <link rel="preload"> for an image URL.
  * Starts the download before the <img> element renders.

@@ -9,6 +9,7 @@ import {
 import { toast, Toaster } from 'react-hot-toast';
 import API_ROUTES from '../config/api';
 import AdminShell from '../components/admin/AdminShell';
+import { clearCache } from '../utils/apiCache';
 
 /* ─── Types ─────────────────────────────────────────── */
 
@@ -111,6 +112,7 @@ const SlidesEditorPage: React.FC = () => {
       savedRef.current = JSON.parse(JSON.stringify(updated));
       setCurrentIndex((i) => Math.min(i, updated.length - 1));
       setHasChanges(false);
+      clearCache('slides');
       toast.success('Slide eliminado', { icon: <Check size={16} style={{ color: 'var(--adm-green)' }} /> });
     } catch {
       toast.error('Error al eliminar el slide');
@@ -164,6 +166,7 @@ const SlidesEditorPage: React.FC = () => {
       }
       savedRef.current = JSON.parse(JSON.stringify(slides));
       setHasChanges(false);
+      clearCache('slides');
       toast.success('Cambios guardados correctamente', { icon: <Check size={16} style={{ color: 'var(--adm-green)' }} /> });
       fetchSlides();
     } catch {
@@ -326,7 +329,7 @@ const SlidesEditorPage: React.FC = () => {
                   <img
                     src={slide.image}
                     alt={slide.title}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: slide.displayMode === 'hover' ? 0.6 : 1 }}
                   />
                 )}
                 {/* Overlay for hover mode */}
@@ -351,30 +354,10 @@ const SlidesEditorPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-                {/* Normal mode — content always visible */}
-                {slide.displayMode !== 'hover' && (slide.title || slide.subtitle || slide.description) && (
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'flex-start', justifyContent: 'center',
-                    padding: '28px 36px',
-                  }}>
-                    {slide.subtitle && (
-                      <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 6, padding: '2px 10px', color: '#fff', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
-                        {slide.subtitle}
-                      </span>
-                    )}
-                    <h3 style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 700, margin: '0 0 8px' }}>{slide.title}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.85)', margin: '0 0 16px', fontSize: 14, maxWidth: 420 }}>{slide.description}</p>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6, background: '#fff', fontSize: 13, fontWeight: 600 }}>
-                      {slide.cta.text} <ArrowRight size={12} />
-                    </div>
-                  </div>
-                )}
-                {/* Empty state label — shown only when no content to display */}
-                {slide.displayMode !== 'hover' && !slide.title && !slide.subtitle && !slide.description && (
+                {/* Normal mode — imagen limpia, sin overlay ni texto */}
+                {slide.displayMode !== 'hover' && (
                   <span className="adm-slide-main-preview-label">
-                    Vista previa · Slide {slideNum}
+                    Vista previa · Slide {slideNum} (Normal — imagen limpia)
                   </span>
                 )}
               </div>
@@ -551,7 +534,7 @@ const SlidesEditorPage: React.FC = () => {
                       value={slide.displayMode || 'normal'}
                       onChange={(e) => updateSlide(currentIndex, { displayMode: e.target.value as 'normal' | 'hover' })}
                     >
-                      <option value="normal">Normal — contenido siempre visible</option>
+                      <option value="normal">Normal — imagen limpia, sin overlay</option>
                       <option value="hover">Hover — revelar al pasar el cursor</option>
                     </select>
                   </div>

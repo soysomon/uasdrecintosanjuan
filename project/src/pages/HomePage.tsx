@@ -11,10 +11,10 @@
 //   Statement          → full-bleed brand CTA block               (BRAND #003087) ← section-elevated
 //   SocialMediaSection → social feed                              (SURFACE)
 
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import HeroCarousel       from '../components/Header/HeroCarousel';
 import QuickLinks         from '../components/QuickLinks';
-import StatsSection       from '../components/StatsSection';
 import RecentNews         from '../components/RecentNews';
 import AdmissionsFeature  from '../components/AdmissionsFeature';
 import UniversityInfo     from '../components/UniversityInfo';
@@ -23,15 +23,32 @@ import Events             from '../components/Events';
 import { SocialMediaSection } from '../components/SocialMediaSection';
 
 const HomePage: React.FC = () => {
+  // Efecto de salida inmersivo del Hero: al hacer scroll fuera del hero,
+  // la imagen/carrusel se amplía, se difumina y se desvanece (estilo Apple).
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: heroExitProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const heroScale   = useTransform(heroExitProgress, [0, 1], [1, 1.15]);
+  const heroOpacity = useTransform(heroExitProgress, [0, 1], [1, 0]);
+  const heroBlur    = useTransform(heroExitProgress, [0, 1], [0, 16]);
+  const heroFilter  = useTransform(heroBlur, (v) => `blur(${v}px)`);
+
   return (
     <div style={{ backgroundColor: 'var(--color-surface)' }}>
 
       {/*
        * Nav offset: Navigation is position:fixed, ~108 px tall.
        * This padding pushes the hero below the nav bar.
+       * heroRef mide el recorrido de scroll para animar la salida del hero.
        */}
-      <div style={{ paddingTop: '108px' }}>
-        <HeroCarousel />
+      <div ref={heroRef} style={{ paddingTop: '108px', overflow: 'hidden' }}>
+        <motion.div
+          style={{ scale: heroScale, opacity: heroOpacity, filter: heroFilter, willChange: 'transform, filter, opacity' }}
+        >
+          <HeroCarousel />
+        </motion.div>
       </div>
 
       {/*
@@ -40,12 +57,6 @@ const HomePage: React.FC = () => {
        * La separación la proveen los hairlines internos del componente.
        */}
       <QuickLinks />
-
-      {/*
-       * StatsSection — now white/surface bg, thin bordered band.
-       * No section-elevated wrapper needed (light section, borders provide separation).
-       */}
-      <StatsSection />
 
       {/* Editorial asymmetric news layout */}
       <RecentNews />
