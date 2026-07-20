@@ -19,7 +19,8 @@ const baseNavItems: NavItem[] = [
       { label: 'Historia', href: '/inicio/historia' },
       { label: 'Filosofía Institucional', href: '/inicio/filosofia' },
       { label: 'Misión, Visión y Valores', href: '/inicio/mision-vision' },
-      { label: 'Proyectos y Resoluciones', href: '/inicio/proyectos' },
+      // Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+      // { label: 'Proyectos y Resoluciones', href: '/inicio/proyectos' },
       { label: 'Nuestro Equipo', href: '/inicio/informes' },
       { label: 'UASD Elías Piña', href: '/inicio/elias-pina' },
       { label: 'Consejo Directivo', href: '/inicio/consejo-directivo' },
@@ -38,7 +39,8 @@ const baseNavItems: NavItem[] = [
     ],
   },
   { label: 'Noticias', href: '/noticias' },
-  { label: 'Investigación', href: '/inicio/proyectos' },
+  // Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+  // { label: 'Investigación', href: '/inicio/proyectos' },
   { label: 'Contacto', href: '/contacto' },
   {
     label: 'Transparencia',

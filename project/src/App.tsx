@@ -19,7 +19,8 @@ const NewsDetailPage           = lazy(() => import('./components/NewsDetailPage'
 const HistoryPage              = lazy(() => import('./components/HistoryPage').then(m => ({ default: m.HistoryPage })));
 const PhilosophyPage           = lazy(() => import('./components/PhilosophyPage').then(m => ({ default: m.PhilosophyPage })));
 const MisionVisionPage         = lazy(() => import('./components/MisionVisionPage').then(m => ({ default: m.MisionVisionPage })));
-const ProjectsPage             = lazy(() => import('./components/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
+// Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+// const ProjectsPage             = lazy(() => import('./components/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const EliasPinaPage            = lazy(() => import('./components/EliasPinaPage').then(m => ({ default: m.EliasPinaPage })));
 const DirectivosPage           = lazy(() => import('./components/DirectivosPage').then(m => ({ default: m.DirectivosPage })));
 const UnidadesPage             = lazy(() => import('./components/UnidadesPage').then(m => ({ default: m.UnidadesPage })));
@@ -87,7 +88,8 @@ const PrefetchQueue = () => {
         () => import('./components/HistoryPage'),
         () => import('./components/PhilosophyPage'),
         () => import('./components/MisionVisionPage'),
-        () => import('./components/ProjectsPage'),
+        // Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+        // () => import('./components/ProjectsPage'),
         () => import('./components/DirectivosPage'),
         () => import('./components/UnidadesPage'),
         () => import('./components/EliasPinaPage'),
@@ -176,7 +178,8 @@ function App() {
               <Route path="/inicio/historia" element={<HistoryPage />} />
               <Route path="/inicio/filosofia" element={<PhilosophyPage />} />
               <Route path="/inicio/mision-vision" element={<MisionVisionPage />} />
-              <Route path="/inicio/proyectos" element={<ProjectsPage />} />
+              {/* Reservado para futura reactivacion de investigaciones y proyectos institucionales. */}
+              {/* <Route path="/inicio/proyectos" element={<ProjectsPage />} /> */}
               <Route path="/inicio/elias-pina" element={<EliasPinaPage />} />
               <Route path="/inicio/consejo-directivo" element={<DirectivosPage />} />
               <Route path="/inicio/unidades" element={<UnidadesPage />} />

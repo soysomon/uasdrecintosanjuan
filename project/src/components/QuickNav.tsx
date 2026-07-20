@@ -14,7 +14,8 @@ const ALLOWED_PATHS = [
   '/inicio/historia',
   '/inicio/filosofia',
   '/inicio/mision-vision',
-  '/inicio/proyectos',
+  // Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+  // '/inicio/proyectos',
   '/inicio/informes',
   '/inicio/elias-pina',
   '/inicio/consejo-directivo',

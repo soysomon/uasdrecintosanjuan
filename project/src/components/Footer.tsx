@@ -24,7 +24,8 @@ const COLUMNS: { title: string; links: { name: string; href: string; external?: 
     title: 'Recursos Académicos',
     links: [
       { name: 'Oferta Académica', href: '/carreras/grado' },
-      { name: 'Investigación', href: '/inicio/proyectos' },
+      // Reservado para futura reactivacion de investigaciones y proyectos institucionales.
+      // { name: 'Investigación', href: '/inicio/proyectos' },
       { name: 'Memorias Institucionales', href: '/memorias' },
       { name: 'Transparencia', href: '/transparencia/estados-financieros' },
     ],

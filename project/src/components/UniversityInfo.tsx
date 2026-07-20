@@ -174,7 +174,8 @@ const UniversidadSection: React.FC = () => {
           variants={itemVariants}
           style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}
         >
-          <Link
+          {/* Reservado para futura reactivacion de investigaciones y proyectos institucionales. */}
+          {/* <Link
             to="/inicio/proyectos"
             style={{
               display:         'inline-flex',
@@ -194,7 +195,7 @@ const UniversidadSection: React.FC = () => {
           >
             Proyectos y Resoluciones
             <ArrowRight style={{ width: 14, height: 14 }} aria-hidden="true" />
-          </Link>
+          </Link> */}
 
           <Link
             to="/inicio/historia"
