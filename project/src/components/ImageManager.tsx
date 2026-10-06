@@ -8,6 +8,8 @@ import {
 import { toast } from 'react-hot-toast';
 import { ImageDisplayOptions, Section } from '../types/news';
 import API_ROUTES from '../config/api';
+import { useAuth } from '../auth/hooks/useAuth';
+import { isSessionInvalidResponse } from '../auth/context/AuthContext';
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 interface UploadingImage {
@@ -69,6 +71,7 @@ const ImageManager: React.FC<{
   /** Reorder: move imageId to position 0 (make it portada) */
   onSetPortada?: (imageId: string) => void;
 }> = ({ section, onUploadComplete, onRemoveImage, onSettingsChange, sectionIndex, onSetPortada }) => {
+  const { token, notifySessionExpired } = useAuth();
 
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [failedImages,    setFailedImages]     = useState<Set<string>>(new Set());
@@ -98,8 +101,13 @@ const ImageManager: React.FC<{
       const formData = new FormData();
       formData.append('file', compressed);
 
-      const res  = await fetch(API_ROUTES.UPLOAD_IMAGE, { method: 'POST', body: formData });
+      const res  = await fetch(API_ROUTES.UPLOAD_IMAGE, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
       const data = await res.json();
+      if (isSessionInvalidResponse(res.status, data)) notifySessionExpired();
       if (!res.ok) throw new Error(data.error || 'Error al subir la imagen');
 
       // Mark success

@@ -6,9 +6,12 @@ import ImageManager from '../../components/ImageManager';
 import EstadosFinancierosPdfUploader from '../../components/EstadosFinancierosPdfUploader';
 import { Plus, X } from 'lucide-react';
 import API_ROUTES from '../../config/api';
+import { useAuth } from '../../auth/hooks/useAuth';
+import { isSessionInvalidResponse } from '../../auth/context/AuthContext';
 import { ImageDisplayOptions, NewsImage, Section } from '../../types/news';
 
 const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId, onSuccess }) => {
+  const { token, notifySessionExpired } = useAuth();
   const [title, setTitle] = useState('');
   const [sections, setSections] = useState<Section[]>([]);
   const [date, setDate] = useState('');
@@ -126,10 +129,12 @@ const NewsEdit: React.FC<{ newsId: string; onSuccess: () => void }> = ({ newsId,
     try {
       const res = await fetch(API_ROUTES.UPLOAD_IMAGE, {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
       const data = await res.json();
+      if (isSessionInvalidResponse(res.status, data)) notifySessionExpired();
       if (!res.ok) {
         throw new Error(data.error || 'Error al subir la imagen');
       }
